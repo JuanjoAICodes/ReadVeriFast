@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('My Profile') }}{% endblock %}
+
+{% block content %}
+<style>
+    .profile-container { max-width: 900px; margin: 20px auto; padding: 0 20px; }
+    .stats-panel {
+        display: flex;
+        justify-content: space-around;
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+    .stat-item { flex: 1; }
+    .stat-item h3 { margin: 0; font-size: 1.5em; color: #007bff; }
+    .stat-item p { margin: 5px 0 0; color: #6c757d; }
+    .history-table { width: 100%; border-collapse: collapse; }
+    .history-table th, .history-table td {
+        padding: 12px 15px;
+        border: 1px solid #dee2e6;
+        text-align: left;
+    }
+    .history-table th { background-color: #e9ecef; }
+    .text-success { color: #28a745; font-weight: bold; }
+    .text-danger { color: #dc3545; font-weight: bold; }
+</style>
+
+<div class="profile-container">
+    <h1>{{ _('Profile of') }} {{ user.email }}</h1>
+    <hr>
+
+    <!-- Panel de Estadísticas -->
+    <div class="stats-panel">
+        <div class="stat-item">
+            <h3>{{ user.total_xp }} {{ _('XP') }}</h3>
+            <p>{{ _('Total Experience') }}</p>
+        </div>
+        <div class="stat-item">
+            <h3>{{ user.current_wpm }} / <small>{{ user.max_wpm }}</small></h3>
+            <p>{{ _('Speed Level (WPM)') }}</p>
+        </div>
+        <div class="stat-item">
+            <h3>{{ attempts|length }}</h3>
+            <p>{{ _('Articles Read') }}</p>
+        </div>
+    </div>
+
+    <fieldset>
+        <label for="theme-switcher">
+            {{ _('Activate Dark Theme') }}
+            <input type="checkbox" id="theme-switcher" role="switch" {% if user.theme == 'dark' %}checked{% endif %}>
+        </label>
+    </fieldset>
+    <!-- Historial de Actividad -->
+    <h2>{{ _('Reading History') }}</h2>
+    <table class="history-table">
+        <thead>
+            <tr>
+                <th>{{ _('Article') }}</th>
+                <th>{{ _('Score') }}</th>
+                <th>{{ _('Date') }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for attempt in attempts %}
+            <tr>
+                <td>
+                    <a href="{{ url_for('core.article_detail', article_id=attempt.article_id) }}">
+                        {{ attempt.article.title or _('Untitled Article') }}
+                    </a>
+                </td>
+                <td>
+                    {% if attempt.score >= 50 %}
+                        <span class="text-success">{{ "%.0f"|format(attempt.score) }}%</span>
+                    {% else %}
+                        <span class="text-danger">{{ "%.0f"|format(attempt.score) }}%</span>
+                    {% endif %}
+                </td>
+                <td>{{ attempt.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="3" style="text-align: center;">{{ _('You have not completed any quizzes yet.') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const themeSwitcher = document.getElementById('theme-switcher');
+        const htmlTag = document.documentElement;
+
+        // Al cargar la página, comprobar el atributo data-theme y marcar el interruptor
+        if (htmlTag.dataset.theme === 'dark') {
+            themeSwitcher.checked = true;
+        }
+
+        // Escuchar los cambios en el interruptor
+        themeSwitcher.addEventListener('change', function() {
+            let newTheme = this.checked ? 'dark' : 'light';
+
+            // Actualizar el atributo data-theme
+            htmlTag.dataset.theme = newTheme;
+
+            // Enviar la preferencia al backend
+            fetch("{{ url_for('core.set_theme') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ theme: newTheme })
+            });
+        });
+    });
+</script>
+
+{% endblock %}

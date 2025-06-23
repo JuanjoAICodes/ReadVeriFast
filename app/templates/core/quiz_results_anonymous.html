@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Quiz Results') }}{% endblock %}
+
+{% block content %}
+<style>
+    .container { max-width: 800px; margin: 20px auto; padding: 0 20px; text-align: center; }
+    .xp-gain { color: #28a745; font-weight: bold; }
+    .feedback-section { text-align: left; margin-top: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+    .feedback-item { margin-bottom: 1.5em; }
+    .user-answer { color: #dc3545; }
+    .correct-answer { color: #17a2b8; }
+    .actions { margin-top: 40px; display: flex; justify-content: center; gap: 15px; }
+    .original-link { margin-top: 20px; font-size: 0.9em; }
+    .guest-message { margin-top: 30px; padding: 15px; background-color: #f0f8ff; border-left: 5px solid #007bff; text-align: left; }
+</style>
+
+<div class="container text-center">
+
+    {% if approved %}
+        <!-- === VISTA DE ÉXITO PARA INVITADO === -->
+        <h1>{{ _('Quiz Passed!') }}</h1>
+        <p class="lead">{{ _('You have earned') }} <strong>{{ xp_earned }} XP</strong>.</p>
+        <p>{{ _('Your total XP as a guest is now:') }} {{ guest_xp }}</p>
+        <hr>
+        
+        <h3>{{ _('What to do now?') }}</h3>
+        <a href="{{ url_for('core.index') }}" role="button" class="secondary">{{ _('Main Page') }}</a>
+        <a href="{{ url_for('auth.register') }}" role="button" class="primary">{{ _('Register to save my progress') }}</a>
+
+        <div class="guest-message">
+            <p>{{ _('As a guest, your progress (XP and WPM) is saved temporarily in this session! If you register, you can save your progress permanently and access more features.') }}</p>
+        </div>
+        <a href="{{ article.url }}" target="_blank" role="button" class="secondary">{{ _('View original article') }}</a>
+
+    {% else %}
+        <!-- === VISTA DE FRACASO PARA INVITADO === -->
+        <h1>{{ _('Quiz Not Passed!') }}</h1>
+        <p class="lead">{{ _('You have not reached the minimum score to pass this quiz.') }}</p>
+        <p class="lead">{{ _('Don\'t give up, practice makes perfect!') }}</p>
+        <div class="alert alert-info" role="alert">
+            {{ _('Your recommended reading speed has been adjusted to') }} <strong>{{ session.get('guest_current_wpm', 250) }} WPM</strong> {{ _('to help you.') }}
+        </div>
+        <hr>
+
+        <h3>{{ _('Take your time to assimilate the content and try again.') }}</h3>
+        <a href="{{ url_for('core.article_detail', article_id=article.id) }}" role="button" class="primary">{{ _('Retry this article') }}</a>
+        <a href="{{ url_for('core.article_detail', article_id=article.id) }}" role="button" class="secondary">{{ _('View original article') }}</a>
+    
+    {% endif %}
+</div>
+{% endblock %}

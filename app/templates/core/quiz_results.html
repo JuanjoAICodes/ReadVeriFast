@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Resultados para: {{ article.title }}</h1>
+    
+    <!-- 1. El Mensaje Principal y la Puntuación -->
+    <h2>Tu puntuación: {{ "%.0f"|format(score) }}%</h2>
+    <p class="lead">{{ message }}</p>
+    <p>{{ suggestion }}</p>
+
+    <hr>
+
+    <!-- 2. Feedback Correctivo Inmediato -->
+    <h3>Revisión de tus respuestas:</h3>
+    {% for detail in evaluation_details %}
+        <div>
+            <p><strong>Pregunta:</strong> {{ detail.question_text }}</p>
+            {% if detail.is_correct %}
+                <p style="color: green;">
+                    Tu respuesta: {{ detail.user_answer }} (¡Correcta!)
+                </p>
+            {% else %}
+                <p style="color: red;">
+                    Tu respuesta: {{ detail.user_answer }} (Incorrecta)
+                </p>
+                <p style="color: blue;">
+                    Respuesta correcta: {{ detail.correct_answer }}
+                </p>
+            {% endif %}
+        </div>
+        <br>
+    {% endfor %}
+
+    <hr>
+
+    <!-- 3. Próximas Acciones Claras -->
+    <h3>¿Qué quieres hacer ahora?</h3>
+    
+    <!-- Opción de re-lectura (especialmente si falló) -->
+    {% if score < 50 %}
+        <a href="{{ reread_url }}" class="btn btn-primary">
+            Leer este artículo de nuevo (más lento)
+        </a>
+        <a href="{{ article.url }}" target="_blank" class="btn btn-secondary">
+            Ver artículo original
+        </a>
+    {% endif %}
+
+    <!-- Opciones para continuar el "flow" -->
+    {% if related_article %}
+        <a href="{{ url_for('core.article_detail', id=related_article.id) }}" class="btn btn-info">
+            Leer un artículo relacionado
+        </a>
+    {% endif %}
+    {% if random_unread_article %}
+        <a href="{{ url_for('core.article_detail', article_id=random_unread_article.id) }}" class="btn btn-success">
+            Leer otro artículo
+        </a>
+    {% endif %}
+    
+    <a href="{{ url_for('core.index') }}" class="btn btn-light">Volver a la página principal</a>
+
+{% endblock %}

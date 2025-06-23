@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _("Articles for tag '%(tag_name)s'", tag_name=tag.name) }}{% endblock %}
+
+{% block content %}
+    <header>
+        {# Usamos la función de traducción para el título #}
+        <h1>{{ _("Articles tagged with '%(tag_name)s'", tag_name=tag.name) }}</h1>
+    </header>
+    <hr>
+
+    {% if articles %}
+        {% for article in articles %}
+            {# Reutilizamos la estructura de la lista de artículos de index.html #}
+            <article class="article-list-item">
+                {% if article.image_url %}
+                    <div class="article-image-container">
+                        <img src="{{ article.image_url }}" alt="{{ _('Image for %(title)s', title=article.title) }}" class="article-list-image">
+                    </div>
+                {% endif %}
+                <div class="article-content">
+                    <h2><a href="{{ url_for('core.article_detail', article_id=article.id) }}">{{ article.title }}</a></h2>
+                    <p>{{ _('Submitted by:') }} {{ article.author.email }} | <small>{{ _('Date:') }} {{ article.timestamp.strftime('%Y-%m-%d') }}</small></p>
+                </div>
+            </article>
+            <hr>
+        {% endfor %}
+    {% else %}
+        <p>{{ _("There are no articles with this tag yet.") }}</p>
+    {% endif %}
+{% endblock %}

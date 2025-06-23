@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="{{ get_locale() }}" data-theme="{% if current_user.is_authenticated %}{{ current_user.theme }}{% else %}auto{% endif %}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{% block title %}{% endblock %} - VeriFast</title>
+    {# Pico.css para un diseño minimalista y profesional #}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    {# Tus estilos personalizados #}
+    <link rel="stylesheet" href="{{ url_for('static', filename='CSS/style.css') }}">
+</head>
+<body>
+    {# Usamos la estructura de nav de Pico.css para alinear elementos a la izquierda y derecha #}
+    <nav class="container-fluid">
+        <ul>
+            <li><a href="{{ url_for('core.index') }}" class="contrast"><strong>VeriFast</strong></a></li>
+        </ul>
+        <ul>
+            {% if current_user.is_authenticated %}
+                <li><a href="{{ url_for('core.profile') }}">{{ _('My Profile') }}</a></li>
+                <li><a href="{{ url_for('auth.logout') }}" role="button">{{ _('Logout') }}</a></li>
+            {% else %}
+                <li><a href="{{ url_for('auth.login') }}">{{ _('Login') }}</a></li>
+                <li><a href="{{ url_for('auth.register') }}" role="button">{{ _('Register') }}</a></li>
+            {% endif %}
+            {# Grupo de botones para cambiar de idioma #}
+            <li>
+                <div class="grid">
+                    {% for lang in current_app.config.get('LANGUAGES', []) %}
+                        <a href="{{ url_for('core.set_language', lang=lang) }}" role="button" class="secondary outline" {% if get_locale()|string == lang %}aria-disabled="true"{% endif %}>
+                            {% if lang == 'es' %}Español{% elif lang == 'en' %}English{% else %}{{ lang }}{% endif %}
+                        </a>
+                    {% endfor %}
+                </div>
+            </li>
+        </ul>
+    </nav>
+    <hr>
+    <main class="container">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul class="flashes">
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+    {# Aquí podrías enlazar archivos JavaScript globales #}
+    {# <script src="{{ url_for('static', filename='js/script.js') }}"></script> #}
+</body>
+</html>

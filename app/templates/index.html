@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>VeriFast - Inicio</title>
+</head>
+<body>
+    <nav>
+        {# Lógica de navegación condicional #}
+        {% if current_user.is_authenticated %}
+            Hola, {{ current_user.email }} | 
+            <a href="{{ url_for('core.submit_article') }}">Enviar Artículo</a> | 
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        {% else %}
+            <a href="{{ url_for('auth.login') }}">Iniciar Sesión</a> | 
+            <a href="{{ url_for('auth.register') }}">Registrarse</a>
+        {% endif %}
+    </nav>
+    <hr>
+    
+    <h1>Últimos Artículos</h1>
+    
+    {% for article in articles %}
+        <article style="overflow: auto; padding-bottom: 1em; margin-bottom: 1em;">
+            {# 1. Mostrar la imagen solo si existe #}
+            {% if article.image_url %}
+                <img src="{{ article.image_url }}" 
+                     alt="Imagen para {{ article.title }}" 
+                     style="float: left; margin-right: 15px; max-height: 100px; width: 150px; object-fit: cover; border-radius: 4px;">
+            {% endif %}
+
+            {# 2. Contenido del artículo #}
+            <h2>
+                <a href="{{ url_for('core.article_detail', article_id=article.id) }}">{{ article.title or 'Artículo en procesamiento...' }}</a>
+            </h2>
+            {# Podríamos añadir más detalles aquí en el futuro, como el estado #}
+        </article>
+        <hr>
+    {% else %}
+        <p>Todavía no hay artículos disponibles. ¡Sé el primero en enviar uno!</p>
+    {% endfor %}
+
+</body>
+</html>

@@ -1,0 +1,53 @@
+{% extends "base.html" %} {# Asumiendo que tienes un base.html #}
+
+{% block content %}
+    {# Menú de navegación condicional #}
+    <nav>
+        {% if current_user.is_authenticated %}
+            <p>
+                {{ _('Welcome,') }} {{ current_user.email }} | 
+                <a href="{{ url_for('core.submit_article') }}">{{ _('Submit an article') }}</a> | 
+                <a href="{{ url_for('auth.logout') }}">{{ _('Logout') }}</a>
+            </p>
+        {% else %}
+            <p>
+                <a href="{{ url_for('auth.login') }}">{{ _('Login') }}</a> | 
+                <a href="{{ url_for('auth.register') }}">{{ _('Register') }}</a>
+            </p>
+        {% endif %}
+    </nav>
+    <hr>
+    <h2>{{ _('Latest Articles') }}</h2>
+
+    {# Bucle para mostrar la lista de artículos - ESTO ES PÚBLICO #}
+    {% for article in articles %}
+        <article class="article-list-item">
+            {% if article.image_url %}
+                <div class="article-image-container">
+                    <img src="{{ article.image_url }}" alt="Imagen de {{ article.title }}" class="article-list-image">
+                </div>
+            {% endif %}
+            <div class="article-content">
+                <h2>
+                    {# El título es un enlace solo si el artículo está completo #}
+                    {% if article.processing_status == 'complete' %}
+                        <a href="{{ url_for('core.article_detail', article_id=article.id) }}">{{ article.title }}</a>
+                    {% else %}
+                        {{ article.title or _('Processing: ') + article.url }}
+                    {% endif %}
+                </h2>
+                {% if article.processing_status == 'pending' %}
+                    <p><em>{{ _('Status: Processing...') }} </em> <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span></p>
+                {% elif article.processing_status == 'failed' %}
+                    <p style="color: red;"><em>{{ _('Status: Error processing.') }}</em></p>
+                {% else %}
+                    <p>{{ _('Submitted by:') }} {{ article.author.email }} | <small>{{ _('Date:') }} {{ article.timestamp.strftime('%Y-%m-%d') }}</small></p>
+                {% endif %}
+            </div>
+        </article>
+        <hr>
+    {% else %}
+        <p>{{ _('No articles available yet.') }}</p>
+    {% endfor %}
+
+{% endblock %}

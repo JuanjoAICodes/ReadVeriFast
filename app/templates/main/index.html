@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+    <h1>¡Bienvenido a VeriFast!</h1>
+    <p>Esta es la página principal servida desde el blueprint 'main'.</p>
+
+    {% if current_user.is_authenticated %}
+        
+        <p>Estás conectado como: {{ current_user.email }}</p>
+        
+        {# --- EL CÓDIGO VA AQUÍ --- #}
+        <p><a href="{{ url_for('core.submit_article') }}">Enviar un artículo</a></p>
+        
+        {# También podrías añadir aquí el enlace de logout para que sea visible #}
+        <p><a href="{{ url_for('auth.logout') }}">Cerrar Sesión</a></p>
+
+    {% else %}
+
+        {# Esto es para los usuarios que NO han iniciado sesión #}
+        <p>¡Por favor, inicia sesión para empezar!</p>
+        <p><a href="{{ url_for('auth.login') }}">Iniciar Sesión</a></p>
+        <p><a href="{{ url_for('auth.register') }}">Registrarse</a></p>
+
+    {% endif %}
+
+{% endblock %}

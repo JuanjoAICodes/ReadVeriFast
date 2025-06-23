@@ -1,0 +1,86 @@
+/* --- Basic Page Styles --- */
+.container { max-width: 800px; margin: 20px auto; padding: 0 20px; }
+.speed-controls { display: flex; gap: 15px; align-items: center; justify-content: center; margin-bottom: 20px; }
+.question { margin-bottom: 1.5em; }
+hr { margin: 40px 0; }
+
+/* --- Article List Styles --- */
+.article-list-item {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+.article-image-container {
+    flex-shrink: 0;
+}
+.article-list-image {
+    width: 150px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 5px;
+}
+.article-detail-image {
+    width: 100%;
+    max-height: 400px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+/* Estilo para la caja donde aparecen las palabras */
+.word-display-box {
+    font-family: monospace;
+    min-height: 1.5em;
+    border: 1px solid #ccc;
+    padding: 40px;
+    margin-bottom: 20px;
+    font-size: 3em; /* Letras grandes para facilitar la lectura */
+    background-color: white; /* Asegura que tenga un fondo */
+    color: black;
+    text-align: center;
+}
+
+
+/* =================================== */
+/* == MODO ENFOQUE PARA LECTOR RÁPIDO == */
+/* =================================== */
+
+/* 1. El overlay oscuro que cubrirá toda la pantalla */
+/* Se activa cuando el body tiene la clase .focus-mode-active */
+body.focus-mode-active::before {
+    content: '' !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background-color: rgba(20, 20, 25, 0.95) !important; /* Negro azulado muy oscuro */
+    z-index: 1000 !important; /* Capa 1000 (base del modo enfoque) */
+    backdrop-filter: blur(4px) !important; /* Opcional: añade un efecto de desenfoque al fondo */
+}
+
+/* 2. Ocultamos los contenedores que no nos interesan */
+body.focus-mode-active .content-to-hide {
+    opacity: 0 !important; /* Lo hacemos totalmente transparente */
+    pointer-events: none !important; /* Impedimos que se pueda hacer clic en ellos */
+    transition: opacity 0.3s ease-in-out !important; /* Una transición suave */
+}
+
+/* 3. El lector de velocidad se convierte en el protagonista */
+body.focus-mode-active .speed-reader-container {
+    /* Lo posicionamos en el centro de la pantalla */
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 1001 !important; /* Capa 1001 (por encima del overlay) */
+    
+    /* Le damos un tamaño y estilo para que destaque */
+    width: 80% !important;
+    max-width: 800px !important; /* Un ancho máximo para pantallas grandes */
+    background-color: #ffffff !important;
+    padding: 2rem !important;
+    border-radius: 8px !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
+    text-align: center !important;
+}

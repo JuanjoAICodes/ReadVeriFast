@@ -236,22 +236,21 @@ def submit_quiz(article_id):
 @bp.route('/profile')
 @login_required
 def profile():
-    """
-    Muestra la página de perfil del usuario, incluyendo su historial de intentos.
-    """
-    # Consulta para obtener los intentos del usuario, cargando eficientemente
-    # la información del artículo relacionado para evitar consultas N+1.
-    attempts = QuizAttempt.query.filter_by(user_id=current_user.id)\
-        .options(selectinload(QuizAttempt.article))\
-        .order_by(QuizAttempt.timestamp.desc())\
+    user = current_user
+    # La relación 'quiz_attempts' es dinámica, por lo que actúa como un objeto de consulta.
+    # Añadimos 'selectinload' para cargar eficientemente los artículos relacionados
+    # y evitar múltiples consultas a la base de datos en la plantilla (problema N+1).
+    # También se corrige el nombre de la columna de ordenación a 'timestamp'.
+    attempts = (
+        user.quiz_attempts.options(selectinload(QuizAttempt.article))
+        .order_by(QuizAttempt.timestamp.desc())
         .all()
+    )
 
     return render_template(
-        'core/profile.html',
-        title='Mi Perfil',
-        user=current_user,
-        attempts=attempts
+        'core/profile.html', user=user, attempts=attempts, title="Mi Perfil"
     )
+
 
 @bp.route('/set-theme', methods=['POST'])
 @login_required

@@ -32,62 +32,64 @@
     <h1>{{ _('Profile of') }} {{ user.email }}</h1>
     <hr>
 
-    <!-- Panel de Estadísticas -->
-    <div class="stats-panel">
-        <div class="stat-item">
-            <h3>{{ user.total_xp }} {{ _('XP') }}</h3>
-            <p>{{ _('Total Experience') }}</p>
+    <article>
+        <!-- Panel de Estadísticas -->
+        <div class="stats-panel">
+            <div class="stat-item">
+                <h3>{{ user.total_xp }} {{ _('XP') }}</h3>
+                <p>{{ _('Total Experience') }}</p>
+            </div>
+            <div class="stat-item">
+                <h3>{{ user.current_wpm }} / <small>{{ user.max_wpm }}</small></h3>
+                <p>{{ _('Speed Level (WPM)') }}</p>
+            </div>
+            <div class="stat-item">
+                <h3>{{ attempts|length }}</h3>
+                <p>{{ _('Articles Read') }}</p>
+            </div>
         </div>
-        <div class="stat-item">
-            <h3>{{ user.current_wpm }} / <small>{{ user.max_wpm }}</small></h3>
-            <p>{{ _('Speed Level (WPM)') }}</p>
-        </div>
-        <div class="stat-item">
-            <h3>{{ attempts|length }}</h3>
-            <p>{{ _('Articles Read') }}</p>
-        </div>
-    </div>
-
-    <fieldset>
-        <label for="theme-switcher">
-            {{ _('Activate Dark Theme') }}
-            <input type="checkbox" id="theme-switcher" role="switch" {% if user.theme == 'dark' %}checked{% endif %}>
-        </label>
-    </fieldset>
-    <!-- Historial de Actividad -->
-    <h2>{{ _('Reading History') }}</h2>
-    <table class="history-table">
-        <thead>
-            <tr>
-                <th>{{ _('Article') }}</th>
-                <th>{{ _('Score') }}</th>
-                <th>{{ _('Date') }}</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for attempt in attempts %}
-            <tr>
-                <td>
-                    <a href="{{ url_for('core.article_detail', article_id=attempt.article_id) }}">
-                        {{ attempt.article.title or _('Untitled Article') }}
-                    </a>
-                </td>
-                <td>
-                    {% if attempt.score >= 50 %}
-                        <span class="text-success">{{ "%.0f"|format(attempt.score) }}%</span>
-                    {% else %}
-                        <span class="text-danger">{{ "%.0f"|format(attempt.score) }}%</span>
-                    {% endif %}
-                </td>
-                <td>{{ attempt.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="3" style="text-align: center;">{{ _('You have not completed any quizzes yet.') }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    
+        <fieldset>
+            <label for="theme-switcher">
+                {{ _('Activate Dark Theme') }}
+                <input type="checkbox" id="theme-switcher" role="switch" {% if user.theme == 'dark' %}checked{% endif %}>
+            </label>
+        </fieldset>
+        <!-- Historial de Actividad -->
+        <h2>{{ _('Reading History') }}</h2>
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th>{{ _('Article') }}</th>
+                    <th>{{ _('Score') }}</th>
+                    <th>{{ _('Date') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for attempt in attempts %}
+                <tr>
+                    <td>
+                        <a href="{{ url_for('core.article_detail', article_id=attempt.article_id) }}">
+                            {{ attempt.article.title or _('Untitled Article') }}
+                        </a>
+                    </td>
+                    <td>
+                        {% if attempt.score >= 50 %}
+                            <span class="text-success">{{ "%.0f"|format(attempt.score) }}%</span>
+                        {% else %}
+                            <span class="text-danger">{{ "%.0f"|format(attempt.score) }}%</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ attempt.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="3" style="text-align: center;">{{ _('You have not completed any quizzes yet.') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </article>
 </div>
 
 <script>

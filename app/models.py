@@ -39,6 +39,16 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    def to_dict(self):
+        """Devuelve una representación del usuario en diccionario."""
+        return {
+            'id': self.id,
+            'email': self.email,
+            'total_xp': self.total_xp,
+            'current_wpm': self.current_wpm,
+            'max_wpm': self.max_wpm,
+        }
+
 
 class Article(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -64,6 +74,18 @@ class Article(db.Model):
         'QuizAttempt', backref='article', lazy='dynamic', cascade="all, delete-orphan"
     )
 
+    def to_dict(self):
+        """Devuelve una representación del artículo en diccionario."""
+        return {
+            'id': self.id,
+            'title': self.title,
+            'url': self.url,
+            'image_url': self.image_url,
+            'language': self.language,
+            # Llama a to_dict() en cada tag asociado
+            'tags': [tag.to_dict() for tag in self.tags.all()]
+        }
+
 
 class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -76,6 +98,13 @@ class Tag(db.Model):
         'Article', secondary=article_tags, back_populates='tags', lazy='dynamic'
     )
 
+    def to_dict(self):
+        """Devuelve una representación del tag en diccionario."""
+        return {
+            'id': self.id,
+            'name': self.name
+        }
+
 
 class QuizAttempt(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -86,3 +115,13 @@ class QuizAttempt(db.Model):
     timestamp = db.Column(
         db.DateTime, index=True, default=lambda: datetime.now(timezone.utc)
     )
+
+    def to_dict(self):
+        """Devuelve una representación del intento de quiz en diccionario."""
+        return {
+            'id': self.id,
+            'score': self.score,
+            'wpm_used': self.wpm_used,
+            # Usamos el campo 'timestamp' y lo formateamos a ISO 8601
+            'attempted_at': self.timestamp.isoformat() + 'Z'
+        }

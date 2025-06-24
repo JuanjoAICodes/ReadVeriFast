@@ -10,28 +10,29 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='CSS/style.css') }}">
 </head>
 <body>
-    {# Usamos la estructura de nav de Pico.css para alinear elementos a la izquierda y derecha #}
     <nav class="container-fluid">
         <ul>
             <li><a href="{{ url_for('core.index') }}" class="contrast"><strong>VeriFast</strong></a></li>
         </ul>
         <ul>
             {% if current_user.is_authenticated %}
-                <li><a href="{{ url_for('core.profile') }}">{{ _('My Profile') }}</a></li>
-                <li><a href="{{ url_for('auth.logout') }}" role="button">{{ _('Logout') }}</a></li>
+                <li><a href="{{ url_for('core.profile') }}">Mi Perfil</a></li>
+                <li><a href="{{ url_for('auth.logout') }}" role="button">Cerrar Sesión</a></li>
             {% else %}
-                <li><a href="{{ url_for('auth.login') }}">{{ _('Login') }}</a></li>
-                <li><a href="{{ url_for('auth.register') }}" role="button">{{ _('Register') }}</a></li>
+                <li><a href="{{ url_for('auth.login') }}">Iniciar Sesión</a></li>
+                <li><a href="{{ url_for('auth.register') }}" role="button">Registrarse</a></li>
             {% endif %}
-            {# Grupo de botones para cambiar de idioma #}
             <li>
-                <div class="grid">
-                    {% for lang in current_app.config.get('LANGUAGES', []) %}
-                        <a href="{{ url_for('core.set_language', lang=lang) }}" role="button" class="secondary outline" {% if get_locale()|string == lang %}aria-disabled="true"{% endif %}>
-                            {% if lang == 'es' %}Español{% elif lang == 'en' %}English{% else %}{{ lang }}{% endif %}
-                        </a>
-                    {% endfor %}
-                </div>
+                <a href="{{ url_for('core.set_language', lang='en') }}" role="button" class="secondary outline"
+                   {% if get_locale()|string == 'en' %}aria-disabled="true"{% endif %}>
+                    English
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('core.set_language', lang='es') }}" role="button" class="secondary outline"
+                   {% if get_locale()|string == 'es' %}aria-disabled="true"{% endif %}>
+                    Español
+                </a>
             </li>
         </ul>
     </nav>

@@ -1,5 +1,6 @@
 from flask import Flask, request, session
 from flask_login import current_user
+from flask_babel import get_locale as babel_get_locale
 
 from config import Config  # <-- 'config' ahora es nuestra única fuente de verdad
 
@@ -21,7 +22,6 @@ def create_app(config_class=Config):
     # --- INICIALIZACIÓN DE EXTENSIONES ---
     db.init_app(app)
     migrate.init_app(app, db)
-    babel.init_app(app)
     login_manager.init_app(app)
     # Apunta a la vista de login de tu blueprint de autenticación.
     # Es necesario para que @login_required funcione.
@@ -63,7 +63,12 @@ def create_app(config_class=Config):
         # 3. Usa la que pide el navegador
         return request.accept_languages.best_match(app.config['LANGUAGES'])
 
-    # Registramos la función de selección de idioma directamente para evitar el error.
-    babel.locale_selector_func = get_locale
+    # La inicialización de Babel ahora se hace pasando la función `locale_selector`.
+    # El decorador @babel.localeselector fue eliminado en Flask-Babel 4.0.
+    babel.init_app(app, locale_selector=get_locale)
+
+    @app.context_processor
+    def inject_locale():
+        return dict(get_locale=babel_get_locale)
 
     return app

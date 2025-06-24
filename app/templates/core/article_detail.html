@@ -13,7 +13,7 @@
         {% endif %}
         <h1>{{ article.title }}</h1>
         <div class="article-meta">
-            <h2>{{ _('Submitted by') }} {{ article.author.email }} {{ _('on') }} {{ article.timestamp.strftime('%Y-%m-%d') }}</h2>
+            <p><small>{{ _('Submitted by') }} {{ article.author.email }} {{ _('on') }} {{ article.timestamp.strftime('%Y-%m-%d') }}</small></p>
             {% if article.tags %}
             <div>
                 <strong>{{ _('Tags:') }}</strong>

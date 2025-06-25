@@ -229,11 +229,14 @@ def fetch_new_articles_task():
                         processing_status='pending'
                     )
                     db.session.add(new_article)
-                    db.session.commit()
+                    # Hacemos flush para obtener el ID del nuevo artículo sin
+                    # finalizar la transacción. El commit se hará fuera del bucle.
+                    db.session.flush()
 
                     process_article_task.delay(new_article.id)
                     new_articles_count += 1
             
+            db.session.commit() # Commit único al final de todas las adiciones.
             logger.info(f"Tarea de búsqueda completada. Se encontraron y encolaron {new_articles_count} artículos nuevos.")
 
         except requests.exceptions.RequestException as e:

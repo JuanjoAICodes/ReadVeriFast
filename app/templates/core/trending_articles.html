@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% from "core/_macros.html" import render_article_card %}
+
+{% block content %}
+<main class="container">
+    <!-- Navegación por Pestañas -->
+    {% include 'core/_tabs_navigation.html' %}
+
+    <h2>{{ _('Trending Articles') }}</h2>
+    <p><small>{{ _('The most read articles in the last few days.') }}</small></p>
+
+    {% if trending_articles %}
+        {% for article in trending_articles %}
+            {{ render_article_card(article) }}
+        {% endfor %}
+    {% else %}
+        <p>{{ _('Not enough data to show trending articles yet.') }}</p>
+    {% endif %}
+</main>
+{% endblock %}

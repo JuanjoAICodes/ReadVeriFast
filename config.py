@@ -14,6 +14,7 @@ class Config:
 
     # --- Idiomas para Babel ---
     LANGUAGES = ['en', 'es']
+    BABEL_DEFAULT_LOCALE = 'en'
 
     # --- Claves para Celery ---
     CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0')

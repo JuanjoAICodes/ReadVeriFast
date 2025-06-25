@@ -1,0 +1,7 @@
+<nav>
+    <ul>
+        <li><a href="{{ url_for('core.articles') }}" role="button" class="secondary" {% if request.endpoint == 'core.articles' %}aria-current="page"{% endif %}>{{ _('Latest Articles') }}</a></li>
+        <li><a href="{{ url_for('core.trending_articles') }}" role="button" class="secondary" {% if request.endpoint == 'core.trending_articles' %}aria-current="page"{% endif %}>{{ _('Trending Articles') }}</a></li>
+        <li><a href="{{ url_for('core.explore_tags') }}" role="button" class="secondary" {% if request.endpoint == 'core.explore_tags' %}aria-current="page"{% endif %}>{{ _('Explore Tags') }}</a></li>
+    </ul>
+</nav>

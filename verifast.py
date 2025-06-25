@@ -1,30 +1,59 @@
-# verifast.py
-
 import os
 import click
 from app import create_app, db
-from app.models import User, Article, Tag, QuizAttempt # Importa todos tus modelos
+from app.models import User, Article, QuizAttempt, Tag
+from config import Config
+from flask_migrate import Migrate
 
-# Crea la instancia de la aplicación
-app = create_app()
+# Create the Flask app instance using the app factory.
+# The FLASK_CONFIG environment variable can be used to select a configuration.
+app = create_app(os.getenv('FLASK_CONFIG') or Config)
+migrate = Migrate(app, db)
 
-# Este decorador hace que tus modelos estén disponibles automáticamente
-# en el 'flask shell' sin necesidad de importarlos.
 @app.shell_context_processor
 def make_shell_context():
-    return dict(db=db, User=User, Article=Article, Tag=Tag, QuizAttempt=QuizAttempt)
+    """
+    Makes additional variables available in the Flask shell context
+    for easier testing and debugging.
+    """
+    return {'db': db, 'User': User, 'Article': Article, 'QuizAttempt': QuizAttempt, 'Tag': Tag}
 
-# Este decorador permite crear comandos de prueba personalizados.
-# Por ejemplo, podrías ejecutar 'flask test' si defines una función aquí.
-@app.cli.command()
-@click.argument('test_names', nargs=-1)
-def test(test_names):
-    """Run the unit tests."""
-    # ... (lógica de pruebas futuras)
+# Defines a new 'translate' command group for the Flask CLI.
+@app.cli.group()
+def translate():
+    """Translation and localization commands."""
     pass
 
-# ¡LA PARTE MÁS IMPORTANTE!
-# El CLI de Flask-Babel espera encontrar la instancia de la app
-# registrada de esta manera para poder añadir sus comandos.
-# No es necesario añadir nada más, al tener la app configurada,
-# Flask-Babel se enganchará automáticamente.
+@translate.command()
+def update():
+    """Update all languages."""
+    # 1. Extract all marked strings from the app into a .pot file.
+    #    We scan the 'app' directory and use '_' as the extraction keyword.
+    if os.system('pybabel extract -F babel.cfg -k _ -o messages.pot app'):
+        raise RuntimeError('extract command failed')
+    # 2. Update the language-specific .po files with the new strings.
+    if os.system('pybabel update -i messages.pot -d app/translations'):
+        raise RuntimeError('update command failed')
+    # 3. Clean up the temporary .pot file.
+    os.remove('messages.pot')
+    click.echo('Translation files updated.')
+
+@translate.command()
+def compile():
+    """Compile all languages."""
+    # Compiles the .po files into .mo files, which are used by the application.
+    if os.system('pybabel compile -d app/translations'):
+        raise RuntimeError('compile command failed')
+    click.echo('Translations compiled.')
+
+@translate.command()
+@click.argument('lang')
+def init(lang):
+    """Initialize a new language."""
+    # We scan the 'app' directory and use '_' as the extraction keyword.
+    if os.system('pybabel extract -F babel.cfg -k _ -o messages.pot app'):
+        raise RuntimeError('extract command failed')
+    if os.system(f'pybabel init -i messages.pot -d app/translations -l {lang}'):
+        raise RuntimeError('init command failed')
+    os.remove('messages.pot')
+    click.echo(f"Language '{lang}' initialized in app/translations.")

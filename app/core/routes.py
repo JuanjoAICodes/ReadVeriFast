@@ -1,17 +1,19 @@
 # Standard library imports
 import json
 from flask import jsonify
+from datetime import datetime, timedelta, timezone
 # Third-party imports (newspaper is moved to tasks.py)
 from flask import current_app, flash, redirect, render_template, request, url_for, session
-from flask_login import current_user, login_required
-from sqlalchemy import and_, not_, func
+from flask_babel import _
+from flask_login import current_user, login_required 
+from sqlalchemy import and_, not_, func, select
 from sqlalchemy.orm import selectinload
 
 # Local application imports
 from app.core import bp
 from app.extensions import db
 from app.forms import ArticleSubmitForm, EmptyForm
-from app.models import Article, QuizAttempt, Tag
+from app.models import Article, QuizAttempt, Tag, article_tags
 from app.tasks import process_article_task
 
 # Eliminamos la primera definición de index que no se usa para mostrar artículos
@@ -35,28 +37,43 @@ def submit_article():
         existing_article = Article.query.filter_by(url=submitted_url).first()
 
         if existing_article:
-            flash('Esta URL ya ha sido enviada anteriormente.')
+            flash(_('Esta URL ya ha sido sentada anteriormente.'))
             return redirect(url_for('core.submit_article'))
 
         # Crear y guardar el artículo con estado 'pending' para tener un ID.
-        article = Article(url=submitted_url, author=current_user, processing_status='pending')
+        article = Article(
+            url=submitted_url, author=current_user, processing_status='pending', is_user_submitted=True
+        )
         db.session.add(article)
         db.session.commit()
-        
+
         # Encolar la tarea asíncrona para procesar el artículo
         process_article_task.delay(article.id)
 
-        flash('¡Gracias! Tu artículo ha sido enviado y se está procesando. Aparecerá en la lista principal en breve.')
-        return redirect(url_for('core.index')) # Redirigir inmediatamente
-    return render_template('core/submit_article.html', title='Enviar Artículo', form=form)
+        flash(_('¡Gracias! Tu artículo ha sido enviado y se está procesando. Aparecerá en la lista principal en breve.'))
+        return redirect(url_for('core.articles')) # Redirigir a la lista de artículos
+    return render_template('core/submit_article.html', title=_('Enviar Artículo'), form=form) # type: ignore
 @bp.route('/')
-@bp.route('/index')
-# @login_required # Descomentar si la página de inicio solo es para usuarios logueados
-def index():
-    # Consulta todos los artículos, ordenados por los más recientes primero, para mostrar su estado
-    articles = Article.query.order_by(Article.timestamp.desc()).all()
-    # Se renderiza 'auth/index.html' que contiene la lógica para mostrar los artículos.
-    return render_template('auth/index.html', title='Inicio', articles=articles)
+def landing_page():
+    """
+    Muestra la página de bienvenida principal de la aplicación.
+    """
+    return render_template('core/landing_page.html', title=_('Welcome to VeriFast'))
+
+
+@bp.route('/articles')
+def articles():
+    """
+    Muestra la pestaña "Últimos Artículos" con una lista paginada.
+    """
+    page = request.args.get('page', 1, type=int)
+    # Consulta simplificada para depuración: se eliminan los filtros para mostrar todos los artículos.
+    # Esto ayuda a verificar que la paginación funciona correctamente.
+    query = select(Article).order_by(Article.timestamp.desc())
+    latest_articles_pagination = (
+        db.paginate(query, page=page, per_page=10, error_out=False)
+    )
+    return render_template('core/articles.html', title=_('Latest Articles'), latest_articles_pagination=latest_articles_pagination)
 
 
 @bp.route('/article/<int:article_id>')
@@ -102,6 +119,49 @@ def article_detail(article_id):
         current_wpm=current_wpm,
         max_wpm=max_wpm
     )
+
+@bp.route('/articles/trending')
+def trending_articles():
+    """
+    Muestra la pestaña "Artículos del Momento".
+    """
+    three_days_ago = datetime.now(timezone.utc) - timedelta(days=3)
+    
+    # Paso 1: Subconsulta para obtener los IDs y el conteo de los artículos en tendencia.
+    popular_article_ids_subquery = (
+        db.session.query(
+            Article.id.label('id'),
+            func.count(QuizAttempt.id).label('read_count')
+        )
+        .join(Article.attempts)  # Se une usando la relación 'attempts' del modelo Article
+        .filter(Article.processing_status == 'complete')
+        .filter(QuizAttempt.timestamp >= three_days_ago)
+        .group_by(Article.id)
+        .order_by(func.count(QuizAttempt.id).desc())
+        .limit(5)  # Se limita a 5 como se solicitó para la depuración
+        .subquery()
+    )
+    # Paso 2: Consulta principal que usa los IDs de la subconsulta para obtener los objetos Article completos.
+    trending_articles = (
+        db.session.query(Article)
+        .join(popular_article_ids_subquery, Article.id == popular_article_ids_subquery.c.id)
+        .order_by(popular_article_ids_subquery.c.read_count.desc())
+        .all()
+    )
+    return render_template('core/trending_articles.html', title=_('Trending Articles'), trending_articles=trending_articles)
+
+
+@bp.route('/articles/tags')
+def explore_tags():
+    """
+    Muestra la pestaña "Explorar Tags" con una lista de todos los tags.
+    """
+    # Consulta simplificada para obtener todos los tags, ordenados alfabéticamente.
+    # Esto es más robusto para depuración.
+    tags = db.session.scalars(select(Tag).order_by(Tag.name.asc())).all()
+    # Línea de depuración para ver en la consola si se están obteniendo los tags.
+    current_app.logger.info(f"Tags encontrados para la página de exploración: {tags}")
+    return render_template('core/explore_tags.html', title=_('Explore Tags'), tags=tags)
 
 @bp.route('/article/<int:article_id>/quiz', methods=['POST'])
 # @login_required # Se elimina para permitir envíos de invitados
@@ -281,6 +341,8 @@ def set_language(lang):
     Guarda la preferencia en la sesión y, si el usuario está autenticado,
     también en su perfil de la base de datos.
     """
+    current_app.logger.info(f'Intentando cambiar idioma a: {lang}')
+
     # 1. Verificar si el idioma es soportado por la aplicación
     if lang in current_app.config.get('LANGUAGES', []):
         # 2. Guardar en la sesión para todos (invitados y registrados)
@@ -290,6 +352,8 @@ def set_language(lang):
         if current_user.is_authenticated:
             current_user.preferred_language = lang
             db.session.commit()
+
+    current_app.logger.info(f"Idioma guardado en sesión: {session.get('language')}")
 
     # 4. Redirigir a la página anterior o al inicio como fallback
     return redirect(request.referrer or url_for('core.index'))

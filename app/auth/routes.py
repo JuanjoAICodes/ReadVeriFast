@@ -4,6 +4,7 @@ from . import auth_bp # Assuming auth_bp is defined in app/auth/__init__.py
 from urllib.parse import urlparse
 from app.auth.forms import RegistrationForm, LoginForm
 from app.extensions import db
+from flask_babel import _
 from app.models import User
 
 # Esta es una función de registro hipotética, ya que no estaba en el contexto proporcionado.
@@ -11,7 +12,7 @@ from app.models import User
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for('core.index'))
+        return redirect(url_for('core.articles'))
 
     form = RegistrationForm()
     if form.validate_on_submit():
@@ -32,26 +33,26 @@ def register():
             session.pop('guest_max_wpm', None)
 
             # 4. Mensaje flash para notificar al usuario
-            flash('¡Tu progreso de invitado ha sido transferido a tu nueva cuenta!', 'success')
+            flash(_('Your guest progress has been transferred to your new account!'), 'success')
 
         db.session.add(user)
         db.session.commit()
-        flash('¡Felicidades, ya eres un usuario registrado!', 'success')
+        flash(_('Congratulations, you are now a registered user!'), 'success')
         login_user(user) # Inicia sesión automáticamente al nuevo usuario
-        return redirect(url_for('core.index'))
+        return redirect(url_for('core.articles'))
     return render_template('auth/register.html', title='Registrarse', form=form)
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('core.index'))
+        return redirect(url_for('core.articles'))
 
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user is None or not user.check_password(form.password.data):
-            flash('Email o contraseña inválidos', 'danger')
+            flash(_('Invalid email or password'), 'danger')
             return redirect(url_for('auth.login'))
         
         login_user(user, remember=form.remember_me.data)
@@ -59,7 +60,7 @@ def login():
         # Redirigir al usuario a la página que intentaba acceder
         next_page = request.args.get('next') # type: ignore
         if not next_page or urlparse(next_page).netloc != '':
-            next_page = url_for('core.index')
+            next_page = url_for('core.articles')
         return redirect(next_page)
     
     return render_template('auth/login.html', title='Iniciar Sesión', form=form)
@@ -69,5 +70,5 @@ def login():
 @login_required
 def logout():
     logout_user()
-    flash('Has cerrado sesión correctamente.', 'info')
-    return redirect(url_for('core.index'))
+    flash(_('You have been logged out.'), 'info')
+    return redirect(url_for('core.landing_page'))

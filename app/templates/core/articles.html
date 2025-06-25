@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% from "core/_macros.html" import render_article_card, render_article_list_item %}
+
+{% block content %}
+<div class="container">
+    <header style="margin-bottom: 2rem;">
+        <h1>{{ _('Explore Articles') }}</h1>
+    </header>
+
+    {% include 'core/_tabs_navigation.html' with context %}
+
+    <!-- Contenido de la Pestaña "Últimos Artículos" -->
+    <section id="latest-articles-content" style="margin-top: 2rem;">
+        {% if latest_articles_pagination.items %}
+            <div class="articles-list">
+                {% for article in latest_articles_pagination.items %}
+                    {{ render_article_card(article) }}
+                {% endfor %}
+            </div>
+
+            <!-- Paginación con Pico.css -->
+            <nav aria-label="Paginación de artículos" style="margin-top: 2rem;">
+                <ul>
+                    <li>
+                        <a href="{{ url_for('core.articles', page=latest_articles_pagination.prev_num) }}" role="button" class="secondary" {% if not latest_articles_pagination.has_prev %}disabled{% endif %}>{{ _('Previous') }}</a>
+                    </li>
+                </ul>
+                <ul>
+                    {% for page_num in latest_articles_pagination.iter_pages() %}
+                        {% if page_num %}
+                            <li>
+                                <a href="{{ url_for('core.articles', page=page_num) }}" role="button" {% if page_num == latest_articles_pagination.page %}aria-current="page"{% else %}class="secondary"{% endif %}>
+                                    {{ page_num }}
+                                </a>
+                            </li>
+                        {% else %}
+                            <li><span class="ellipsis">…</span></li>
+                        {% endif %}
+                    {% endfor %}
+                </ul>
+                <ul>
+                    <li>
+                        <a href="{{ url_for('core.articles', page=latest_articles_pagination.next_num) }}" role="button" class="secondary" {% if not latest_articles_pagination.has_next %}disabled{% endif %}>{{ _('Next') }}</a>
+                    </li>
+                </ul>
+            </nav>
+
+        {% else %}
+            <p>{{ _('No articles are available at the moment.') }}</p>
+        {% endif %}
+    </section>
+
+</div>
+{% endblock %}

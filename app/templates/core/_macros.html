@@ -1,0 +1,61 @@
+{# Macro para renderizar una tarjeta de artículo horizontal con Flexbox #}
+{% macro render_article_card(article) %}
+<article style="padding: 0; margin-bottom: 1.5rem;">
+    <div style="display: flex; align-items: stretch; gap: 1rem;">
+        
+        <!-- Columna de la Imagen -->
+        {% if article.image_url %}
+        <div style="flex: 0 0 200px;">  <!-- No crece, no se encoge, base de 200px -->
+            <a href="{{ url_for('core.article_detail', article_id=article.id) }}">
+                <img src="{{ article.image_url }}" alt="Imagen de {{ article.title }}" 
+                     style="width: 100%; height: 100%; object-fit: cover; border-radius: var(--border-radius) 0 0 var(--border-radius);">
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- Columna del Contenido -->
+        <div style="flex-grow: 1; padding: 1rem; display: flex; flex-direction: column;">
+            <h4>
+                <a href="{{ url_for('core.article_detail', article_id=article.id) }}">
+                    {{ article.title }}
+                </a>
+            </h4>
+            <p style="margin-bottom: 0.5rem;">
+                <small>
+                    {% if article.is_user_submitted %}
+                        <span title="{{ _('Community Pick') }}">👤</span>
+                    {% else %}
+                        <span title="{{ _('From our feed') }}">📰</span>
+                    {% endif %}
+                    {{ _('Submitted by') }}: {{ article.author.email if article.author else 'System' }} | {{ _('Date') }}: {{ article.timestamp.strftime('%Y-%m-%d') }}
+                </small>
+            </p>
+            <footer style="margin-top: auto;"> <!-- Empuja los tags hacia abajo -->
+                {% for tag in article.tags %}
+                    <a href="{{ url_for('core.articles_by_tag', tag_name=tag.name) }}" class="secondary outline" style="padding: 0.1rem 0.4rem; font-size: 0.7rem;">#{{ tag.name }}</a>
+                {% endfor %}
+            </footer>
+        </div>
+
+    </div>
+</article>
+{% endmacro %}
+
+{# Macro para renderizar un elemento de lista de artículo con Pico.css #}
+{% macro render_article_list_item(article) %}
+<article>
+    <header>
+        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <a href="{{ url_for('core.article_detail', article_id=article.id) }}">
+                <strong>{{ article.title or 'Artículo sin título' }}</strong>
+            </a>
+            <small>{{ article.timestamp.strftime('%d %b, %Y') }}</small>
+        </div>
+    </header>
+    <footer>
+        {% for tag in article.tags.limit(4) %}
+            <a href="{{ url_for('core.articles_by_tag', tag_name=tag.name) }}" style="margin-right: 0.5rem;"><small>#{{ tag.name }}</small></a>
+        {% endfor %}
+    </footer>
+</article>
+{% endmacro %}

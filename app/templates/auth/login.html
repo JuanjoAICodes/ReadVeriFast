@@ -1,20 +1,25 @@
 {% extends "base.html" %}
 
-{% block title %}Iniciar Sesión{% endblock %}
-
 {% block content %}
-    <h1>Iniciar Sesión</h1>
-    <form action="" method="post" novalidate>
-        {{ form.hidden_tag() }}
-        <p>
-            {{ form.email.label }}<br>
-            {{ form.email(size=32) }}
-        </p>
-        <p>
-            {{ form.password.label }}<br>
-            {{ form.password(size=32) }}
-        </p>
-        <p>{{ form.remember_me() }} {{ form.remember_me.label }}</p>
-        <p>{{ form.submit() }}</p>
-    </form>
+<article class="grid">
+    <div>
+        <hgroup>
+            <h1>Iniciar Sesión</h1>
+            <h2>Accede a tu cuenta para continuar.</h2>
+        </hgroup>
+        <form method="POST" action="{{ url_for('auth.login') }}">
+            {{ form.hidden_tag() }}
+            <label for="email">{{ form.email.label }}</label>
+            {{ form.email(size=32, placeholder=form.email.label.text) }}
+            
+            <label for="password">{{ form.password.label }}</label>
+            {{ form.password(size=32, placeholder=form.password.label.text) }}
+            
+            <label for="remember_me">{{ form.remember_me() }} {{ form.remember_me.label }}</label>
+            
+            <button type="submit">Iniciar Sesión</button>
+        </form>
+    </div>
+    <div></div>
+</article>
 {% endblock %}

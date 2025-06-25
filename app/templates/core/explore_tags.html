@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<main class="container">
+    <!-- Navegación por Pestañas -->
+    {% include 'core/_tabs_navigation.html' %}
+
+    <h2>{{ _('Explore Tags') }}</h2>
+    <p><small>{{ _('Click on a tag to see all related articles.') }}</small></p>
+
+    <!-- Contenedor principal para la nube de tags -->
+    <div class="tag-cloud">
+        {% if tags %}
+            {% for tag in tags %}
+                <!-- Cada tag es un botón/enlace -->
+                <a href="{{ url_for('core.articles_by_tag', tag_name=tag.name) }}" 
+                   role="button" 
+                   class="secondary outline">
+                    {{ tag.name }}
+                </a>
+            {% endfor %}
+        {% else %}
+            <p>{{ _('No tags available yet.') }}</p>
+        {% endif %}
+    </div>
+</main>
+
+<!-- El CSS que hace la magia -->
+<style>
+    .tag-cloud {
+        display: flex;
+        flex-wrap: wrap; /* Permite que los tags pasen a la siguiente línea */
+        gap: 0.75rem;     /* Espacio entre los tags */
+        padding-top: 1rem;
+        align-items: center; /* Alinea los tags verticalmente */
+    }
+</style>
+{% endblock %}

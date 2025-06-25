@@ -60,6 +60,9 @@ class Article(db.Model):
     clean_content = db.Column(db.Text)
     quiz_data = db.Column(db.Text)  # Almacenado como string JSON
     processing_status = db.Column(db.String(20), default='pending', nullable=False)
+    is_user_submitted = db.Column(
+        db.Boolean, default=False, server_default='false', nullable=False
+    )
     timestamp = db.Column(
         db.DateTime, index=True, default=lambda: datetime.now(timezone.utc)
     )

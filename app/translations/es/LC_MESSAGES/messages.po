@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-06-23 15:06-0500\n"
-"PO-Revision-Date: 2025-06-23 15:09-0500\n"
+"POT-Creation-Date: 2025-06-24 22:37-0500\n"
+"PO-Revision-Date: 2025-06-24 17:56-0500\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: es\n"
 "Language-Team: es <LL@li.org>\n"
@@ -18,811 +18,284 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.17.0\n"
 
-#: app/templates/base.html:14
-msgid "Home"
-msgstr "Inicio"
+#: app/auth/routes.py:27
+msgid "Your guest progress has been transferred to your new account!"
+msgstr "¡Tu progreso de invitado ha sido transferido a tu nueva cuenta!"
 
-#: app/templates/base.html:16 app/templates/core/profile.html:3
-msgid "My Profile"
-msgstr "Mi Perfil"
+#: app/auth/routes.py:31
+msgid "Congratulations, you are now a registered user!"
+msgstr "¡Felicidades, ya eres un usuario registrado!"
 
-#: app/templates/auth/index.html:10 app/templates/base.html:19
-msgid "Logout"
-msgstr "Cerrar Sesión"
+#: app/auth/routes.py:42
+msgid "Invalid email or password"
+msgstr "Email o contraseña inválidos"
 
-#: app/templates/auth/index.html:14 app/templates/base.html:21
-msgid "Login"
-msgstr "Iniciar Sesión"
+#: app/auth/routes.py:54
+msgid "You have been logged out."
+msgstr "Has cerrado sesión correctamente."
 
-#: app/templates/auth/index.html:15 app/templates/base.html:22
-msgid "Register"
-msgstr "Registrarse"
+#: app/core/routes.py:43
+msgid "Esta URL ya ha sido sentada anteriormente."
+msgstr "Esta URL ya ha sido enviada anteriormente."
 
-#: app/templates/auth/index.html:8
-msgid "Welcome,"
-msgstr "Bienvenido,"
+#: app/core/routes.py:51
+msgid ""
+"¡Gracias! Tu artículo ha sido enviado y se está procesando. Aparecerá en "
+"la lista principal en breve."
+msgstr ""
+"¡Gracias! Tu artículo ha sido enviado y se está procesando. Aparecerá en "
+"la lista principal en breve."
 
-#: app/templates/auth/index.html:9
-msgid "Submit an article"
-msgstr "Enviar un artículo"
+#: app/core/routes.py:53 app/templates/base.html:21
+msgid "Submit Article"
+msgstr "Enviar Artículo"
 
-#: app/templates/auth/index.html:20
+#: app/core/routes.py:58
+msgid "Welcome to VeriFast"
+msgstr "Bienvenido a VeriFast"
+
+#: app/core/routes.py:72 app/templates/core/_tabs_navigation.html:3
 msgid "Latest Articles"
 msgstr "Últimos Artículos"
 
-#: app/templates/auth/index.html:36
-msgid "Processing: "
-msgstr "Procesando: "
+#: app/core/routes.py:150 app/templates/core/_tabs_navigation.html:4
+#: app/templates/core/trending_articles.html:8
+msgid "Trending Articles"
+msgstr "Artículos del Momento"
 
-#: app/templates/auth/index.html:40
-msgid "Status: Processing..."
-msgstr "Estado: Procesando..."
+#: app/core/routes.py:200 app/templates/core/_tabs_navigation.html:5
+#: app/templates/core/explore_tags.html:8
+msgid "Explore Tags"
+msgstr "Explorar Etiquetas"
 
-#: app/templates/auth/index.html:42
-msgid "Status: Error processing."
-msgstr "Estado: Error al procesar."
+#: app/templates/base.html:20
+msgid "Articles"
+msgstr "Artículos"
 
-#: app/templates/auth/index.html:44
-msgid "Submitted by:"
-msgstr "Enviado por:"
+#: app/templates/base.html:32
+msgid "My Profile"
+msgstr "Mi Perfil"
 
-#: app/templates/auth/index.html:44
-msgid "Date:"
-msgstr "Fecha:"
+#: app/templates/base.html:33
+msgid "Logout"
+msgstr "Cerrar Sesión"
 
-#: app/templates/auth/index.html:50
-msgid "No articles available yet."
-msgstr "Todavía no hay artículos disponibles."
+#: app/templates/base.html:35
+msgid "Login"
+msgstr "Iniciar Sesión"
 
-#: app/templates/core/article_detail.html:16
+#: app/templates/base.html:36
+msgid "Register"
+msgstr "Registrarse"
+
+#: app/templates/core/_macros.html:25
+msgid "Community Pick"
+msgstr "Aporte de la Comunidad"
+
+#: app/templates/core/_macros.html:27
+msgid "From our feed"
+msgstr "De nuestro feed"
+
+#: app/templates/core/_macros.html:29
+#: app/templates/core/article_detail.html:8
 msgid "Submitted by"
 msgstr "Enviado por"
 
-#: app/templates/core/article_detail.html:16
-msgid "on"
-msgstr "el"
-
-#: app/templates/core/article_detail.html:19
-msgid "Tags:"
-msgstr "Etiquetas:"
-
-#: app/templates/core/article_detail.html:31
-msgid "Click on Start"
-msgstr "Haz clic en Empezar"
-
-#: app/templates/core/article_detail.html:31
-msgid "Reading stopped."
-msgstr "Lectura detenida."
-
-#: app/templates/core/article_detail.html:31
-msgid "Reading Finished!"
-msgstr "¡Lectura Finalizada!"
-
-#: app/templates/core/article_detail.html:33
-msgid "Speed:"
-msgstr "Velocidad:"
-
-#: app/templates/core/article_detail.html:35
-msgid "Start"
-msgstr "Empezar"
-
-#: app/templates/core/article_detail.html:35
-msgid "Stop"
-msgstr "Detener"
-
-#: app/templates/core/article_detail.html:47
-msgid "Comprehension Quiz"
-msgstr "Cuestionario de Comprensión"
-
-#: app/templates/core/article_detail.html:71
-msgid "Submit Answers"
-msgstr "Enviar Respuestas"
-
-#: app/templates/core/article_detail.html:74
-msgid "The quiz for this article is not yet available."
-msgstr "El cuestionario para este artículo aún no está disponible."
-
-#: app/templates/core/article_detail.html:78
-msgid "Back to list"
-msgstr "Volver a la lista"
-
-#: app/templates/core/profile.html:32
-msgid "Profile of"
-msgstr "Perfil de"
-
-#: app/templates/core/profile.html:38
-msgid "XP"
-msgstr "XP"
-
-#: app/templates/core/profile.html:39
-msgid "Total Experience"
-msgstr "Experiencia Total"
-
-#: app/templates/core/profile.html:43
-msgid "Speed Level (WPM)"
-msgstr "Nivel de Velocidad (PPM)"
-
-#: app/templates/core/profile.html:47
-msgid "Articles Read"
-msgstr "Artículos Leídos"
-
-#: app/templates/core/profile.html:53
-msgid "Activate Dark Theme"
-msgstr "Activar Tema Oscuro"
-
-#: app/templates/core/profile.html:58
-msgid "Reading History"
-msgstr "Historial de Lectura"
-
-#: app/templates/core/profile.html:62
-msgid "Article"
-msgstr "Artículo"
-
-#: app/templates/core/profile.html:63
-msgid "Score"
-msgstr "Puntuación"
-
-#: app/templates/core/profile.html:64
+#: app/templates/core/_macros.html:29
 msgid "Date"
 msgstr "Fecha"
 
-#: app/templates/core/profile.html:72
-msgid "Untitled Article"
-msgstr "Artículo sin Título"
+#: app/templates/core/article_detail.html:8
+msgid "on"
+msgstr "el"
 
-#: app/templates/core/profile.html:86
-msgid "You have not completed any quizzes yet."
-msgstr "Aún no has completado ningún cuestionario."
+#: app/templates/core/article_detail.html:21
+msgid "Speed Reader"
+msgstr "Lector Rápido"
 
-#: app/templates/core/quiz_results_anonymous.html:3
-msgid "Quiz Results"
-msgstr "Resultados del Cuestionario"
+#: app/templates/core/article_detail.html:23
+msgid "Click \"Start\""
+msgstr "Haz clic en \"Iniciar\""
 
-#: app/templates/core/quiz_results_anonymous.html:22
-msgid "Quiz Passed!"
-msgstr "¡Cuestionario Aprobado!"
+#: app/templates/core/article_detail.html:26
+msgid "Speed"
+msgstr "Velocidad"
 
-#: app/templates/core/quiz_results_anonymous.html:23
-#: app/templates/core/quiz_results_success.html:20
+#: app/templates/core/article_detail.html:26
+msgid "WPM"
+msgstr "PPM"
+
+#: app/templates/core/article_detail.html:29
+msgid "Start"
+msgstr "Iniciar"
+
+#: app/templates/core/article_detail.html:39
+msgid "Comprehension Quiz"
+msgstr "Cuestionario de Comprensión"
+
+#: app/templates/core/article_detail.html:55
+msgid "Submit Answers"
+msgstr "Enviar Respuestas"
+
+#: app/templates/core/article_detail.html:58
+msgid "The quiz for this article is not yet available."
+msgstr "El cuestionario para este artículo aún no está disponible."
+
+#: app/templates/core/articles.html:8
+#: app/templates/core/landing_page.html:10
+msgid "Explore Articles"
+msgstr "Explorar Artículos"
+
+#: app/templates/core/articles.html:23
+msgid "Previous"
+msgstr "Anterior"
+
+#: app/templates/core/articles.html:43
+msgid "Next"
+msgstr "Siguiente"
+
+#: app/templates/core/articles.html:48
+msgid "No articles are available at the moment."
+msgstr "No hay artículos disponibles en este momento."
+
+#: app/templates/core/articles_by_tag.html:5
+msgid "Articles about"
+msgstr "Artículos sobre"
+
+#: app/templates/core/articles_by_tag.html:15
+msgid "No articles available for this tag."
+msgstr "No hay artículos disponibles para esta etiqueta."
+
+#: app/templates/core/explore_tags.html:9
+msgid "Click on a tag to see all related articles."
+msgstr "Haz clic en una etiqueta para ver todos los artículos relacionados."
+
+#: app/templates/core/explore_tags.html:22
+msgid "No tags available yet."
+msgstr "Aún no hay etiquetas disponibles."
+
+#: app/templates/core/landing_page.html:6
+msgid "Read Twice as Fast. Remember Twice as Much."
+msgstr "Lee el Doble de Rápido. Recuerda el Doble."
+
+#: app/templates/core/landing_page.html:8
+msgid ""
+"VeriFast transforms any web article into an interactive learning "
+"experience. Improve your reading speed and validate your comprehension "
+"with AI-generated quizzes."
+msgstr ""
+"VeriFast transforma cualquier artículo web en una experiencia de "
+"aprendizaje interactiva. Mejora tu velocidad de lectura y valida tu "
+"comprensión con cuestionarios generados por IA."
+
+#: app/templates/core/landing_page.html:14
+msgid "How Does It Work?"
+msgstr "¿Cómo Funciona?"
+
+#: app/templates/core/landing_page.html:16
+msgid "1. Paste a URL"
+msgstr "1. Pega una URL"
+
+#: app/templates/core/landing_page.html:17
+msgid ""
+"Find an article you're interested in on the web and submit it to our "
+"platform."
+msgstr ""
+"Encuentra un artículo que te interese en la web y envíalo a nuestra "
+"plataforma."
+
+#: app/templates/core/landing_page.html:20
+msgid "2. Read at Your Pace"
+msgstr "2. Lee a tu Ritmo"
+
+#: app/templates/core/landing_page.html:21
+msgid ""
+"Use our speed-reading tool to absorb the content at your chosen speed."
+msgstr ""
+"Utiliza nuestra herramienta de lectura rápida para asimilar el contenido a "
+"la velocidad que elijas."
+
+#: app/templates/core/landing_page.html:24
+msgid "3. Validate Comprehension"
+msgstr "3. Valida tu Comprensión"
+
+#: app/templates/core/landing_page.html:25
+msgid ""
+"Answer an AI-generated quiz to ensure you've retained the key "
+"information."
+msgstr ""
+"Responde un cuestionario generado por IA para asegurar que has retenido la "
+"información clave."
+
+#: app/templates/core/landing_page.html:32
+msgid "Key Benefits"
+msgstr "Beneficios Clave"
+
+#: app/templates/core/landing_page.html:34
+msgid "Dramatically increase your reading speed (WPM)."
+msgstr "Aumenta drásticamente tu velocidad de lectura (PPM)."
+
+#: app/templates/core/landing_page.html:35
+msgid "Improve long-term information retention."
+msgstr "Mejora la retención de información a largo plazo."
+
+#: app/templates/core/landing_page.html:36
+msgid "Get instant feedback on your comprehension."
+msgstr "Obtén retroalimentación instantánea sobre tu comprensión."
+
+#: app/templates/core/landing_page.html:37
+msgid "Track your progress with XP and speed statistics."
+msgstr "Sigue tu progreso con estadísticas de XP y velocidad."
+
+#: app/templates/core/landing_page.html:38
+msgid "Discover new content based on your interests."
+msgstr "Descubre contenido nuevo basado en tus intereses."
+
+#: app/templates/core/quiz_results_success.html:6
+msgid "Congratulations, quiz passed!"
+msgstr "¡Felicidades, cuestionario superado!"
+
+#: app/templates/core/quiz_results_success.html:7
 msgid "You have earned"
 msgstr "Has ganado"
 
-#: app/templates/core/quiz_results_anonymous.html:24
-msgid "Your total XP as a guest is now:"
-msgstr "Tu XP total como invitado es ahora:"
+#: app/templates/core/quiz_results_success.html:7
+msgid "Your total experience is now"
+msgstr "Tu total de experiencia es ahora"
 
-#: app/templates/core/quiz_results_anonymous.html:27
-#: app/templates/core/quiz_results_success.html:41
-msgid "What to do now?"
-msgstr "¿Qué hacemos ahora?"
-
-#: app/templates/core/quiz_results_anonymous.html:28
-#: app/templates/core/quiz_results_success.html:45
-msgid "Main Page"
-msgstr "Página Principal"
-
-#: app/templates/core/quiz_results_anonymous.html:29
-msgid "Register to save my progress"
-msgstr "Registrarse para guardar mi progreso"
-
-#: app/templates/core/quiz_results_anonymous.html:32
-msgid ""
-"As a guest, your progress (XP and WPM) is saved temporarily in this "
-"session! If you register, you can save your progress permanently and "
-"access more features."
-msgstr "¡Como invitado, tu progreso (XP y PPM) se guarda temporalmente en esta sesión! Si te registras, podrás guardar tu progreso de forma permanente y acceder a más funciones."
-
-#: app/templates/core/quiz_results_anonymous.html:34
-#: app/templates/core/quiz_results_anonymous.html:48
-#: app/templates/core/quiz_results_fail.html:27
-#: app/templates/core/quiz_results_success.html:49
-msgid "View original article"
-msgstr "Ver artículo original"
-
-#: app/templates/core/quiz_results_anonymous.html:38
-msgid "Quiz Not Passed!"
-msgstr "¡Cuestionario No Aprobado!"
-
-#: app/templates/core/quiz_results_anonymous.html:39
-msgid "You have not reached the minimum score to pass this quiz."
-msgstr "No has alcanzado la puntuación mínima para aprobar este cuestionario."
-
-#: app/templates/core/quiz_results_anonymous.html:40
-#: app/templates/core/quiz_results_fail.html:15
-msgid "Don't give up, practice makes perfect!"
-msgstr "¡No te rindas, la práctica hace al maestro!"
-
-#: app/templates/core/quiz_results_anonymous.html:42
-msgid "Your recommended reading speed has been adjusted to"
-msgstr "Tu velocidad de lectura recomendada se ha ajustado a"
-
-#: app/templates/core/quiz_results_anonymous.html:42
-#: app/templates/core/quiz_results_fail.html:21
-msgid "to help you."
-msgstr "para ayudarte."
-
-#: app/templates/core/quiz_results_anonymous.html:46
-#: app/templates/core/quiz_results_fail.html:22
-msgid "Take your time to assimilate the content and try again."
-msgstr "Tómate tu tiempo para asimilar el contenido y vuelve a intentarlo."
-
-#: app/templates/core/quiz_results_anonymous.html:47
-#: app/templates/core/quiz_results_fail.html:26
-msgid "Retry this article"
-msgstr "Reintentar este artículo"
-
-#: app/templates/core/quiz_results_fail.html:3
-msgid "Keep Trying!"
-msgstr "¡Sigue Intentando!"
-
-#: app/templates/core/quiz_results_fail.html:16
-msgid "Every attempt is a step closer to success."
-msgstr "Cada intento es un paso más cerca del éxito."
-
-#: app/templates/core/quiz_results_fail.html:21
-msgid "We have adjusted your reading speed to"
-msgstr "Hemos ajustado tu velocidad de lectura a"
-
-#: app/templates/core/quiz_results_fail.html:32
-msgid "Back to Main Page"
-msgstr "Volver a la Página Principal"
-
-#: app/templates/core/quiz_results_success.html:3
-msgid "Quiz Results!"
-msgstr "¡Resultados del Cuestionario!"
-
-#: app/templates/core/quiz_results_success.html:19
-msgid "Congratulations!"
-msgstr "¡Felicidades!"
-
-#: app/templates/core/quiz_results_success.html:21
-msgid "Your total XP is now:"
-msgstr "Tu XP total es ahora:"
-
-#: app/templates/core/quiz_results_success.html:29
+#: app/templates/core/quiz_results_success.html:11
 msgid "Error Review"
 msgstr "Revisión de Errores"
 
-#: app/templates/core/quiz_results_success.html:32
-msgid "Question:"
-msgstr "Pregunta:"
+#: app/templates/core/quiz_results_success.html:14
+msgid "Question"
+msgstr "Pregunta"
 
-#: app/templates/core/quiz_results_success.html:33
-msgid "Your answer:"
-msgstr "Tu respuesta:"
+#: app/templates/core/quiz_results_success.html:15
+msgid "Your answer"
+msgstr "Tu respuesta"
 
-#: app/templates/core/quiz_results_success.html:34
-msgid "Correct answer:"
-msgstr "Respuesta correcta:"
+#: app/templates/core/quiz_results_success.html:16
+msgid "Correct answer"
+msgstr "Respuesta correcta"
 
-#: app/templates/core/quiz_results_success.html:43
+#: app/templates/core/quiz_results_success.html:22
+msgid "What to do now?"
+msgstr "¿Qué hacer ahora?"
+
+#: app/templates/core/quiz_results_success.html:24
 msgid "Next Article"
 msgstr "Siguiente Artículo"
 
-#: venv/lib/python3.11/site-packages/click/_termui_impl.py:600
-#, python-brace-format
-msgid "{editor}: Editing failed"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/_termui_impl.py:604
-#, python-brace-format
-msgid "{editor}: Editing failed: {e}"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/core.py:1084
-#: venv/lib/python3.11/site-packages/click/core.py:1121
-#, python-brace-format
-msgid "{text} {deprecated_message}"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/core.py:1140
-msgid "Options"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/core.py:1202
-#, python-brace-format
-msgid "Got unexpected extra argument ({args})"
-msgid_plural "Got unexpected extra arguments ({args})"
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.11/site-packages/click/core.py:1221
-#, python-brace-format
-msgid "DeprecationWarning: The command {name!r} is deprecated.{extra_message}"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/core.py:1405
-msgid "Aborted!"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/core.py:1779
-msgid "Commands"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/core.py:1810
-msgid "Missing command."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/core.py:1888
-#, python-brace-format
-msgid "No such command {name!r}."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/core.py:2303
-msgid "Value must be an iterable."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/core.py:2324
-#, python-brace-format
-msgid "Takes {nargs} values but 1 was given."
-msgid_plural "Takes {nargs} values but {len} were given."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.11/site-packages/click/core.py:2404
-#, python-brace-format
-msgid ""
-"DeprecationWarning: The {param_type} {name!r} is "
-"deprecated.{extra_message}"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/core.py:2807
-#, python-brace-format
-msgid "env var: {var}"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/core.py:2810
-#, python-brace-format
-msgid "default: {default}"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/core.py:2814
-msgid "required"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/core.py:2870
-msgid "(dynamic)"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/decorators.py:465
-#, python-format
-msgid "%(prog)s, version %(version)s"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/decorators.py:522
-msgid "Show the version and exit."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/decorators.py:548
-msgid "Show this message and exit."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/exceptions.py:50
-#: venv/lib/python3.11/site-packages/click/exceptions.py:89
-#, python-brace-format
-msgid "Error: {message}"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/exceptions.py:81
-#, python-brace-format
-msgid "Try '{command} {option}' for help."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/exceptions.py:130
-#, python-brace-format
-msgid "Invalid value: {message}"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/exceptions.py:132
-#, python-brace-format
-msgid "Invalid value for {param_hint}: {message}"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/exceptions.py:190
-msgid "Missing argument"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/exceptions.py:192
-msgid "Missing option"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/exceptions.py:194
-msgid "Missing parameter"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/exceptions.py:196
-#, python-brace-format
-msgid "Missing {param_type}"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/exceptions.py:203
-#, python-brace-format
-msgid "Missing parameter: {param_name}"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/exceptions.py:223
-#, python-brace-format
-msgid "No such option: {name}"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/exceptions.py:235
-#, python-brace-format
-msgid "Did you mean {possibility}?"
-msgid_plural "(Possible options: {possibilities})"
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.11/site-packages/click/exceptions.py:282
-msgid "unknown error"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/exceptions.py:289
-#, python-brace-format
-msgid "Could not open file {filename!r}: {message}"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/parser.py:200
-#, python-brace-format
-msgid "Argument {name!r} takes {nargs} values."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/parser.py:383
-#, python-brace-format
-msgid "Option {name!r} does not take a value."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/parser.py:444
-#, python-brace-format
-msgid "Option {name!r} requires an argument."
-msgid_plural "Option {name!r} requires {nargs} arguments."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.11/site-packages/click/shell_completion.py:326
-msgid "Shell completion is not supported for Bash versions older than 4.4."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/shell_completion.py:333
-msgid "Couldn't detect Bash version, shell completion is not supported."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/termui.py:162
-msgid "Repeat for confirmation"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/termui.py:178
-msgid "Error: The value you entered was invalid."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/termui.py:180
-#, python-brace-format
-msgid "Error: {e.message}"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/termui.py:191
-msgid "Error: The two entered values do not match."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/termui.py:247
-msgid "Error: invalid input"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/termui.py:866
-msgid "Press any key to continue..."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/types.py:332
-#, python-brace-format
-msgid ""
-"Choose from:\n"
-"\t{choices}"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/types.py:369
-#, python-brace-format
-msgid "{value!r} is not {choice}."
-msgid_plural "{value!r} is not one of {choices}."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.11/site-packages/click/types.py:460
-#, python-brace-format
-msgid "{value!r} does not match the format {format}."
-msgid_plural "{value!r} does not match the formats {formats}."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.11/site-packages/click/types.py:482
-#, python-brace-format
-msgid "{value!r} is not a valid {number_type}."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/types.py:538
-#, python-brace-format
-msgid "{value} is not in the range {range}."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/types.py:679
-#, python-brace-format
-msgid "{value!r} is not a valid boolean."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/types.py:703
-#, python-brace-format
-msgid "{value!r} is not a valid UUID."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/types.py:893
-msgid "file"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/types.py:895
-msgid "directory"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/types.py:897
-msgid "path"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/types.py:944
-#, python-brace-format
-msgid "{name} {filename!r} does not exist."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/types.py:953
-#, python-brace-format
-msgid "{name} {filename!r} is a file."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/types.py:961
-#, python-brace-format
-msgid "{name} {filename!r} is a directory."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/types.py:970
-#, python-brace-format
-msgid "{name} {filename!r} is not readable."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/types.py:979
-#, python-brace-format
-msgid "{name} {filename!r} is not writable."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/types.py:988
-#, python-brace-format
-msgid "{name} {filename!r} is not executable."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/click/types.py:1055
-#, python-brace-format
-msgid "{len_type} values are required, but {len_value} was given."
-msgid_plural "{len_type} values are required, but {len_value} were given."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.11/site-packages/flask_wtf/file.py:55
-#: venv/lib/python3.11/site-packages/wtforms/validators.py:293
-#: venv/lib/python3.11/site-packages/wtforms/validators.py:323
-msgid "This field is required."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/flask_wtf/file.py:94
-#, python-brace-format
-msgid "File does not have an approved extension: {extensions}"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/flask_wtf/file.py:101
-msgid "File does not have an approved extension."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/flask_wtf/file.py:140
-#, python-brace-format
-msgid "File must be between {min_size} and {max_size} bytes."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/httplib2/__init__.py:408
-#, python-format
-msgid "Content purported to be compressed with %s but failed to decompress."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/httplib2/__init__.py:572
-#, python-format
-msgid "Unsupported value for qop: %s."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/httplib2/__init__.py:576
-#: venv/lib/python3.11/site-packages/httplib2/__init__.py:654
-#, python-format
-msgid "Unsupported value for algorithm: %s.algorithm"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/httplib2/__init__.py:649
-msgid "The challenge doesn't contain a server nonce, or this one is empty."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/httplib2/__init__.py:659
-#, python-format
-msgid "Unsupported value for pw-algorithm: %s.pw-algorithm"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/httplib2/__init__.py:1468
-msgid "Redirected but the response is missing a Location: header."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/kombu/transport/qpid.py:1311
-#, python-format
-msgid "Attempting to connect to qpid with SASL mechanism %s"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/kombu/transport/qpid.py:1316
-#, python-format
-msgid "Connected to qpid with SASL mechanism %s"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/kombu/transport/qpid.py:1334
-#, python-format
-msgid "Unable to connect to qpid with SASL mechanism %s"
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/validators.py:86
-#, python-format
-msgid "Invalid field name '%s'."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/validators.py:99
-#, python-format
-msgid "Field must be equal to %(other_name)s."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/validators.py:146
-#, python-format
-msgid "Field must be at least %(min)d character long."
-msgid_plural "Field must be at least %(min)d characters long."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.11/site-packages/wtforms/validators.py:152
-#, python-format
-msgid "Field cannot be longer than %(max)d character."
-msgid_plural "Field cannot be longer than %(max)d characters."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.11/site-packages/wtforms/validators.py:158
-#, python-format
-msgid "Field must be exactly %(max)d character long."
-msgid_plural "Field must be exactly %(max)d characters long."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.11/site-packages/wtforms/validators.py:164
-#, python-format
-msgid "Field must be between %(min)d and %(max)d characters long."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/validators.py:216
-#, python-format
-msgid "Number must be at least %(min)s."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/validators.py:219
-#, python-format
-msgid "Number must be at most %(max)s."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/validators.py:222
-#, python-format
-msgid "Number must be between %(min)s and %(max)s."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/validators.py:358
-msgid "Invalid input."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/validators.py:422
-msgid "Invalid email address."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/validators.py:460
-msgid "Invalid IP address."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/validators.py:503
-msgid "Invalid Mac address."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/validators.py:540
-msgid "Invalid URL."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/validators.py:561
-msgid "Invalid UUID."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/validators.py:595
-#, python-format
-msgid "Invalid value, must be one of: %(values)s."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/validators.py:631
-#, python-format
-msgid "Invalid value, can't be any of: %(values)s."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/validators.py:700
-msgid "This field cannot be edited."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/validators.py:716
-msgid "This field is disabled and cannot have a value."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/csrf/core.py:96
-msgid "Invalid CSRF Token."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/csrf/session.py:64
-msgid "CSRF token missing."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/csrf/session.py:72
-msgid "CSRF failed."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/csrf/session.py:77
-msgid "CSRF token expired."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/fields/choices.py:142
-msgid "Invalid Choice: could not coerce."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/fields/choices.py:149
-#: venv/lib/python3.11/site-packages/wtforms/fields/choices.py:203
-msgid "Choices cannot be None."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/fields/choices.py:155
-msgid "Not a valid choice."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/fields/choices.py:194
-msgid "Invalid choice(s): one or more data inputs could not be coerced."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/fields/choices.py:212
-#, python-format
-msgid "'%(value)s' is not a valid choice for this field."
-msgid_plural "'%(value)s' are not valid choices for this field."
-msgstr[0] ""
-msgstr[1] ""
-
-#: venv/lib/python3.11/site-packages/wtforms/fields/datetime.py:52
-msgid "Not a valid datetime value."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/fields/datetime.py:78
-msgid "Not a valid date value."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/fields/datetime.py:104
-msgid "Not a valid time value."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/fields/datetime.py:149
-msgid "Not a valid week value."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/fields/numeric.py:82
-#: venv/lib/python3.11/site-packages/wtforms/fields/numeric.py:92
-msgid "Not a valid integer value."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/fields/numeric.py:168
-msgid "Not a valid decimal value."
-msgstr ""
-
-#: venv/lib/python3.11/site-packages/wtforms/fields/numeric.py:197
-msgid "Not a valid float value."
-msgstr ""
+#: app/templates/core/quiz_results_success.html:25
+#: app/templates/core/quiz_results_success.html:27
+msgid "Back to Articles"
+msgstr "Volver a Artículos"
+
+#: app/templates/core/trending_articles.html:9
+msgid "The most read articles in the last few days."
+msgstr "Los artículos más leídos en los últimos días."
+
+#: app/templates/core/trending_articles.html:16
+msgid "Not enough data to show trending articles yet."
+msgstr "Aún no hay datos suficientes para mostrar artículos en tendencia."

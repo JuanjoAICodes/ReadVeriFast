@@ -1,13 +1,19 @@
 {% extends "base.html" %}
-{% import "_form_macros.html" as forms %}
-
-{% block title %}{{ title }}{% endblock %}
 
 {% block content %}
-    <h1>{{ title }}</h1>
-    <form action="{{ url_for('core.submit_article') }}" method="post" novalidate>
-        {{ form.hidden_tag() }}
-        <p>{{ forms.render_field(form.url, size=64, placeholder='Pega la URL de un artículo aquí') }}</p>
-        <p>{{ form.submit() }}</p>
-    </form>
+<article class="grid">
+    <div>
+        <hgroup>
+            <h1>Enviar un Artículo</h1>
+            <h2>Pega la URL de un artículo para que lo procesemos.</h2>
+        </hgroup>
+        <form method="POST" action="{{ url_for('core.submit_article') }}">
+            {{ form.hidden_tag() }}
+            <label for="url">{{ form.url.label }}</label>
+            {{ form.url(placeholder="https://ejemplo.com/mi-articulo-interesante") }}
+            <button type="submit">Enviar URL</button>
+        </form>
+    </div>
+    <div></div>
+</article>
 {% endblock %}

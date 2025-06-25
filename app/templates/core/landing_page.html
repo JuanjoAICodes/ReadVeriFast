@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="text-align: center; padding: 4rem 0;">
+    <!-- Hero Section -->
+    <header>
+        <h1 class="display-4">{{ _('Read Twice as Fast. Remember Twice as Much.') }}</h1>
+        <p>
+            {{ _('VeriFast transforms any web article into an interactive learning experience. Improve your reading speed and validate your comprehension with AI-generated quizzes.') }}
+        </p>
+        <a href="{{ url_for('core.articles') }}" role="button">{{ _('Explore Articles') }}</a>
+    </header>
+
+    <!-- Cómo Funciona Section -->
+    <section style="margin-top: 5rem;">
+        <h2>{{ _('How Does It Work?') }}</h2>
+        <div class="grid">
+            <article>
+                <h5>{{ _('1. Paste a URL') }}</h5>
+                <p>{{ _("Find an article you're interested in on the web and submit it to our platform.") }}</p>
+            </article>
+            <article>
+                <h5>{{ _('2. Read at Your Pace') }}</h5>
+                <p>{{ _('Use our speed-reading tool to absorb the content at your chosen speed.') }}</p>
+            </article>
+            <article>
+                <h5>{{ _('3. Validate Comprehension') }}</h5>
+                <p>{{ _("Answer an AI-generated quiz to ensure you've retained the key information.") }}</p>
+            </article>
+        </div>
+    </section>
+
+    <!-- Beneficios Section -->
+    <section style="margin-top: 5rem;">
+        <article>
+            <h2 style="text-align: center;">{{ _('Key Benefits') }}</h2>
+            <ul>
+                <li>{{ _('Dramatically increase your reading speed (WPM).') }}</li>
+                <li>{{ _('Improve long-term information retention.') }}</li>
+                <li>{{ _('Get instant feedback on your comprehension.') }}</li>
+                <li>{{ _('Track your progress with XP and speed statistics.') }}</li>
+                <li>{{ _('Discover new content based on your interests.') }}</li>
+            </ul>
+        </article>
+    </section>
+</div>
+{% endblock %}

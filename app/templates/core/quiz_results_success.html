@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "core/_macros.html" import render_share_button %}
 
 {% block content %}
 <article>
@@ -7,19 +8,24 @@
         <p>{{ _('You have earned') }} <strong>{{ xp_earned }} XP</strong>. {{ _('Your total experience is now') }} <strong>{{ total_xp }} XP</strong>.</p>
     </header>
 
-    {% if evaluation_details %}
-    <details>
-        <summary>{{ _('Error Review') }}</summary>
-        <ul>
-            {% for detail in evaluation_details if not detail.is_correct %}
-            <li>
-                <p><strong>{{ _('Question') }}:</strong> {{ detail.question_text }}</p>
-                <p><ins>{{ _('Your answer') }}: {{ detail.user_answer }}</ins></p>
-                <p><del>{{ _('Correct answer') }}: {{ detail.correct_answer }}</del></p>
-            </li>
-            {% endfor %}
-        </ul>
-    </details>
+    {# 1. Filtramos para obtener solo los errores y los guardamos en una variable #}
+    {% set errores = evaluation_details|selectattr('is_correct', 'equalto', false)|list %}
+
+    {# 2. Solo mostramos la sección si la lista 'errores' no está vacía #}
+    {% if errores %}
+    <hr>
+    <h3 style="text-align: center;">{{ _('Review your mistakes') }}</h3>
+        {% for error in errores %}
+        <article style="margin-bottom: 1rem;">
+            <p><strong>{{ _('Question') }}:</strong> {{ error.question_text }}</p>
+            <p style="color: var(--pico-color-red-500);">
+                <strong>{{ _('Your answer') }}:</strong> {{ error.user_answer }}
+            </p>
+            <p style="color: var(--pico-color-green-500);">
+                <strong>{{ _('Correct answer') }}:</strong> {{ error.correct_answer }}
+            </p>
+        </article>
+        {% endfor %}
     {% endif %}
 
     <footer style="margin-top: 2rem;">
@@ -27,10 +33,17 @@
         <div class="grid">
         {% if related_article %}
             <a href="{{ url_for('core.article_detail', article_id=related_article.id) }}" role="button" class="primary">{{ _('Next Article') }}</a>
-            <a href="{{ url_for('core.articles') }}" role="button" class="secondary">{{ _('Back to Articles') }}</a>
         {% else %}
             <a href="{{ url_for('core.articles') }}" role="button">{{ _('Back to Articles') }}</a>
         {% endif %}
+        <!-- 1. Botón para compartir, añadido a la rejilla de acciones -->
+        {{ render_share_button(article) }}
+        </div>
+
+        <div style="text-align: center; margin-top: 1rem;">
+            <a href="{{ article.url }}" target="_blank" rel="noopener noreferrer">
+                <small>{{ _('View original article') }}</small>
+            </a>
         </div>
     </footer>
 </article>

@@ -59,3 +59,42 @@
     </footer>
 </article>
 {% endmacro %}
+
+{# Macro para renderizar un botón de "Compartir" con la Web Share API #}
+{% macro render_share_button(article) %}
+{# 1. Renderizar el HTML del botón #}
+<button id="share-button">{{ _('Share') }}</button>
+
+{# 2. Renderizar el bloque <script> con la lógica de la Web Share API #}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const shareButton = document.getElementById('share-button');
+
+    // Solo proceder si el botón existe en el DOM (puede que la macro no se use siempre)
+    if (shareButton) {
+        // Comprobar si la Web Share API está disponible en el navegador
+        if (navigator.share) {
+            // Añadir el evento de clic al botón
+            shareButton.addEventListener('click', async () => {
+                try {
+                    // Llamar a navigator.share() con los datos del artículo
+                    await navigator.share({
+                        title: `{{ article.title | e }}`, {# Título del artículo, escapado para seguridad #}
+                        text: `{{ _('¡Prueba a leer este artículo y supera mi puntuación en VeriFast!') }}`, {# Mensaje traducible #}
+                        url: `{{ url_for('core.article_detail', article_id=article.id, _external=True) }}` {# URL completa del artículo #}
+                    });
+                } catch (err) {
+                    // Manejar errores, ignorando si el usuario simplemente cancela la acción
+                    if (err.name !== 'AbortError') {
+                        console.error('Error al intentar compartir:', err);
+                    }
+                }
+            });
+        } else {
+            // Si la Web Share API NO está disponible, ocultar el botón
+            shareButton.style.display = 'none';
+        }
+    }
+});
+</script>
+{% endmacro %}

@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<header>
+    <h1 class="center-align">{{ _('Admin Dashboard') }}</h1>
+    <p class="center-align">{{ _('Here you can manage articles and view system statistics.') }}</p>
+</header>
+
+<hr>
+
+<!-- Métricas del Sistema y Acciones Manuales con Pico.css Grid -->
+<div class="grid">
+    <article>
+        <hgroup>
+            <h2>{{ _('Current Trends') }}</h2>
+            <h3>{{ _('Most read tags in the last 2 days') }}</h3>
+        </hgroup>
+        {% if trending_tags %}
+            <ul>
+                {% for tag in trending_tags %}
+                    <li>{{ tag }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>{{ _('No trend data available.') }}</p>
+        {% endif %}
+    </article>
+
+    <article>
+        <hgroup>
+            <h2>{{ _('System Actions') }}</h2>
+            <h3>{{ _('Manual task execution') }}</h3>
+        </hgroup>
+        <p>{{ _('Force an immediate search for new news articles.') }}</p>
+        <form method="POST" action="{{ url_for('core.fetch_articles_now') }}">
+            {{ form.hidden_tag() }}
+            <button type="submit">{{ _('Force Article Search') }}</button>
+        </form>
+    </article>
+</div>
+
+<hr>
+
+<!-- Formulario de Búsqueda con grupo de campos de Pico.css -->
+<form method="GET" action="{{ url_for('core.dashboard') }}">
+    <fieldset role="group">
+        <input type="text" name="q" placeholder="{{ _('Search by title...') }}" value="{{ query or '' }}">
+        <button type="submit">{{ _('Search') }}</button>
+    </fieldset>
+</form>
+
+<h2>{{ _('Article Management') }}</h2>
+<div class="overflow-auto"> <!-- Para que la tabla sea responsive en móviles -->
+    <table>
+        <thead>
+            <tr>
+                <th scope="col">{{ _('ID') }}</th>
+                <th scope="col">{{ _('Title') }}</th>
+                <th scope="col">{{ _('Status') }}</th>
+                <th scope="col">{{ _('Origin') }}</th>
+                <th scope="col">{{ _('Date') }}</th>
+                <th scope="col">{{ _('Actions') }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for article in articles_pagination.items %}
+            <tr>
+                <td>{{ article.id }}</td>
+                <td><a href="{{ url_for('core.article_detail', article_id=article.id) }}">{{ article.title | truncate(50) }}</a></td>
+                <td>{{ article.processing_status }}</td>
+                <td>{% if article.is_user_submitted %}{{ _('User') }}{% else %}{{ _('System') }}{% endif %}</td>
+                <td>{{ article.timestamp.strftime('%Y-%m-%d') }}</td>
+                <td>
+                    <form method="POST" action="{{ url_for('core.delete_article', id=article.id) }}" onsubmit="return confirm('{{ _('¿Estás seguro de que quieres eliminar este artículo?') }}');" style="display: inline;">
+                        <button type="submit" class="secondary outline btn-sm">{{ _('Delete') }}</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Paginación con estilo Pico.css -->
+<nav aria-label="Pagination">
+    <ul>
+        {% if articles_pagination.has_prev %}<li><a href="{{ url_for('core.dashboard', page=articles_pagination.prev_num, q=query) }}" role="button" class="outline">{{ _('Previous') }}</a></li>{% endif %}
+    </ul>
+    <ul>
+        {% for page_num in articles_pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            <li><a href="{{ url_for('core.dashboard', page=page_num, q=query) }}" {% if articles_pagination.page == page_num %}aria-current="page"{% endif %}>{{ page_num }}</a></li>
+        {% endfor %}
+    </ul>
+    <ul>
+        {% if articles_pagination.has_next %}<li><a href="{{ url_for('core.dashboard', page=articles_pagination.next_num, q=query) }}" role="button" class="outline">{{ _('Next') }}</a></li>{% endif %}
+    </ul>
+</nav>
+{% endblock %}

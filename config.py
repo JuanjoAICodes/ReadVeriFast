@@ -22,3 +22,14 @@ class Config:
 
     # --- Clave para la IA ---
     GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
+
+    # --- Clave para GNews ---
+    GNEWS_API_KEY = os.environ.get('GNEWS_API_KEY')
+
+class TestConfig(Config):
+    """Configuración específica para las pruebas."""
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    WTF_CSRF_ENABLED = False  # Desactiva la protección CSRF para las pruebas
+    # Ejecuta las tareas de Celery de forma síncrona para facilitar las pruebas
+    CELERY_TASK_ALWAYS_EAGER = True

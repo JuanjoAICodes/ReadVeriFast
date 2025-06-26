@@ -34,8 +34,22 @@
         </li>
 
         {% if current_user.is_authenticated %}
-          <li><a href="{{ url_for('core.profile') }}">{{ _('My Profile') }}</a></li>
-          <li><a href="{{ url_for('auth.logout') }}">{{ _('Logout') }}</a></li>
+          {% if current_user.is_admin %}
+            <!-- Menú desplegable para el Admin -->
+            <li>
+                <details role="list" dir="rtl">
+                    <summary aria-haspopup="listbox" role="button">{{ _('Admin') }}</summary>
+                    <ul role="listbox">
+                        <li><a href="{{ url_for('core.profile') }}">{{ _('My Profile') }}</a></li>
+                        <li><a href="{{ url_for('core.dashboard') }}">{{ _('Dashboard') }}</a></li>
+                    </ul>
+                </details>
+            </li>
+          {% else %}
+            <!-- Enlace simple para usuario normal -->
+            <li><a href="{{ url_for('core.profile') }}">{{ _('My Profile') }}</a></li>
+          {% endif %}
+          <li><a href="{{ url_for('auth.logout') }}" role="button" class="secondary">{{ _('Logout') }}</a></li>
         {% else %}
           <li><a href="{{ url_for('auth.login') }}">{{ _('Login') }}</a></li>
           <li><a href="{{ url_for('auth.register') }}" role="button">{{ _('Register') }}</a></li>
@@ -61,7 +75,8 @@
   <footer class="container" style="text-align: center; margin-top: 4rem; padding-bottom: 2rem;">
     <hr>
     <small>
-        VeriFast &copy; 2025
+        VeriFast &copy; 2025 |
+        <a href="mailto:verifast01@gmail.com?subject=VeriFast Feedback/Suggestion">{{ _('Suggestions or Bugs?') }}</a>
     </small>
   </footer>
 

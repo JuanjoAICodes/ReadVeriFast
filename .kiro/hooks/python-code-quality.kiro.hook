@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Python Code Quality Check",
+  "description": "Automatically runs Pydantic validation, Ruff linting, and MyPy type checking when Python files are modified or created to ensure clean code compliance",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.py"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A Python file has been modified or created. Please run the following code quality checks to ensure compliance:\n\n1. Run Ruff linting: `ruff check .` to identify and fix code style issues\n2. Run MyPy type checking: `mypy .` to verify type annotations and catch type errors\n3. If the file contains Pydantic models, validate the model definitions for proper structure and validation rules\n\nPlease report any issues found and suggest fixes if needed. Focus on maintaining clean, well-typed, and properly validated Python code."
+  }
+}

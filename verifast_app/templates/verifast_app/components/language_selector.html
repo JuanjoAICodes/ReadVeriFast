@@ -1,0 +1,104 @@
+{% load language_tags %}
+<!-- Language Selector Component -->
+<div class="language-selector" role="navigation" aria-label="Language filter">
+    <div class="language-selector-header">
+        <span class="selector-label">
+            <i class="icon-globe" aria-hidden="true"></i>
+            Filter by Language:
+        </span>
+    </div>
+    
+    <div class="language-options">
+        {% for language in languages %}
+            <a href="{{ language.url }}" 
+               class="language-option {% if language.is_active %}active{% endif %}"
+               title="Show articles in {{ language.name }}"
+               data-language="{{ language.code }}">
+                <span class="language-flag" aria-hidden="true">{{ language.flag }}</span>
+                <span class="language-name">{{ language.native_name }}</span>
+                <span class="article-count">({% language_article_count language.code %})</span>
+            </a>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.language-selector {
+    background: var(--card-background-color, #fff);
+    border: 1px solid var(--muted-border-color, #ddd);
+    border-radius: var(--border-radius, 8px);
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.language-selector-header {
+    margin-bottom: 0.75rem;
+}
+
+.selector-label {
+    font-weight: 600;
+    color: var(--color, #333);
+    font-size: 0.9rem;
+}
+
+.language-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.language-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--muted-border-color, #ddd);
+    border-radius: var(--border-radius, 4px);
+    text-decoration: none;
+    color: var(--color, #333);
+    background: var(--background-color, #fff);
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+}
+
+.language-option:hover {
+    background: var(--primary-hover, #e3f2fd);
+    border-color: var(--primary, #007cba);
+    text-decoration: none;
+}
+
+.language-option.active {
+    background: var(--primary, #007cba);
+    color: white;
+    border-color: var(--primary, #007cba);
+}
+
+.language-flag {
+    font-size: 1.1em;
+}
+
+.language-name {
+    font-weight: 500;
+}
+
+.article-count {
+    font-size: 0.8em;
+    opacity: 0.8;
+}
+
+.language-option.active .article-count {
+    opacity: 0.9;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .language-options {
+        flex-direction: column;
+    }
+    
+    .language-option {
+        justify-content: space-between;
+        width: 100%;
+    }
+}
+</style>

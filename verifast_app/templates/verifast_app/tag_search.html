@@ -1,0 +1,423 @@
+{% extends 'verifast_app/base.html' %}
+{% load static %}
+
+{% block title %}Tag Search & Discovery - VeriFast{% endblock %}
+
+{% block extra_css %}
+<style>
+    .tag-cloud {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin: 1rem 0;
+    }
+    
+    .tag-bubble {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        background: var(--pico-primary-background);
+        color: var(--pico-primary-inverse);
+        border-radius: 1rem;
+        text-decoration: none;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+    }
+    
+    .tag-bubble:hover {
+        background: var(--pico-primary);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .tag-bubble.size-large { font-size: 1.1rem; font-weight: bold; }
+    .tag-bubble.size-medium { font-size: 1rem; }
+    .tag-bubble.size-small { font-size: 0.8rem; }
+    
+    .search-filters {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        margin: 1rem 0;
+        flex-wrap: wrap;
+    }
+    
+    .search-stats {
+        background: var(--pico-card-background-color);
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin: 1rem 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+    }
+    
+    .stat-item {
+        text-align: center;
+    }
+    
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--pico-primary);
+    }
+    
+    .tag-card {
+        background: var(--pico-card-background-color);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        transition: transform 0.2s ease;
+    }
+    
+    .tag-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .tag-name {
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    
+    .tag-description {
+        color: var(--pico-muted-color);
+        margin-bottom: 0.5rem;
+    }
+    
+    .tag-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.875rem;
+        color: var(--pico-muted-color);
+    }
+    
+    .article-preview {
+        background: var(--pico-card-background-color);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin: 0.5rem 0;
+    }
+    
+    .article-title {
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    
+    .article-tags {
+        display: flex;
+        gap: 0.25rem;
+        flex-wrap: wrap;
+        margin-top: 0.5rem;
+    }
+    
+    .loading-spinner {
+        text-align: center;
+        padding: 2rem;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: var(--pico-muted-color);
+    }
+    
+    .section-header {
+        border-bottom: 2px solid var(--pico-primary);
+        padding-bottom: 0.5rem;
+        margin: 2rem 0 1rem 0;
+    }
+    
+    /* Mobile Responsive Design */
+    @media (max-width: 768px) {
+        .search-filters {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.5rem;
+        }
+        
+        .search-stats {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+            padding: 0.75rem;
+        }
+        
+        .tag-cloud {
+            gap: 0.25rem;
+        }
+        
+        .tag-bubble {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.5rem;
+        }
+        
+        .tag-bubble.size-large { font-size: 0.9rem; }
+        .tag-bubble.size-medium { font-size: 0.8rem; }
+        .tag-bubble.size-small { font-size: 0.7rem; }
+        
+        .tag-card, .article-preview {
+            padding: 0.75rem;
+            margin: 0.25rem 0;
+        }
+        
+        .tag-name {
+            font-size: 1.1rem;
+        }
+        
+        .tag-meta {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.25rem;
+        }
+        
+        .article-tags {
+            gap: 0.2rem;
+        }
+        
+        .pagination {
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .pagination li {
+            margin: 0.1rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .container {
+            padding: 0.5rem;
+        }
+        
+        .search-stats {
+            grid-template-columns: 1fr;
+        }
+        
+        .stat-number {
+            font-size: 1.2rem;
+        }
+        
+        .tag-bubble {
+            font-size: 0.7rem;
+            padding: 0.15rem 0.4rem;
+        }
+        
+        .section-header {
+            font-size: 1.2rem;
+            margin: 1.5rem 0 0.75rem 0;
+        }
+        
+        .empty-state {
+            padding: 2rem 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <header>
+        <h1>🏷️ Tag Search & Discovery</h1>
+        <p>Explore articles by topic using our Wikipedia-validated tag system</p>
+    </header>
+
+    <!-- Search Form -->
+    <section>
+        <form method="get" action="{% url 'verifast_app:tag_search' %}">
+            <div class="grid">
+                <div>
+                    <input 
+                        type="search" 
+                        name="q" 
+                        placeholder="Search tags or articles..." 
+                        value="{{ search_query }}"
+                        autocomplete="off"
+                    >
+                </div>
+                <div>
+                    <select name="type">
+                        <option value="all" {% if search_type == 'all' %}selected{% endif %}>All</option>
+                        <option value="tags" {% if search_type == 'tags' %}selected{% endif %}>Tags Only</option>
+                        <option value="articles" {% if search_type == 'articles' %}selected{% endif %}>Articles Only</option>
+                    </select>
+                </div>
+                <div>
+                    <button type="submit">🔍 Search</button>
+                </div>
+            </div>
+        </form>
+    </section>
+
+    <!-- Search Statistics -->
+    {% if search_query %}
+    <section class="search-stats">
+        <div class="stat-item">
+            <div class="stat-number">{{ tags|length }}</div>
+            <div>Matching Tags</div>
+        </div>
+        {% if matching_articles %}
+        <div class="stat-item">
+            <div class="stat-number">{{ matching_articles|length }}</div>
+            <div>Matching Articles</div>
+        </div>
+        {% endif %}
+        <div class="stat-item">
+            <div class="stat-number">{{ total_tags }}</div>
+            <div>Total Tags</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">{{ total_articles }}</div>
+            <div>Total Articles</div>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if not search_query %}
+    <!-- Popular Tags Cloud -->
+    <section>
+        <h2 class="section-header">🔥 Popular Tags</h2>
+        <div class="tag-cloud">
+            {% for tag in popular_tags %}
+                <a href="{% url 'verifast_app:tag_detail' tag_name=tag.name %}" 
+                   class="tag-bubble {% if tag.article_count > 10 %}size-large{% elif tag.article_count > 5 %}size-medium{% else %}size-small{% endif %}">
+                    {{ tag.name }} ({{ tag.article_count }})
+                </a>
+            {% empty %}
+                <p class="empty-state">No popular tags found.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Recent Tags -->
+    <section>
+        <h2 class="section-header">🆕 Recently Added Tags</h2>
+        <div class="tag-cloud">
+            {% for tag in recent_tags %}
+                <a href="{% url 'verifast_app:tag_detail' tag_name=tag.name %}" class="tag-bubble">
+                    {{ tag.name }}
+                    {% if tag.article_count > 0 %}({{ tag.article_count }}){% endif %}
+                </a>
+            {% empty %}
+                <p class="empty-state">No recent tags found.</p>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Search Results -->
+    {% if search_query %}
+    <section>
+        <h2 class="section-header">🔍 Search Results for "{{ search_query }}"</h2>
+        
+        <!-- Tag Results -->
+        {% if search_type == 'tags' or search_type == 'all' %}
+        <h3>Tags</h3>
+        {% for tag in tags %}
+            <div class="tag-card">
+                <div class="tag-name">
+                    <a href="{% url 'verifast_app:tag_detail' tag_name=tag.name %}">{{ tag.name }}</a>
+                </div>
+                {% if tag.description %}
+                <div class="tag-description">{{ tag.description|truncatewords:30 }}</div>
+                {% endif %}
+                <div class="tag-meta">
+                    <span>{{ tag.article_count }} article{{ tag.article_count|pluralize }}</span>
+                    <span>Updated {{ tag.last_updated|timesince }} ago</span>
+                </div>
+            </div>
+        {% empty %}
+            <p class="empty-state">No tags found matching "{{ search_query }}"</p>
+        {% endfor %}
+        {% endif %}
+
+        <!-- Article Results -->
+        {% if matching_articles and search_type != 'tags' %}
+        <h3>Articles</h3>
+        {% for article in matching_articles %}
+            <div class="article-preview">
+                <div class="article-title">
+                    <a href="{{ article.get_absolute_url }}">{{ article.get_display_title }}</a>
+                </div>
+                <div class="article-meta">
+                    <small>
+                        by {{ article.get_source_display }} • 
+                        {{ article.get_reading_time_estimate }} min read •
+                        {{ article.timestamp|timesince }} ago
+                    </small>
+                </div>
+                {% if article.summary %}
+                <div class="article-description">{{ article.summary|truncatewords:25 }}</div>
+                {% endif %}
+                <div class="article-tags">
+                    {% for tag in article.tags.all|slice:":5" %}
+                        <a href="{% url 'verifast_app:tag_detail' tag_name=tag.name %}" class="tag-bubble">{{ tag.name }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+        {% empty %}
+            <p class="empty-state">No articles found matching "{{ search_query }}"</p>
+        {% endfor %}
+        {% endif %}
+    </section>
+    {% endif %}
+
+    <!-- All Tags (when not searching) -->
+    {% if not search_query %}
+    <section>
+        <h2 class="section-header">📚 All Tags</h2>
+        {% for tag in tags %}
+            <div class="tag-card">
+                <div class="tag-name">
+                    <a href="{% url 'verifast_app:tag_detail' tag_name=tag.name %}">{{ tag.name }}</a>
+                </div>
+                {% if tag.description %}
+                <div class="tag-description">{{ tag.description|truncatewords:30 }}</div>
+                {% endif %}
+                <div class="tag-meta">
+                    <span>{{ tag.article_count }} article{{ tag.article_count|pluralize }}</span>
+                    <span>Updated {{ tag.last_updated|timesince }} ago</span>
+                </div>
+            </div>
+        {% empty %}
+            <p class="empty-state">No validated tags found.</p>
+        {% endfor %}
+    </section>
+    {% endif %}
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Tag pagination">
+        <ul class="pagination">
+            {% if page_obj.has_previous %}
+                <li><a href="?{% if search_query %}q={{ search_query }}&type={{ search_type }}&{% endif %}page=1">&laquo; First</a></li>
+                <li><a href="?{% if search_query %}q={{ search_query }}&type={{ search_type }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a></li>
+            {% endif %}
+            
+            <li class="current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </li>
+            
+            {% if page_obj.has_next %}
+                <li><a href="?{% if search_query %}q={{ search_query }}&type={{ search_type }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a></li>
+                <li><a href="?{% if search_query %}q={{ search_query }}&type={{ search_type }}&{% endif %}page={{ page_obj.paginator.num_pages }}">Last &raquo;</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<script>
+// Auto-submit search form on type change
+document.querySelector('select[name="type"]').addEventListener('change', function() {
+    this.form.submit();
+});
+
+// Add loading state to search
+document.querySelector('form').addEventListener('submit', function() {
+    const button = this.querySelector('button[type="submit"]');
+    button.innerHTML = '⏳ Searching...';
+    button.disabled = true;
+});
+</script>
+{% endblock %}

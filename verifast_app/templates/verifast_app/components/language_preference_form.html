@@ -1,0 +1,181 @@
+<!-- Language Preference Form Component -->
+{% if show_form %}
+<div class="language-preference-form">
+    <form method="post" action="{% url 'verifast_app:update_language_preference' %}" class="preference-form">
+        {% csrf_token %}
+        
+        <div class="form-header">
+            <h4 class="form-title">
+                <i class="icon-settings" aria-hidden="true"></i>
+                Language Preference
+            </h4>
+            <p class="form-description">
+                Choose your preferred language for articles and interface
+            </p>
+        </div>
+        
+        <div class="language-options">
+            {% for code, info in languages.items %}
+                <label class="language-choice">
+                    <input type="radio" 
+                           name="preferred_language" 
+                           value="{{ code }}"
+                           {% if current_preference == code %}checked{% endif %}
+                           class="language-radio">
+                    <div class="choice-content">
+                        <span class="choice-flag" aria-hidden="true">{{ info.flag }}</span>
+                        <div class="choice-text">
+                            <span class="choice-name">{{ info.name }}</span>
+                            <span class="choice-native">{{ info.native_name }}</span>
+                        </div>
+                    </div>
+                </label>
+            {% endfor %}
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="icon-check" aria-hidden="true"></i>
+                Update Preference
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+.language-preference-form {
+    background: var(--card-background-color, #fff);
+    border: 1px solid var(--muted-border-color, #ddd);
+    border-radius: var(--border-radius, 8px);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-header {
+    margin-bottom: 1.5rem;
+}
+
+.form-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color, #333);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-description {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--muted-color, #666);
+}
+
+.language-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.language-choice {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 0.75rem;
+    border: 2px solid var(--muted-border-color, #ddd);
+    border-radius: var(--border-radius, 6px);
+    transition: all 0.2s ease;
+}
+
+.language-choice:hover {
+    border-color: var(--primary, #007cba);
+    background: var(--primary-hover, #f8f9fa);
+}
+
+.language-choice:has(.language-radio:checked) {
+    border-color: var(--primary, #007cba);
+    background: var(--primary-hover, #e3f2fd);
+}
+
+.language-radio {
+    margin-right: 0.75rem;
+    transform: scale(1.2);
+}
+
+.choice-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.choice-flag {
+    font-size: 1.5em;
+}
+
+.choice-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.choice-name {
+    font-weight: 500;
+    color: var(--color, #333);
+}
+
+.choice-native {
+    font-size: 0.85rem;
+    color: var(--muted-color, #666);
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: var(--border-radius, 6px);
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: var(--primary, #007cba);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover, #0056b3);
+    transform: translateY(-1px);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .language-preference-form {
+        padding: 1rem;
+    }
+    
+    .language-choice {
+        padding: 1rem;
+    }
+    
+    .form-actions {
+        justify-content: stretch;
+    }
+    
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endif %}

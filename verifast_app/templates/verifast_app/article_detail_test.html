@@ -1,0 +1,72 @@
+{% extends 'verifast_app/base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Test Template" %} - {{ article.title|default:_("Article") }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<main class="article-detail" role="main">
+    <h1>{% trans "Test Template is Working" %} - {{ article.title|default:_("Untitled Article") }}</h1>
+    
+    <section id="speed-reader-section" class="speed-reader-section" 
+             data-content="{{ article.content|escape }}"
+             data-user-wpm="250"
+             aria-label="{% trans 'Speed Reader' %}">
+        
+        <h2>{% trans "Speed Reader" %} - {% trans "Working" %}</h2>
+        
+        <div class="speed-reader-container">
+            <div id="word-display" class="word-display" aria-live="polite" role="status">
+                {% trans "Click Start to begin reading" %}
+            </div>
+            
+            <progress id="progress-bar" class="reading-progress" value="0" max="100" 
+                      aria-label="{% trans 'Reading progress' %}">
+                0%
+            </progress>
+            
+            <div class="speed-controls" role="group" aria-label="{% trans 'Speed controls' %}">
+                <button id="speed-decrease" class="speed-btn" type="button"
+                        aria-label="{% trans 'Decrease reading speed' %}">-</button>
+                <span class="speed-display" aria-live="polite">
+                    <span id="current-speed">250</span> {% trans "WPM" %}
+                </span>
+                <button id="speed-increase" class="speed-btn" type="button"
+                        aria-label="{% trans 'Increase reading speed' %}">+</button>
+            </div>
+            
+            <div class="reader-controls" role="group" aria-label="{% trans 'Reader controls' %}">
+                <button id="start-pause-btn" class="primary-btn" type="button">
+                    {% trans "Start Reading" %}
+                </button>
+                <button id="reset-btn" class="secondary-btn" type="button">
+                    {% trans "Reset" %}
+                </button>
+                <button id="immersive-btn" class="secondary-btn" type="button">
+                    {% trans "Immersive Mode" %}
+                </button>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'verifast_app/css/speed-reader.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    window._ = function(key, params = {}) {
+        if (typeof window.i18n === 'object' && typeof window.i18n._ === 'function') {
+            return window.i18n._(key, params);
+        }
+        return key;
+    };
+    
+    console.log('Test template loaded successfully');
+});
+</script>
+<script src="{% static 'verifast_app/js/speed-reader.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends 'verifast_app/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Register" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+  <div style="max-width: 500px; margin: 0 auto;">
+    <hgroup>
+      <h1>{% trans "Join VeriFast" %}</h1>
+      <h2>{% trans "Start your journey to faster reading and better comprehension" %}</h2>
+    </hgroup>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      
+      {% if form.non_field_errors %}
+        <article class="error" aria-label="{% trans 'Form errors' %}">
+          {{ form.non_field_errors }}
+        </article>
+      {% endif %}
+
+      <div class="grid">
+        <div>
+          <label for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
+          {{ form.username }}
+          {% if form.username.errors %}
+            <small style="color: red;">{{ form.username.errors.0 }}</small>
+          {% endif %}
+          {% if form.username.help_text %}
+            <small>{{ form.username.help_text }}</small>
+          {% endif %}
+        </div>
+        
+        <div>
+          <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+          {{ form.email }}
+          {% if form.email.errors %}
+            <small style="color: red;">{{ form.email.errors.0 }}</small>
+          {% endif %}
+          {% if form.email.help_text %}
+            <small>{{ form.email.help_text }}</small>
+          {% endif %}
+        </div>
+      </div>
+
+      <div>
+        <label for="{{ form.preferred_language.id_for_label }}">{{ form.preferred_language.label }}</label>
+        {{ form.preferred_language }}
+        {% if form.preferred_language.errors %}
+          <small style="color: red;">{{ form.preferred_language.errors.0 }}</small>
+        {% endif %}
+        {% if form.preferred_language.help_text %}
+          <small>{{ form.preferred_language.help_text }}</small>
+        {% endif %}
+      </div>
+
+      <div class="grid">
+        <div>
+          <label for="{{ form.password1.id_for_label }}">{{ form.password1.label }}</label>
+          {{ form.password1 }}
+          {% if form.password1.errors %}
+            <small style="color: red;">{{ form.password1.errors.0 }}</small>
+          {% endif %}
+          {% if form.password1.help_text %}
+            <small>{{ form.password1.help_text }}</small>
+          {% endif %}
+        </div>
+        
+        <div>
+          <label for="{{ form.password2.id_for_label }}">{{ form.password2.label }}</label>
+          {{ form.password2 }}
+          {% if form.password2.errors %}
+            <small style="color: red;">{{ form.password2.errors.0 }}</small>
+          {% endif %}
+          {% if form.password2.help_text %}
+            <small>{{ form.password2.help_text }}</small>
+          {% endif %}
+        </div>
+      </div>
+
+      <button type="submit" class="contrast">{% trans "Create Account" %}</button>
+    </form>
+
+    <div style="text-align: center; margin-top: 2rem;">
+      <p>{% trans "Already have an account?" %} <a href="{% url 'login' %}">{% trans "Sign in here" %}</a></p>
+    </div>
+  </div>
+{% endblock %}

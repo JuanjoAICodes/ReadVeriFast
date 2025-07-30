@@ -1,0 +1,256 @@
+{% extends 'verifast_app/base.html' %}
+{% load i18n language_tags %}
+
+{% block title %}{% trans "Welcome" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+  <div style="text-align: center; padding: 2rem 0;">
+    <hgroup>
+      <h1>{% trans "Welcome to VeriFast" %}</h1>
+      <h2>{% trans "Your journey to faster reading and better comprehension starts here." %}</h2>
+    </hgroup>
+    
+    <!-- Language Preference for Authenticated Users -->
+    {% if user.is_authenticated %}
+      <div style="margin: 2rem 0;">
+        {% language_preference_form %}
+      </div>
+    {% endif %}
+    
+    <a href="{% url 'verifast_app:article_list' %}" role="button" class="contrast">
+      {% trans "Browse Available Articles" %}
+    </a>
+  </div>
+
+  <!-- Language Selector -->
+  {% if show_language_selector %}
+    <section style="margin: 2rem 0;">
+      {% language_selector %}
+    </section>
+  {% endif %}
+
+  <!-- Recent Articles -->
+  {% if articles %}
+    <section>
+      <hgroup>
+        <h2>{% trans "Recent Articles" %}</h2>
+        <h3>
+          {% if current_language != 'all' %}
+            {% trans "Latest articles in" %} {% language_name current_language %}
+          {% else %}
+            {% trans "Latest articles from all languages" %}
+          {% endif %}
+        </h3>
+      </hgroup>
+      
+      <div class="articles-preview">
+        {% for article in articles %}
+          <article class="article-preview-card">
+            <div class="article-preview-header">
+              <h4>
+                <a href="{% url 'verifast_app:article_detail' article.pk %}">
+                  {{ article.title }}
+                </a>
+              </h4>
+              <div class="article-preview-meta">
+                {% language_badge article.language %}
+                <span class="article-date">{{ article.timestamp|date:"M d" }}</span>
+              </div>
+            </div>
+            
+            <p class="article-preview-excerpt">
+              {{ article.content|truncatewords:20 }}
+            </p>
+            
+            <div class="article-preview-actions">
+              <a href="{% url 'verifast_app:article_detail' article.pk %}" 
+                 class="btn-small">
+                {% trans "Read Now" %}
+              </a>
+              
+              {% if article.word_count %}
+                <span class="word-count-small">
+                  {{ article.word_count }} {% trans "words" %}
+                </span>
+              {% endif %}
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+      
+      <div style="text-align: center; margin-top: 2rem;">
+        <a href="{% url 'verifast_app:article_list' %}{% if current_language != 'all' %}?lang={{ current_language }}{% endif %}" 
+           role="button">
+          {% trans "View All Articles" %}
+        </a>
+      </div>
+    </section>
+  {% endif %}
+
+  <!-- Popular Tags -->
+  {% if popular_tags %}
+    <section>
+      <hgroup>
+        <h2>{% trans "Popular Topics" %}</h2>
+        <h3>{% trans "Explore articles by topic" %}</h3>
+      </hgroup>
+      
+      <div class="popular-tags">
+        {% for tag in popular_tags %}
+          <a href="{% url 'verifast_app:tag_detail' tag.name %}" 
+             class="tag-card">
+            <span class="tag-name">{{ tag.name }}</span>
+            <span class="tag-count">{{ tag.article_count }} {% trans "articles" %}</span>
+          </a>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+
+  <!-- Language Statistics -->
+  <section>
+    {% language_statistics %}
+  </section>
+
+  <style>
+    .articles-preview {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 0;
+    }
+    
+    .article-preview-card {
+      background: var(--card-background-color, #fff);
+      border: 1px solid var(--muted-border-color, #ddd);
+      border-radius: var(--border-radius, 8px);
+      padding: 1.5rem;
+      transition: all 0.2s ease;
+    }
+    
+    .article-preview-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .article-preview-header {
+      margin-bottom: 1rem;
+    }
+    
+    .article-preview-header h4 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.1rem;
+    }
+    
+    .article-preview-header a {
+      color: var(--color, #333);
+      text-decoration: none;
+    }
+    
+    .article-preview-header a:hover {
+      color: var(--primary, #007cba);
+    }
+    
+    .article-preview-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .article-date {
+      color: var(--muted-color, #666);
+      font-size: 0.85rem;
+    }
+    
+    .article-preview-excerpt {
+      color: var(--muted-color, #666);
+      line-height: 1.5;
+      margin-bottom: 1rem;
+    }
+    
+    .article-preview-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .btn-small {
+      background: var(--primary, #007cba);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: var(--border-radius, 4px);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    
+    .btn-small:hover {
+      background: var(--primary-hover, #0056b3);
+      transform: translateY(-1px);
+    }
+    
+    .word-count-small {
+      color: var(--muted-color, #666);
+      font-size: 0.8rem;
+    }
+    
+    .popular-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+    
+    .tag-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem;
+      background: var(--card-background-color, #fff);
+      border: 1px solid var(--muted-border-color, #ddd);
+      border-radius: var(--border-radius, 8px);
+      text-decoration: none;
+      color: var(--color, #333);
+      transition: all 0.2s ease;
+      min-width: 120px;
+    }
+    
+    .tag-card:hover {
+      background: var(--primary, #007cba);
+      color: white;
+      transform: translateY(-2px);
+    }
+    
+    .tag-name {
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+    }
+    
+    .tag-count {
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+    
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+      .articles-preview {
+        grid-template-columns: 1fr;
+      }
+      
+      .popular-tags {
+        justify-content: center;
+      }
+      
+      .article-preview-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: stretch;
+      }
+      
+      .btn-small {
+        text-align: center;
+      }
+    }
+  </style>
+{% endblock %}

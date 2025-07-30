@@ -1,0 +1,23 @@
+{
+  "enabled": true,
+  "name": "Internationalization Setup",
+  "description": "Monitors changes to templates, forms, models, and views to ensure proper internationalization implementation for user-facing text in English and Spanish, while keeping backend logic in English except for article processing prompts which should match the article language",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "verifast_app/templates/**/*.html",
+      "templates/**/*.html",
+      "verifast_app/forms.py",
+      "verifast_app/models.py",
+      "verifast_app/views.py",
+      "verifast_app/api_views.py",
+      "config/settings.py",
+      "verifast_app/services.py"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Review the changed files for internationalization compliance. Ensure:\n\n1. All user-facing text in templates uses Django's {% trans %} and {% blocktrans %} tags\n2. Form labels, help texts, and error messages are wrapped with gettext functions (_(), ngettext())\n3. Model verbose_name and help_text fields use gettext_lazy functions\n4. View messages and user notifications use gettext functions\n5. JavaScript user-facing strings are properly internationalized\n6. Backend logic, comments, and variable names remain in English\n7. Article processing prompts in services.py match the language of the article being processed\n8. Settings.py includes proper LOCALE_PATHS, LANGUAGE_CODE, and LANGUAGES configuration\n9. Translation files (locale/*/LC_MESSAGES/django.po) need to be created/updated for Spanish\n\nProvide specific recommendations for implementing i18n best practices and highlight any user-facing text that needs translation markup."
+  }
+}

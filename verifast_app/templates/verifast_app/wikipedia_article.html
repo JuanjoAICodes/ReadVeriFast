@@ -1,0 +1,321 @@
+{% extends 'verifast_app/article_detail.html' %}
+{% load static %}
+
+{% block title %}{{ article.get_display_title }} - Wikipedia - VeriFast{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .wikipedia-header {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border: 2px solid var(--pico-primary);
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+    
+    .wikipedia-badge {
+        position: absolute;
+        top: -10px;
+        left: 20px;
+        background: var(--pico-primary);
+        color: var(--pico-primary-inverse);
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        font-weight: bold;
+    }
+    
+    .wikipedia-title {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+        color: var(--pico-primary);
+    }
+    
+    .wikipedia-meta {
+        display: flex;
+        gap: 2rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+        font-size: 0.875rem;
+        color: var(--pico-muted-color);
+    }
+    
+    .wikipedia-actions {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+    }
+    
+    .source-tag {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        background: var(--pico-primary-background);
+        color: var(--pico-primary-inverse);
+        border-radius: 1rem;
+        text-decoration: none;
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+    }
+    
+    .quiz-stats {
+        background: var(--pico-card-background-color);
+        padding: 1rem;
+        border-radius: 0.5rem;
+        margin: 1rem 0;
+    }
+    
+    .quiz-attempts {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .attempt-card {
+        background: var(--pico-background-color);
+        padding: 0.75rem;
+        border-radius: 0.25rem;
+        border-left: 3px solid var(--pico-primary);
+    }
+    
+    .attempt-score {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: var(--pico-primary);
+    }
+    
+    .breadcrumb {
+        margin-bottom: 1rem;
+        font-size: 0.875rem;
+        color: var(--pico-muted-color);
+    }
+    
+    .breadcrumb a {
+        color: var(--pico-primary);
+        text-decoration: none;
+    }
+    
+    .breadcrumb a:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Breadcrumb Navigation -->
+    <nav class="breadcrumb">
+        <a href="{% url 'verifast_app:index' %}">Home</a> &raquo; 
+        <a href="{% url 'verifast_app:tag_search' %}">Tags</a> &raquo; 
+        {% if source_tag %}
+        <a href="{% url 'verifast_app:tag_detail' tag_name=source_tag.name %}">{{ source_tag.name }}</a> &raquo; 
+        {% endif %}
+        Wikipedia Article
+    </nav>
+
+    <!-- Wikipedia Header -->
+    <header class="wikipedia-header">
+        <div class="wikipedia-badge">📖 WIKIPEDIA</div>
+        <h1 class="wikipedia-title">{{ article.title|slice:"11:" }}</h1>
+        
+        <div class="wikipedia-meta">
+            <span>📊 Reading Level: {{ article.reading_level|default:"N/A" }}</span>
+            <span>📝 {{ article.word_count|default:article.content|wordcount }} words</span>
+            <span>⏱️ {{ article.get_reading_time_estimate }} min read</span>
+            <span>🏷️ {{ article.tags.count }} tag{{ article.tags.count|pluralize }}</span>
+        </div>
+        
+        <!-- Source Tag -->
+        {% if source_tag %}
+        <a href="{% url 'verifast_app:tag_detail' tag_name=source_tag.name %}" class="source-tag">
+            🏷️ {{ source_tag.name }}
+        </a>
+        {% endif %}
+        
+        <div class="wikipedia-actions">
+            <a href="{{ wikipedia_url }}" target="_blank" role="button" class="secondary">
+                🌐 View on Wikipedia
+            </a>
+            {% if user.is_authenticated %}
+                {% if not has_taken_quiz %}
+                <a href="#quiz-section" role="button">
+                    🧠 Take Quiz
+                </a>
+                {% else %}
+                <a href="#quiz-section" role="button" class="outline">
+                    🔄 Retake Quiz
+                </a>
+                {% endif %}
+            {% endif %}
+        </div>
+    </header>
+
+    <!-- User Quiz Statistics (if authenticated and has attempts) -->
+    {% if user.is_authenticated and has_taken_quiz %}
+    <section class="quiz-stats">
+        <h3>📊 Your Quiz Performance</h3>
+        <p>
+            <strong>Best Score:</strong> {{ best_score|floatformat:1 }}% 
+            {% if best_score >= 90 %}🏆{% elif best_score >= 80 %}🥈{% elif best_score >= 70 %}🥉{% endif %}
+        </p>
+        <p><strong>Total Attempts:</strong> {{ user_quiz_attempts.count }}</p>
+        
+        <div class="quiz-attempts">
+            {% for attempt in user_quiz_attempts|slice:":3" %}
+            <div class="attempt-card">
+                <div class="attempt-score">{{ attempt.score|floatformat:1 }}%</div>
+                <div>{{ attempt.wpm_used }} WPM • {{ attempt.xp_awarded }} XP</div>
+                <div>{{ attempt.timestamp|timesince }} ago</div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Article Content (using parent template structure) -->
+    <article>
+        <!-- Speed Reader Section -->
+        <section id="speed-reader-section">
+            <h2>📚 Speed Reader</h2>
+            <div id="speed-reader-container">
+                <!-- Speed reader controls -->
+                <div class="speed-controls">
+                    <div class="wpm-control">
+                        <label for="wpm-slider">Reading Speed: <span id="wpm-display">{{ user.current_wpm|default:250 }}</span> WPM</label>
+                        <input type="range" id="wpm-slider" min="50" max="1000" step="25" value="{{ user.current_wpm|default:250 }}">
+                    </div>
+                    
+                    <div class="reader-controls">
+                        <button id="start-reading" type="button">▶️ Start Reading</button>
+                        <button id="pause-reading" type="button" disabled>⏸️ Pause</button>
+                        <button id="reset-reading" type="button">🔄 Reset</button>
+                    </div>
+                </div>
+
+                <!-- Speed reader display -->
+                <div id="speed-reader-display">
+                    <div id="word-display">Click "Start Reading" to begin</div>
+                    <div id="progress-bar">
+                        <div id="progress-fill"></div>
+                    </div>
+                    <div id="reading-stats">
+                        <span id="word-counter">0 / 0</span>
+                        <span id="time-elapsed">00:00</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quiz Section inherited from parent template -->
+
+        <!-- Comments Section -->
+        <section id="comments-section">
+            <h2>💬 Discussion</h2>
+            {% if user.is_authenticated %}
+                {% if has_taken_quiz %}
+                    <!-- Comment form -->
+                    <form method="post" action="{% url 'verifast_app:article_detail' pk=article.pk %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="comment-content">Share your thoughts about this Wikipedia article:</label>
+                            <textarea name="content" id="comment-content" rows="4" placeholder="What did you learn? Any interesting insights?"></textarea>
+                        </div>
+                        <button type="submit">💬 Post Comment (10 XP)</button>
+                    </form>
+                {% else %}
+                    <p>Complete the quiz above to unlock commenting privileges.</p>
+                {% endif %}
+            {% else %}
+                <p>Please <a href="{% url 'login' %}">log in</a> to participate in discussions.</p>
+            {% endif %}
+
+            <!-- Display comments -->
+            <div class="comments-list">
+                {% for comment in comments %}
+                    <div class="comment">
+                        <div class="comment-header">
+                            <strong>{{ comment.user.username }}</strong>
+                            <span class="comment-date">{{ comment.timestamp|timesince }} ago</span>
+                        </div>
+                        <div class="comment-content">{{ comment.content }}</div>
+                        
+                        {% if user.is_authenticated and user != comment.user %}
+                        <div class="comment-actions">
+                            <form method="post" action="{% url 'verifast_app:comment_interact' comment_id=comment.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="interaction_type" value="BRONZE">
+                                <button type="submit" class="interaction-btn bronze">🥉 Bronze (5 XP)</button>
+                            </form>
+                            <form method="post" action="{% url 'verifast_app:comment_interact' comment_id=comment.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="interaction_type" value="SILVER">
+                                <button type="submit" class="interaction-btn silver">🥈 Silver (15 XP)</button>
+                            </form>
+                            <form method="post" action="{% url 'verifast_app:comment_interact' comment_id=comment.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="interaction_type" value="GOLD">
+                                <button type="submit" class="interaction-btn gold">🏆 Gold (30 XP)</button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    </div>
+                {% empty %}
+                    <p class="empty-state">No comments yet. Be the first to share your thoughts!</p>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Related Articles -->
+        {% if related_articles %}
+        <section id="related-articles">
+            <h2>🔗 Related Articles</h2>
+            <div class="related-articles-grid">
+                {% for related in related_articles %}
+                <div class="related-article-card">
+                    <h4><a href="{{ related.get_absolute_url }}">{{ related.get_display_title }}</a></h4>
+                    <p>{{ related.get_source_display }} • {{ related.get_reading_time_estimate }} min read</p>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+    </article>
+</div>
+
+<!-- Include the speed reader and quiz JavaScript from parent template -->
+<script>
+// Wikipedia-specific enhancements
+document.addEventListener('DOMContentLoaded', function() {
+    // Add Wikipedia-specific tracking
+    if (typeof gtag !== 'undefined') {
+        gtag('event', 'wikipedia_article_view', {
+            'article_title': '{{ article.title|escapejs }}',
+            'source_tag': '{{ source_tag.name|default:""|escapejs }}'
+        });
+    }
+    
+    // Smooth scrolling for internal links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+});
+
+// Article content for speed reader
+const articleContent = `{{ article.content|escapejs }}`;
+const articleId = {{ article.id }};
+const isWikipediaArticle = true;
+</script>
+{% endblock %}

@@ -1,0 +1,17 @@
+{
+  "name": "API Documentation Hook",
+  "description": "Update API documentation automatically when API views or serializers change",
+  "trigger": {
+    "type": "file_change",
+    "patterns": [
+      "verifast_app/api_views.py",
+      "verifast_app/serializers.py"
+    ]
+  },
+  "action": {
+    "type": "agent_execution",
+    "request": "Analyze the changes in the API files and update the API documentation accordingly. Review the modified API views and serializers, then update the documentation in documentation/api/ to reflect any new endpoints, changed parameters, response formats, or authentication requirements. Ensure the documentation includes proper examples and maintains consistency with the existing documentation structure."
+  },
+  "enabled": true,
+  "autoApprove": false
+}

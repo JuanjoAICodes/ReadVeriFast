@@ -1,0 +1,88 @@
+{% extends 'verifast_app/base.html' %}
+
+{% block title %}Edit Profile - {{ block.super }}{% endblock %}
+
+{% block content %}
+  <div style="max-width: 600px; margin: 0 auto;">
+    <hgroup>
+      <h1>Edit Your Profile</h1>
+      <h2>Update your reading preferences and personal information</h2>
+    </hgroup>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      
+      {% if form.non_field_errors %}
+        <article class="error" aria-label="Form errors">
+          {{ form.non_field_errors }}
+        </article>
+      {% endif %}
+
+      <div class="grid">
+        <div>
+          <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label }}</label>
+          {{ form.first_name }}
+          {% if form.first_name.errors %}
+            <small style="color: red;">{{ form.first_name.errors.0 }}</small>
+          {% endif %}
+        </div>
+        
+        <div>
+          <label for="{{ form.last_name.id_for_label }}">{{ form.last_name.label }}</label>
+          {{ form.last_name }}
+          {% if form.last_name.errors %}
+            <small style="color: red;">{{ form.last_name.errors.0 }}</small>
+          {% endif %}
+        </div>
+      </div>
+
+      <div>
+        <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+        {{ form.email }}
+        {% if form.email.errors %}
+          <small style="color: red;">{{ form.email.errors.0 }}</small>
+        {% endif %}
+      </div>
+
+      <div class="grid">
+        <div>
+          <label for="{{ form.preferred_language.id_for_label }}">{{ form.preferred_language.label }}</label>
+          {{ form.preferred_language }}
+          {% if form.preferred_language.errors %}
+            <small style="color: red;">{{ form.preferred_language.errors.0 }}</small>
+          {% endif %}
+          {% if form.preferred_language.help_text %}
+            <small>{{ form.preferred_language.help_text }}</small>
+          {% endif %}
+        </div>
+        
+        <div>
+          <label for="{{ form.theme.id_for_label }}">{{ form.theme.label }}</label>
+          {{ form.theme }}
+          {% if form.theme.errors %}
+            <small style="color: red;">{{ form.theme.errors.0 }}</small>
+          {% endif %}
+          {% if form.theme.help_text %}
+            <small>{{ form.theme.help_text }}</small>
+          {% endif %}
+        </div>
+      </div>
+
+      <div>
+        <label for="{{ form.current_wpm.id_for_label }}">{{ form.current_wpm.label }}</label>
+        {{ form.current_wpm }}
+        {% if form.current_wpm.errors %}
+          <small style="color: red;">{{ form.current_wpm.errors.0 }}</small>
+        {% endif %}
+        {% if form.current_wpm.help_text %}
+          <small>{{ form.current_wpm.help_text }}</small>
+        {% endif %}
+      </div>
+
+      <fieldset role="group">
+        <button type="submit" class="contrast">Save Changes</button>
+        <a href="{% url 'verifast_app:user_profile' %}" role="button" class="secondary">Cancel</a>
+      </fieldset>
+    </form>
+  </div>
+{% endblock %}

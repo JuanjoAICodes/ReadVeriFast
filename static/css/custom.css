@@ -1,0 +1,982 @@
+
+.article-card {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border: 1px solid var(--card-border-color, var(--border));
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-box-shadow, var(--shadow));
+    background-color: var(--card-background-color, var(--card));
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.2s ease-in-out;
+}
+
+.article-card:hover {
+    border-color: var(--primary);
+}
+
+.article-card .card-image {
+    flex-shrink: 0;
+    width: 225px;
+    height: 150px;
+    margin-right: 1.5rem;
+}
+
+.article-card .card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: var(--border-radius);
+}
+
+.article-card .card-content h5 {
+    margin-bottom: 0.5rem;
+}
+
+.article-card .card-content p {
+    font-size: 0.9rem;
+    color: var(--muted-color);
+    margin-bottom: 0;
+}
+/* Premium Feature Styling */
+select option:disabled {
+    color: #999;
+    font-style: italic;
+}
+
+input:disabled + label,
+label:has(input:disabled) {
+    color: #999;
+    opacity: 0.6;
+}
+
+.premium-feature-notice {
+    background: var(--card-background-color);
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 1rem;
+    border-left: 4px solid var(--primary);
+}
+
+/* Premium Font Imports */
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Roboto:wght@400;500;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&display=swap');
+
+/* Immersive Speed Reader Styles */
+.immersive-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.9);
+    /* Use GPU acceleration for better performance */
+    will-change: opacity, transform;
+    /* Optimize rendering */
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    /* Use viewport units for consistent full-screen coverage */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    box-sizing: border-box;
+}
+
+.immersive-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+}
+
+.immersive-overlay.active .immersive-word-display {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 3px solid #333333 !important;
+}
+
+.immersive-overlay.active .immersive-controls {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+}
+
+.immersive-overlay.active .immersive-stop-btn {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: block !important;
+    background: var(--primary) !important;
+    color: #ffffff !important;
+}
+
+.immersive-word-display {
+    font-size: 4rem;
+    color: #000000;
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 2rem;
+    /* Fixed dimensions to prevent resizing */
+    width: 600px;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    /* Soft white background with black text for maximum contrast */
+    background: #ffffff;
+    border: 3px solid #333333;
+    /* Remove text shadow for cleaner contrast */
+    text-shadow: none;
+    /* Ensure text doesn't overflow */
+    overflow: hidden;
+    word-wrap: break-word;
+    hyphens: auto;
+    /* Smooth font rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Handle very long words gracefully - but don't break normal words */
+    word-break: normal;
+    /* Ensure visibility */
+    position: relative;
+    z-index: 10001;
+    /* Make sure it's always visible */
+    opacity: 1 !important;
+    transform: none !important;
+    /* Force visibility */
+    visibility: visible !important;
+}
+
+.immersive-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    opacity: 1;
+    transform: translateY(0);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.2s;
+}
+
+.immersive-stop-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    font-size: 1.2rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.immersive-stop-btn:hover {
+    background: var(--primary-hover, var(--primary));
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+.immersive-progress {
+    width: 300px;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 0 1rem;
+}
+
+.immersive-progress-bar {
+    height: 100%;
+    background: var(--primary);
+    transition: width 0.1s ease;
+    border-radius: 4px;
+}
+
+.background-fade {
+    opacity: 0.3;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+/* Speed reader rectangle animation */
+#speed-reader-section {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
+    border-radius: var(--border-radius);
+    padding: 1rem;
+}
+
+#speed-reader-section.preparing-immersive {
+    transform: scale(1.05);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    border-color: var(--primary);
+    background: rgba(var(--primary-rgb, 0, 123, 255), 0.05);
+}
+
+/* Enhanced overlay transitions - already included in main definition */
+
+/* Word display animations handled by main definition */
+
+
+
+.immersive-overlay.active .immersive-controls {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 768px) {
+    .immersive-word-display {
+        font-size: 2.5rem;
+        margin-bottom: 1.5rem;
+        /* Maintain fixed dimensions but smaller for mobile */
+        width: 400px;
+        height: 150px;
+    }
+    
+    .immersive-stop-btn {
+        padding: 0.8rem 1.5rem;
+        font-size: 1rem;
+    }
+    
+    .immersive-progress {
+        width: 200px;
+    }
+}
+
+@media (max-width: 480px) {
+    .immersive-word-display {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        /* Smaller fixed dimensions for very small screens */
+        width: 300px;
+        height: 120px;
+    }
+    
+    .immersive-controls {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .immersive-progress {
+        width: 250px;
+        order: -1;
+    }
+}
+
+/* Additional responsive enhancements */
+@media (max-width: 1024px) {
+    .immersive-word-display {
+        font-size: 3.5rem;
+        padding: 0.8rem;
+    }
+}
+
+/* Landscape orientation on mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+    .immersive-word-display {
+        font-size: 2.2rem;
+        margin-bottom: 1rem;
+        width: 350px;
+        height: 100px;
+    }
+    
+    .immersive-controls {
+        flex-direction: row;
+        gap: 0.5rem;
+    }
+    
+    .immersive-progress {
+        width: 150px;
+    }
+    
+    .immersive-stop-btn {
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Very small screens */
+@media (max-width: 320px) {
+    .immersive-word-display {
+        font-size: 1.8rem;
+        padding: 0.5rem;
+        width: 280px;
+        height: 100px;
+    }
+    
+    .immersive-stop-btn {
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .immersive-progress {
+        width: 200px;
+    }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .immersive-word-display {
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    }
+}
+
+/* Viewport handling is already included in main .immersive-overlay definition */
+
+/* Handle very wide screens */
+@media (min-width: 1920px) {
+    .immersive-word-display {
+        font-size: 5rem;
+        max-width: 80%;
+    }
+    
+    .immersive-progress {
+        width: 400px;
+    }
+}
+
+/* Performance optimizations are already included in main definitions */
+
+.immersive-progress-bar {
+    /* Optimize progress bar animations */
+    will-change: width;
+    transform: translateZ(0);
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+    .immersive-overlay,
+    .immersive-word-display,
+    .immersive-controls,
+    #speed-reader-section {
+        transition: none !important;
+        animation: none !important;
+    }
+    
+    #speed-reader-section.preparing-immersive {
+        transform: none !important;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .immersive-overlay {
+        background: rgba(0, 0, 0, 0.95);
+    }
+    
+    .immersive-word-display {
+        color: white;
+        background: rgba(0, 0, 0, 0.8);
+        border: 2px solid white;
+    }
+    
+    .immersive-stop-btn {
+        border: 2px solid white;
+    }
+}
+
+/* Dark mode optimizations */
+@media (prefers-color-scheme: dark) {
+    .immersive-word-display {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+}
+
+/* Print styles (hide immersive overlay) */
+@media print {
+    .immersive-overlay {
+        display: none !important;
+    }
+}
+/* =
+==== TAG SYSTEM STYLES ===== */
+
+/* Tag Cloud and Bubbles */
+.tag-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+
+.tag-bubble {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: var(--pico-primary-background);
+    color: var(--pico-primary-inverse);
+    border-radius: 1rem;
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.tag-bubble:hover {
+    background: var(--pico-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-decoration: none;
+}
+
+.tag-bubble.size-large { 
+    font-size: 1.1rem; 
+    font-weight: bold; 
+    padding: 0.4rem 1rem;
+}
+
+.tag-bubble.size-medium { 
+    font-size: 1rem; 
+    padding: 0.3rem 0.85rem;
+}
+
+.tag-bubble.size-small { 
+    font-size: 0.8rem; 
+    padding: 0.2rem 0.6rem;
+}
+
+/* Tag Cards */
+.tag-card {
+    background: var(--pico-card-background-color);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 0.5rem 0;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid var(--pico-card-border-color);
+}
+
+.tag-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.tag-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.tag-name a {
+    color: var(--pico-primary);
+    text-decoration: none;
+}
+
+.tag-name a:hover {
+    text-decoration: underline;
+}
+
+.tag-description {
+    color: var(--pico-muted-color);
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+}
+
+.tag-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.875rem;
+    color: var(--pico-muted-color);
+}
+
+/* Wikipedia Article Styling */
+.wikipedia-article {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border: 2px solid var(--pico-primary);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    position: relative;
+}
+
+.wikipedia-badge {
+    position: absolute;
+    top: -10px;
+    left: 20px;
+    background: var(--pico-primary);
+    color: var(--pico-primary-inverse);
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.wikipedia-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: var(--pico-primary);
+}
+
+.wikipedia-summary {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+    color: var(--pico-color);
+}
+
+.wikipedia-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* Article Grid */
+.article-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.article-card {
+    background: var(--pico-card-background-color);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid var(--pico-card-border-color);
+}
+
+.article-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.article-title {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.article-title a {
+    color: var(--pico-color);
+    text-decoration: none;
+}
+
+.article-title a:hover {
+    color: var(--pico-primary);
+    text-decoration: underline;
+}
+
+.article-meta {
+    font-size: 0.875rem;
+    color: var(--pico-muted-color);
+    margin-bottom: 0.5rem;
+}
+
+.article-summary {
+    margin-bottom: 1rem;
+    line-height: 1.5;
+    color: var(--pico-color);
+}
+
+.article-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* Search Filters */
+.search-filters {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin: 1rem 0;
+    flex-wrap: wrap;
+}
+
+.search-stats {
+    background: var(--pico-card-background-color);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin: 1rem 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    border: 1px solid var(--pico-card-border-color);
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--pico-primary);
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: var(--pico-muted-color);
+}
+
+/* Section Headers */
+.section-header {
+    border-bottom: 2px solid var(--pico-primary);
+    padding-bottom: 0.5rem;
+    margin: 2rem 0 1rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.section-header h2, .section-header h3 {
+    margin: 0;
+    color: var(--pico-primary);
+}
+
+/* Breadcrumb Navigation */
+.breadcrumb {
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+    color: var(--pico-muted-color);
+}
+
+.breadcrumb a {
+    color: var(--pico-primary);
+    text-decoration: none;
+}
+
+.breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+/* Empty States */
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--pico-muted-color);
+}
+
+.empty-state h3 {
+    color: var(--pico-muted-color);
+    margin-bottom: 1rem;
+}
+
+/* Loading States */
+.loading-spinner {
+    text-align: center;
+    padding: 2rem;
+}
+
+.loading-spinner::after {
+    content: "⏳";
+    font-size: 2rem;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .article-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .search-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .tag-cloud {
+        justify-content: center;
+    }
+    
+    .wikipedia-actions {
+        flex-direction: column;
+    }
+    
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .search-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .tag-bubble {
+        font-size: 0.8rem;
+        padding: 0.2rem 0.6rem;
+    }
+    
+    .article-card {
+        padding: 0.75rem;
+    }
+    
+    .wikipedia-article {
+        padding: 1rem;
+    }
+}
+
+/* Dark Mode Adjustments */
+@media (prefers-color-scheme: dark) {
+    .wikipedia-article {
+        background: linear-gradient(135deg, #2d3748, #4a5568);
+        border-color: var(--pico-primary);
+    }
+    
+    .tag-card, .article-card {
+        background: var(--pico-card-background-color);
+        border-color: var(--pico-card-border-color);
+    }
+    
+    .search-stats {
+        background: var(--pico-card-background-color);
+        border-color: var(--pico-card-border-color);
+    }
+}
+
+/* Animation Enhancements */
+.tag-bubble, .tag-card, .article-card {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tag-card:hover, .article-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+/* Focus States for Accessibility */
+.tag-bubble:focus, .tag-card a:focus, .article-card a:focus {
+    outline: 2px solid var(--pico-primary);
+    outline-offset: 2px;
+}
+
+/* Print Styles */
+@media print {
+    .tag-cloud, .wikipedia-actions, .article-actions {
+        display: none;
+    }
+    
+    .tag-card, .article-card {
+        break-inside: avoid;
+        box-shadow: none;
+        border: 1px solid #ccc;
+    }
+}
+
+/* ===== ACCESSIBILITY IMPROVEMENTS ===== */
+
+/* Screen reader only content */
+.sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+/* Focus styles for better keyboard navigation */
+.speed-reader-section button:focus,
+.quiz-modal button:focus,
+.quiz-modal input[type="radio"]:focus,
+.quiz-modal input[type="range"]:focus {
+    outline: 2px solid var(--primary) !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 4px rgba(var(--primary-rgb, 0, 123, 255), 0.25) !important;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .quiz-modal {
+        background-color: rgba(0, 0, 0, 0.95) !important;
+    }
+    
+    .quiz-content,
+    .speed-reader-section {
+        border: 2px solid var(--primary) !important;
+        background-color: var(--background-color) !important;
+    }
+    
+    .word-display {
+        border: 3px solid var(--primary) !important;
+        background-color: var(--background-color) !important;
+        color: var(--color) !important;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .quiz-modal,
+    .quiz-content,
+    .question,
+    .word-display,
+    .speed-reader-section * {
+        transition: none !important;
+        animation: none !important;
+    }
+}
+
+/* Enhanced quiz interface accessibility */
+.quiz-modal[aria-modal="true"] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.question-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: var(--primary);
+}
+
+.question-text {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.options fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+.option-label {
+    display: block;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid var(--muted-border-color);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.option-label:hover {
+    background-color: var(--card-background-color);
+}
+
+.option-label input[type="radio"] {
+    margin-right: 0.75rem;
+}
+
+.option-label input[type="radio"]:checked + .option-text {
+    font-weight: bold;
+    color: var(--primary);
+}
+
+/* Speed reader accessibility improvements */
+.word-display[aria-live] {
+    min-height: 4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    text-align: center;
+    padding: var(--spacing-md);
+    border: 2px solid var(--primary);
+    border-radius: var(--border-radius);
+    background-color: var(--background-color);
+}
+
+.speed-reader-controls button[title] {
+    position: relative;
+}
+
+.speed-reader-controls button[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--tooltip-background-color, #333);
+    color: var(--tooltip-color, #fff);
+    padding: 0.5rem;
+    border-radius: var(--border-radius);
+    font-size: 0.8rem;
+    white-space: nowrap;
+    z-index: 1000;
+    margin-bottom: 0.5rem;
+}
+
+/* Error message styling */
+.error-message,
+.quiz-error {
+    background-color: var(--del-background-color, #ffe6e6);
+    color: var(--del-color, #d63384);
+    border: 1px solid var(--del-color, #d63384);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    margin: 1rem 0;
+    text-align: center;
+}
+
+/* Loading states */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid var(--primary);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Mobile accessibility improvements */
+@media (max-width: 768px) {
+    .word-display {
+        font-size: 1.5rem;
+        min-height: 3rem;
+    }
+    
+    .speed-reader-controls button,
+    .quiz-modal button {
+        min-height: 44px; /* Minimum touch target size */
+        min-width: 44px;
+    }
+    
+    .option-label {
+        padding: 1rem;
+        font-size: 1rem;
+    }
+    
+    .quiz-content {
+        margin: 1rem;
+        max-height: calc(100vh - 2rem);
+        overflow-y: auto;
+    }
+}
+
+/* Print styles */
+@media print {
+    .speed-reader-section,
+    .quiz-modal {
+        display: none !important;
+    }
+}

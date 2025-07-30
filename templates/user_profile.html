@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "User Profile" %} - {{ user_profile.username }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <header>
+        <h1>{% trans "User Profile" %}: {{ user_profile.username }}</h1>
+        {% if is_admin_user %}
+        <div class="admin-notice" style="background: #e3f2fd; padding: 1rem; border-radius: 4px; margin: 1rem 0; border-left: 4px solid #2196f3;">
+            <strong>🔧 {{ admin_premium_notice }}</strong>
+            <p><small>{% trans "As an admin user, you have access to all premium features for testing purposes." %}</small></p>
+        </div>
+        {% endif %}
+        <p>{% trans "Email" %}: {{ user_profile.email }}</p>
+        <p>{% trans "Joined" %}: {{ user_profile.date_joined|date:"F j, Y" }}</p>
+    </header>
+
+    <hr>
+
+    <!-- User Stats Section -->
+    <section id="user-stats">
+        <h2>{% trans "Your Statistics" %}</h2>
+        <div class="grid">
+            <article>
+                <h4>{% trans "Total XP" %}</h4>
+                <p>{{ user_profile.total_xp }}</p>
+            </article>
+            <article>
+                <h4>{% trans "Spendable XP" %}</h4>
+                <p id="spendable-xp">{{ user_profile.current_xp_points }}</p>
+            </article>
+            <article>
+                <h4>{% trans "Max WPM" %}</h4>
+                <p>{{ user_profile.max_wpm }}</p>
+            </article>
+            <article>
+                <h4>{% trans "Quizzes Completed" %}</h4>
+                <p>{{ quiz_attempts_count }}</p>
+            </article>
+        </div>
+    </section>
+
+    <hr>
+
+    <!-- Premium Feature Store -->
+    <section id="feature-store">
+        <h2>{% trans "Premium Feature Store" %}</h2>
+        <p>{% trans "Spend your XP to unlock powerful new reading features!" %}</p>
+        
+        {% for category, data in features_by_category.items %}
+        <details open>
+            <summary><h3>{{ category|title }}</h3></summary>
+            <div class="grid">
+                {% for feature in data.features %}
+                <article>
+                    <header>
+                        <strong>{{ feature.name }}</strong>
+                    </header>
+                    <p>{{ feature.description }}</p>
+                    <footer>
+                        {% if feature.owned %}
+                            <button class="secondary" disabled>{% trans "Owned" %}</button>
+                        {% else %}
+                            <button 
+                                id="btn-{{ feature.key }}"
+                                class="purchase-btn" 
+                                data-feature-key="{{ feature.key }}" 
+                                {% if not feature.can_afford %}disabled{% endif %}>
+                                {% blocktrans with cost=feature.cost %}Purchase ({{ cost }} XP){% endblocktrans %}
+                            </button>
+                        {% endif %}
+                    </footer>
+                </article>
+                {% endfor %}
+            </div>
+        </details>
+        {% endfor %}
+    </section>
+
+    <hr>
+
+    <!-- Recent Activity -->
+    <section id="recent-activity">
+        <h2>{% trans "Recent Quiz Attempts" %}</h2>
+        {% if recent_quiz_attempts %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>{% trans "Article" %}</th>
+                        <th>{% trans "Score" %}</th>
+                        <th>{% trans "WPM" %}</th>
+                        <th>{% trans "XP Awarded" %}</th>
+                        <th>{% trans "Date" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for attempt in recent_quiz_attempts %}
+                    <tr>
+                        <td><a href="{% url 'verifast_app:article_detail' attempt.article.pk %}">{{ attempt.article.title|truncatewords:10 }}</a></td>
+                        <td>{{ attempt.score|floatformat:0 }}%</td>
+                        <td>{{ attempt.wpm_used }}</td>
+                        <td>{{ attempt.xp_awarded }}</td>
+                        <td>{{ attempt.timestamp|date:"M d, Y" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>{% trans "No recent quiz attempts. Go read an article!" %}</p>
+        {% endif %}
+    </section>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% url 'javascript-catalog' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const purchaseButtons = document.querySelectorAll('.purchase-btn');
+    const spendableXpElement = document.getElementById('spendable-xp');
+
+    purchaseButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const featureKey = this.dataset.featureKey;
+            
+            // Disable button to prevent multiple clicks
+            this.disabled = true;
+            this.textContent = gettext('Purchasing...');
+
+            fetch('/purchase-feature/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ feature_key: featureKey })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update UI on successful purchase
+                    this.textContent = gettext('Owned');
+                    this.classList.remove('primary');
+                    this.classList.add('secondary');
+                    spendableXpElement.textContent = data.new_balance;
+                    
+                    // Optionally, show a success message
+                    alert(data.message); 
+                } else {
+                    // Handle error
+                    this.textContent = interpolate(gettext('Purchase (%s XP)'), [this.dataset.cost]);
+                    this.disabled = false; // Re-enable button
+                    alert(gettext('Error: ') + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error purchasing feature:', error);
+                this.textContent = interpolate(gettext('Purchase (%s XP)'), [this.dataset.cost]);
+                this.disabled = false; // Re-enable button
+                alert(gettext('An unexpected error occurred. Please try again.'));
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

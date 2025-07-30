@@ -1,0 +1,17 @@
+{% extends 'verifast_app/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Submit Article" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<main class="container">
+  <h1>{% trans "Submit an Article to Scrape" %}</h1>
+  <p>{% trans "Enter the URL of an article you'd like to add to our library." %}</p>
+  
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">{% trans "Submit URL" %}</button>
+  </form>
+</main>
+{% endblock %}

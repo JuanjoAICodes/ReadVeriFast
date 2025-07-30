@@ -1,0 +1,22 @@
+{% comment %}
+This is the DEFINITIVE custom template for the filter_horizontal widget.
+It correctly places the "Chosen" items on the LEFT and "Available" on the RIGHT.
+{% endcomment %}
+
+<div class="selector">
+
+    <!-- THIS IS THE "CHOSEN" BOX, NOW ON THE LEFT -->
+    <div class="selector-chosen">
+        <h2>Chosen {{ name }}<br>
+        <span class="help-tooltip" title="Hold down 'Control', or 'Command' on a Mac, to select more than one."></span></h2>
+        {{ LCHOICES }}
+    </div>
+
+    <!-- THIS IS THE "AVAILABLE" BOX, NOW ON THE RIGHT -->
+    <div class="selector-available">
+        <h2>Available {{ name }}<br>
+        <span class="help-tooltip" title="Choose a tag and then select the 'Choose' arrow button."></span></h2>
+        {{ RCHOICES }}
+    </div>
+
+</div>

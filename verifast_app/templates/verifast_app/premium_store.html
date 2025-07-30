@@ -1,0 +1,169 @@
+{% extends 'verifast_app/base.html' %}
+{% load static %}
+
+{% block title %}Premium Store - {{ block.super }}{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<article>
+    <header>
+        <h1>🏪 Premium Feature Store</h1>
+        <p>Unlock advanced speed reading features with your XP!</p>
+    </header>
+
+    <!-- User XP Balance -->
+    <div style="background: var(--card-background-color); padding: 1rem; border-radius: var(--border-radius); margin-bottom: 2rem; border-left: 4px solid var(--primary);">
+        <h3 style="margin: 0 0 0.5rem 0;">💰 Your XP Balance</h3>
+        <p style="margin: 0; font-size: 1.2rem; font-weight: bold;">
+            {{ user_xp }} XP Available
+            {% if is_admin %}
+            <span style="color: var(--primary); font-size: 0.9rem;">(Admin - All Features Unlocked)</span>
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- Premium Features -->
+    <section>
+        <h2>🚀 Available Premium Features</h2>
+        
+        {% if available_features %}
+            <div style="display: grid; gap: 1.5rem; margin-bottom: 2rem;">
+                {% for feature_key, feature_info in available_features.items %}
+                <article style="border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 1.5rem;">
+                    <header style="margin-bottom: 1rem;">
+                        <h3 style="margin: 0 0 0.5rem 0;">{{ feature_info.display_name }}</h3>
+                        <p style="margin: 0; color: var(--muted-color);">{{ feature_info.description }}</p>
+                    </header>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong style="font-size: 1.1rem; color: var(--primary);">
+                                {{ feature_info.cost }} XP
+                            </strong>
+                        </div>
+                        
+                        <div>
+                            {% if feature_key in user_owned_features %}
+                                <button disabled class="secondary">
+                                    ✅ Owned
+                                </button>
+                            {% elif is_admin %}
+                                <button disabled class="contrast">
+                                    🔓 Admin Access
+                                </button>
+                            {% elif user_xp >= feature_info.cost %}
+                                <button class="purchase-btn" data-feature-key="{{ feature_key }}" data-cost="{{ feature_info.cost }}">
+                                    Purchase ({{ feature_info.cost }} XP)
+                                </button>
+                            {% else %}
+                                <button disabled title="Not enough XP">
+                                    Not enough XP ({{ feature_info.cost }} required)
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No premium features available at this time.</p>
+        {% endif %}
+    </section>
+
+    <!-- How to Earn XP -->
+    <section style="background: var(--card-background-color); padding: 1.5rem; border-radius: var(--border-radius); margin-top: 2rem;">
+        <h3>💡 How to Earn More XP</h3>
+        <ul>
+            <li><strong>Complete Quizzes:</strong> Pass article quizzes with 60%+ to earn XP</li>
+            <li><strong>Reading Speed Bonus:</strong> Higher WPM = more XP</li>
+            <li><strong>Perfect Scores:</strong> Get 100% on quizzes for bonus XP</li>
+            <li><strong>Social Interactions:</strong> Receive XP when others interact with your comments</li>
+        </ul>
+    </section>
+</article>
+
+<!-- Purchase Confirmation Modal -->
+<dialog id="purchase-modal">
+    <article>
+        <header>
+            <h3>Confirm Purchase</h3>
+        </header>
+        <p id="purchase-confirmation-text"></p>
+        <footer>
+            <button id="cancel-purchase" class="secondary">Cancel</button>
+            <button id="confirm-purchase" class="contrast">Confirm Purchase</button>
+        </footer>
+    </article>
+</dialog>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const purchaseButtons = document.querySelectorAll('.purchase-btn');
+    const modal = document.getElementById('purchase-modal');
+    const confirmationText = document.getElementById('purchase-confirmation-text');
+    const cancelBtn = document.getElementById('cancel-purchase');
+    const confirmBtn = document.getElementById('confirm-purchase');
+    
+    let currentFeatureKey = null;
+    let currentCost = 0;
+    
+    // Handle purchase button clicks
+    purchaseButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            currentFeatureKey = this.dataset.featureKey;
+            currentCost = parseInt(this.dataset.cost);
+            
+            confirmationText.textContent = `Are you sure you want to purchase this feature for ${currentCost} XP?`;
+            modal.showModal();
+        });
+    });
+    
+    // Handle modal cancel
+    cancelBtn.addEventListener('click', function() {
+        modal.close();
+        currentFeatureKey = null;
+        currentCost = 0;
+    });
+    
+    // Handle modal confirm
+    confirmBtn.addEventListener('click', function() {
+        if (currentFeatureKey) {
+            purchaseFeature(currentFeatureKey);
+        }
+        modal.close();
+    });
+    
+    // Purchase feature function
+    function purchaseFeature(featureKey) {
+        fetch('{% url "verifast_app:purchase_feature" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                feature_key: featureKey
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                alert(`Success! ${data.message}\nNew XP Balance: ${data.new_balance}`);
+                // Reload page to update UI
+                location.reload();
+            } else {
+                // Show error message
+                alert(`Error: ${data.error}`);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while processing your purchase.');
+        });
+    }
+});
+</script>
+{% endblock %}

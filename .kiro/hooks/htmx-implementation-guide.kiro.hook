@@ -1,0 +1,20 @@
+{
+  "enabled": true,
+  "name": "HTMX Implementation Guide Hook",
+  "description": "Provides guidance and validation during HTMX hybrid architecture implementation",
+  "version": "1",
+  "when": {
+    "type": "taskStarted",
+    "patterns": [
+      "*server-side content processing*",
+      "*enhanced database models*",
+      "*HTMX view controllers*",
+      "*HTMX-compatible templates*",
+      "*minimal JavaScript components*"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "🚀 Starting HTMX implementation task. Please follow the HTMX hybrid architecture guidelines:\n\n**Implementation Checklist:**\n\n**For Server-side Services:**\n- Create SpeedReaderService class in verifast_app/services.py\n- Implement prepare_content() method with user power-up processing\n- Add get_chunked_words() method for word chunking logic\n- Create get_font_settings() method for user font preferences\n- Add comprehensive error handling and logging\n\n**For Database Models:**\n- Add SpeedReaderSession model for session tracking\n- Enhance QuizAttempt model with detailed_results field\n- Add article_type field to support Wikipedia articles\n- Create proper database indexes for performance\n- Add model validation and constraints\n\n**For HTMX Views:**\n- Create speed_reader_init view for content initialization\n- Implement speed_reader_complete view for completion handling\n- Add quiz_init and quiz_submit views\n- Ensure all views return proper HTMX responses\n- Add comprehensive error handling\n\n**For Templates:**\n- Create unified article detail template\n- Build speed_reader_section.html partial\n- Create speed_reader_active.html with Alpine.js integration\n- Add quiz partial templates\n- Implement error handling templates\n\n**For JavaScript Components:**\n- Create 30-line Alpine.js speed reader component\n- Implement 20-line quiz handler component\n- Add error handling and fallback JavaScript\n- Ensure progressive enhancement works\n- Test keyboard shortcuts and accessibility\n\n**Quality Checks:**\n- Server-side logic dominance (no business logic in JavaScript)\n- Minimal JavaScript usage (under 50 lines per file)\n- HTMX compliance (all dynamic interactions use HTMX)\n- Progressive enhancement (works without JavaScript)\n\n**Code Patterns Available:**\n- HTMX view pattern for speed_reader_init\n- Alpine.js component pattern for speedReader\n- HTMX template pattern with x-data integration\n\n**References:**\n- HTMX Implementation Spec: .kiro/specs/htmx-hybrid-architecture/\n- Architecture Guide: documentation/PROJECT_ARCHITECTURE_GUIDE.md\n- Debugging Guide: documentation/troubleshooting/htmx-debugging-guide.md\n\nEnsure implementation follows HTMX hybrid architecture principles and report any issues."
+  }
+}

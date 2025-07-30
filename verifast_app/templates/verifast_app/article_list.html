@@ -1,0 +1,69 @@
+{% extends 'verifast_app/base.html' %}
+{% load i18n language_tags %}
+
+{% block title %}{% trans "Available Articles" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+  <hgroup>
+    <h1>{% trans "Available Articles" %}</h1>
+    <h2>{% trans "Browse our library of content ready for speed reading." %}</h2>
+  </hgroup>
+
+  <!-- Language Selector -->
+  {% language_selector %}
+  
+  <!-- User Language Preference Form -->
+  {% if user.is_authenticated %}
+    {% language_preference_form %}
+  {% endif %}
+
+  <!-- Language Statistics -->
+  {% language_statistics %}
+
+  <!-- Article List Content -->
+  <div id="article-list-container" 
+       hx-get="{% url 'verifast_app:language_filter_articles' %}" 
+       hx-trigger="load"
+       hx-include="[name='lang']">
+    
+    {% include 'verifast_app/partials/article_list_content.html' %}
+    
+  </div>
+
+  <!-- HTMX Script for Language Filtering -->
+  <script>
+    // Handle language filter clicks
+    document.addEventListener('DOMContentLoaded', function() {
+      const languageOptions = document.querySelectorAll('.language-option');
+      
+      languageOptions.forEach(option => {
+        option.addEventListener('click', function(e) {
+          e.preventDefault();
+          
+          const language = this.dataset.language;
+          const url = new URL(window.location);
+          
+          if (language === 'all') {
+            url.searchParams.delete('lang');
+          } else {
+            url.searchParams.set('lang', language);
+          }
+          
+          // Update URL without page reload
+          window.history.pushState({}, '', url);
+          
+          // Trigger HTMX request
+          htmx.ajax('GET', url.pathname + url.search, {
+            target: '#article-list-container',
+            swap: 'innerHTML'
+          });
+          
+          // Update active state
+          languageOptions.forEach(opt => opt.classList.remove('active'));
+          this.classList.add('active');
+        });
+      });
+    });
+  </script>
+
+{% endblock %}

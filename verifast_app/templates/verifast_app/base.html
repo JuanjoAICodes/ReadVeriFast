@@ -1,0 +1,79 @@
+{% load static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}" data-theme="auto">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@latest/css/pico.min.css" />
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+    {% block extra_css %}{% endblock %}
+    <title>{% block title %}VeriFast{% endblock %}</title>
+    
+    <!-- HTMX for hybrid architecture -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    
+    <!-- JavaScript Internationalization -->
+    <script id="js-translations" type="application/json">{{ js_translations_json|safe }}</script>
+</head>
+<body>
+    <nav class="container-fluid">
+        <ul>
+            <li><strong><a href="{% url 'verifast_app:index' %}">VeriFast</a></strong></li>
+        </ul>
+        <ul>
+            <li><a href="{% url 'verifast_app:article_list' %}">{% trans "Articles" %}</a></li>
+            {% if user.is_authenticated %}
+                <li><a href="{% url 'verifast_app:user_profile' %}">{% trans "Profile" %}</a></li>
+                <li><strong>{% trans "XP" %}:</strong> {{ total_xp|default:"0" }}</li>
+            {% endif %}
+            <li><a href="{% url 'verifast_app:scrape_article' %}" role="button" class="secondary">{% trans "Submit Article" %}</a></li>
+        </ul>
+        <ul>
+            <!-- Language Switcher -->
+            <li>
+                <form method="post" action="{% url 'set_language' %}" style="display: inline;">
+                    {% csrf_token %}
+                    <select name="language" onchange="this.form.submit()" style="background: none; border: 1px solid var(--muted-border-color); color: inherit; padding: 0.25rem;">
+                        {% get_current_language as LANGUAGE_CODE %}
+                        {% get_available_languages as LANGUAGES %}
+                        {% for lang_code, lang_name in LANGUAGES %}
+                            <option value="{{ lang_code }}" {% if lang_code == LANGUAGE_CODE %}selected{% endif %}>
+                                {{ lang_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </li>
+            {% if user.is_authenticated %}
+                <li>
+                    <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" style="background: none; border: none; color: inherit; text-decoration: underline; cursor: pointer; font: inherit;">
+                            {% trans "Logout" %}
+                        </button>
+                    </form>
+                </li>
+            {% else %}
+                <li><a href="{% url 'login' %}">{% trans "Login" %}</a></li>
+                <li><a href="{% url 'verifast_app:register' %}" role="button" class="outline">{% trans "Register" %}</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <main class="container">
+        {% if messages %}
+            {% for message in messages %}
+                <article class="{{ message.tags }}" aria-label="Message">
+                    {{ message }}
+                </article>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="{% static 'verifast_app/js/i18n-helper.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

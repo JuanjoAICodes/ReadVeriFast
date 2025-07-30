@@ -1,0 +1,6 @@
+# Test Environment Process Configuration
+web: python manage.py runserver 8001 --settings=config.settings_test
+worker: celery -A config.celery worker --loglevel=ERROR --concurrency=2
+redis: redis-server --port 6380 --daemonize no
+test_runner: python -m pytest tests/e2e/ -v --tb=short
+puppeteer_tests: node tests/puppeteer/test_runner.js

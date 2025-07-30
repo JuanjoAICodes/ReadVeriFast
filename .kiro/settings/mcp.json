@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "puppeteer": {
+      "command": "/home/juanjo/.local/node-v22.16.0-linux-x64/bin/mcp-server-puppeteer",
+      "args": [],
+      "env": {
+        "PUPPETEER_LAUNCH_OPTIONS": "{\"headless\": true, \"args\": [\"--no-sandbox\", \"--disable-setuid-sandbox\", \"--disable-dev-shm-usage\", \"--disable-gpu\", \"--no-first-run\", \"--no-zygote\", \"--single-process\"]}"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "puppeteer_navigate",
+        "puppeteer_screenshot",
+        "puppeteer_evaluate",
+        "puppeteer_click",
+        "puppeteer_fill",
+        "puppeteer_fill"
+      ]
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "API Documentation Sync",
+  "description": "Automatically updates API documentation when api_views.py or serializers.py files are modified to keep documentation synchronized with code changes",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "verifast_app/api_views.py",
+      "verifast_app/serializers.py"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "The API files have been modified. Please analyze the changes in api_views.py and serializers.py and update the API documentation accordingly. Focus on:\n\n1. New or modified API endpoints in api_views.py\n2. Changes to serializer fields and validation in serializers.py\n3. Updated request/response formats\n4. Authentication and permission changes\n5. Any new error responses or status codes\n\nUpdate the documentation in documentation/api/ to reflect these changes and ensure all endpoints are properly documented with examples."
+  }
+}

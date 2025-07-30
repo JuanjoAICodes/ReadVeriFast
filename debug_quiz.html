@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quiz Debug Test</title>
+    <style>
+        .quiz-section { margin: 20px; }
+        .quiz-btn { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
+        #quiz-overlay { 
+            display: none; 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.8); 
+            z-index: 1000;
+        }
+        .quiz-content {
+            background: white;
+            margin: 50px auto;
+            padding: 20px;
+            width: 80%;
+            max-width: 600px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Quiz Debug Test</h1>
+    
+    <div class="quiz-section">
+        <button id="start-quiz-btn" class="quiz-btn" type="button">
+            Start Quiz
+        </button>
+    </div>
+    
+    <div id="quiz-overlay">
+        <div class="quiz-content">
+            <h2>Quiz Test</h2>
+            <p>This is a test quiz overlay.</p>
+            <button id="quiz-close-btn">Close</button>
+        </div>
+    </div>
+    
+    <script>
+        console.log('Debug script starting...');
+        
+        // Test quiz data (simplified version of actual data)
+        const quizDataRaw = [
+            {
+                "question": "Test question 1?",
+                "options": ["Option A", "Option B", "Option C", "Option D"],
+                "correct_answer": "Option A"
+            },
+            {
+                "question": "Test question 2?", 
+                "options": ["Option A", "Option B", "Option C", "Option D"],
+                "correct_answer": "Option B"
+            }
+        ];
+        
+        let quizData;
+        try {
+            quizData = typeof quizDataRaw === 'string' ? JSON.parse(quizDataRaw) : quizDataRaw;
+        } catch (e) {
+            console.error('Quiz: Failed to parse quiz data', e);
+            quizData = [];
+        }
+        
+        console.log('Quiz Data loaded:', quizData);
+        console.log('Quiz Data length:', quizData ? quizData.length : 0);
+        
+        // Get elements
+        const startQuizBtn = document.getElementById('start-quiz-btn');
+        const quizOverlay = document.getElementById('quiz-overlay');
+        const quizCloseBtn = document.getElementById('quiz-close-btn');
+        
+        console.log('Quiz button element:', startQuizBtn);
+        console.log('Quiz overlay element:', quizOverlay);
+        
+        function showQuizOverlay() {
+            console.log('showQuizOverlay called');
+            if (quizOverlay) {
+                console.log('Setting overlay display to block');
+                quizOverlay.style.display = 'block';
+            } else {
+                console.error('Quiz overlay not found!');
+            }
+        }
+        
+        function hideQuizOverlay() {
+            console.log('hideQuizOverlay called');
+            if (quizOverlay) {
+                quizOverlay.style.display = 'none';
+            }
+        }
+        
+        // Event listeners
+        console.log('Setting up event listeners...');
+        console.log('startQuizBtn exists:', !!startQuizBtn);
+        console.log('quizData exists:', !!quizData);
+        console.log('quizData length:', quizData ? quizData.length : 'N/A');
+        
+        if (startQuizBtn && quizData && quizData.length > 0) {
+            console.log('Adding click event listener to start button');
+            startQuizBtn.addEventListener('click', function () {
+                console.log('Start button clicked!');
+                showQuizOverlay();
+            });
+        } else {
+            console.log('Event listener NOT added. Conditions not met.');
+            if (!startQuizBtn) console.log('Missing start button element');
+            if (!quizData) console.log('Missing quiz data');
+            if (quizData && quizData.length === 0) console.log('Quiz data is empty');
+        }
+        
+        if (quizCloseBtn) {
+            console.log('Adding close button listener');
+            quizCloseBtn.addEventListener('click', hideQuizOverlay);
+        }
+        
+        console.log('Debug script complete');
+    </script>
+</body>
+</html>

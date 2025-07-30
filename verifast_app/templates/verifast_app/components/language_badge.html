@@ -1,0 +1,60 @@
+<!-- Language Badge Component -->
+<span class="language-badge language-badge-{{ size }}" 
+      title="Article in {{ language.name }}"
+      data-language="{{ language.code }}">
+    <span class="badge-flag" aria-hidden="true">{{ language.flag }}</span>
+    <span class="badge-text">{{ language.native_name }}</span>
+</span>
+
+<style>
+.language-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    background: var(--muted-color, #f8f9fa);
+    border: 1px solid var(--muted-border-color, #dee2e6);
+    border-radius: var(--border-radius, 4px);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--muted-color, #6c757d);
+    white-space: nowrap;
+}
+
+.language-badge-small {
+    padding: 0.125rem 0.375rem;
+    font-size: 0.7rem;
+}
+
+.language-badge-large {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.85rem;
+}
+
+.badge-flag {
+    font-size: 1em;
+}
+
+.badge-text {
+    line-height: 1;
+}
+
+/* Language-specific colors */
+.language-badge[data-language="en"] {
+    background: #e3f2fd;
+    border-color: #bbdefb;
+    color: #1976d2;
+}
+
+.language-badge[data-language="es"] {
+    background: #fff3e0;
+    border-color: #ffcc02;
+    color: #f57c00;
+}
+
+/* Hover effect */
+.language-badge:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+</style>

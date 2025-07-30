@@ -1,0 +1,46 @@
+{% extends 'verifast_app/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Login" %} - {{ block.super }}{% endblock %}
+
+{% block content %}
+  <div style="max-width: 400px; margin: 0 auto;">
+    <hgroup>
+      <h1>{% trans "Welcome Back" %}</h1>
+      <h2>{% trans "Sign in to continue your reading journey" %}</h2>
+    </hgroup>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      
+      {% if form.non_field_errors %}
+        <article class="error" aria-label="{% trans 'Form errors' %}">
+          {{ form.non_field_errors }}
+        </article>
+      {% endif %}
+
+      <div>
+        <label for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
+        {{ form.username }}
+        {% if form.username.errors %}
+          <small style="color: red;">{{ form.username.errors.0 }}</small>
+        {% endif %}
+      </div>
+
+      <div>
+        <label for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
+        {{ form.password }}
+        {% if form.password.errors %}
+          <small style="color: red;">{{ form.password.errors.0 }}</small>
+        {% endif %}
+      </div>
+
+      <button type="submit" class="contrast">{% trans "Sign In" %}</button>
+    </form>
+
+    <div style="text-align: center; margin-top: 2rem;">
+      <p>{% trans "Don't have an account?" %} <a href="{% url 'verifast_app:register' %}">{% trans "Create one here" %}</a></p>
+      <p><a href="{% url 'password_reset' %}">{% trans "Forgot your password?" %}</a></p>
+    </div>
+  </div>
+{% endblock %}

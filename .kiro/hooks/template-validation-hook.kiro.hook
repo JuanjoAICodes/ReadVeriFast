@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "Template Validation Hook",
+  "description": "Validates Django template syntax and PicoCSS compliance when HTML templates are saved",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "templates/**/*.html",
+      "verifast_app/templates/**/*.html"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A Django HTML template has been modified. Please validate the template for:\n\n1. Django template syntax errors (check for proper tag closing, variable syntax, template inheritance)\n2. PicoCSS compliance (ensure semantic HTML structure, proper use of PicoCSS classes and conventions)\n3. Integration with existing VeriFast patterns (check for proper context variable usage, XP system integration, tag analytics display)\n\nFocus on catching common issues like:\n- Unclosed template tags ({% if %} without {% endif %})\n- Invalid variable syntax ({{ variable }} vs {% variable %})\n- Missing CSRF tokens in forms\n- Improper PicoCSS semantic structure\n- Accessibility concerns with HTML structure\n\nProvide specific feedback on any issues found and suggest corrections."
+  }
+}

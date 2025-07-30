@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "XP System Validation Hook",
+  "description": "Automatically runs XP calculation tests when the XP system module is modified to ensure gamification logic integrity",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "verifast_app/xp_system.py"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "The XP system file has been modified. Please run the XP calculation tests to validate the gamification logic integrity. Execute: python manage.py test verifast_app.test_xp_system and python manage.py test verifast_app.test_xp_economics to ensure all XP calculations, transactions, and economic balance remain correct."
+  }
+}

@@ -1,0 +1,1183 @@
+# Spanish translations for VeriFast
+# Copyright (C) 2025 VeriFast
+# This file is distributed under the same license as the VeriFast package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: VeriFast 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-07-24 05:18+0000\n"
+"PO-Revision-Date: 2025-07-23 06:53+0000\n"
+"Last-Translator: VeriFast Team\n"
+"Language-Team: Spanish\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? "
+"1 : 2;\n"
+
+#: templates/user_profile.html:4 templates/user_profile.html:9
+msgid "User Profile"
+msgstr "Perfil de Usuario"
+
+# User Profile
+#: templates/user_profile.html:10
+msgid "Email"
+msgstr "Correo Electrónico"
+
+#: templates/user_profile.html:11
+msgid "Joined"
+msgstr "Se Unió"
+
+#: templates/user_profile.html:18
+msgid "Your Statistics"
+msgstr "Tus Estadísticas"
+
+#: templates/user_profile.html:21 verifast_app/models.py:26
+msgid "Total XP"
+msgstr "XP Total"
+
+#: templates/user_profile.html:25
+msgid "Spendable XP"
+msgstr "XP Disponible"
+
+#: templates/user_profile.html:29
+msgid "Max WPM"
+msgstr "PPM Máximo"
+
+#: templates/user_profile.html:33
+msgid "Quizzes Completed"
+msgstr "Cuestionarios Completados"
+
+#: templates/user_profile.html:43
+msgid "Premium Feature Store"
+msgstr "Tienda de Características Premium"
+
+#: templates/user_profile.html:44
+msgid "Spend your XP to unlock powerful new reading features!"
+msgstr "¡Gasta tu XP para desbloquear nuevas características de lectura!"
+
+#: templates/user_profile.html:58
+msgid "Owned"
+msgstr "Poseído"
+
+#: templates/user_profile.html:65
+#, python-format
+msgid "Purchase (%(cost)s XP)"
+msgstr "Comprar (%(cost)s XP)"
+
+#: templates/user_profile.html:80
+msgid "Recent Quiz Attempts"
+msgstr "Intentos de Cuestionario Recientes"
+
+#: templates/user_profile.html:85
+#: verifast_app/templates/verifast_app/article_detail.html:7
+#: verifast_app/templates/verifast_app/article_detail_test.html:5
+msgid "Article"
+msgstr "Artículo"
+
+#: templates/user_profile.html:86
+msgid "Score"
+msgstr "Puntuación"
+
+#: templates/user_profile.html:87 verifast_app/context_processors.py:53
+#: verifast_app/templates/verifast_app/article_detail.html:65
+#: verifast_app/templates/verifast_app/article_detail_test.html:32
+msgid "WPM"
+msgstr "PPM"
+
+#: templates/user_profile.html:88
+msgid "XP Awarded"
+msgstr "XP Otorgado"
+
+#: templates/user_profile.html:89
+msgid "Date"
+msgstr "Fecha"
+
+#: templates/user_profile.html:105
+msgid "No recent quiz attempts. Go read an article!"
+msgstr "No hay intentos de cuestionario recientes. ¡Ve a leer un artículo!"
+
+# Views.py messages
+msgid "Quiz passed! You earned %(xp)d XP. Register to save your progress and unlock commenting!"
+msgstr "¡Cuestionario aprobado! Ganaste %(xp)d XP. ¡Regístrate para guardar tu progreso y desbloquear comentarios!"
+
+msgid "Quiz completed with %(score).0f%%. You earned %(xp)d XP. Register to save your progress!"
+msgstr "Cuestionario completado con %(score).0f%%. Ganaste %(xp)d XP. ¡Regístrate para guardar tu progreso!"
+
+msgid "Please register or login to post comments."
+msgstr "Por favor regístrate o inicia sesión para publicar comentarios."
+
+msgid "Your comment has been posted."
+msgstr "Tu comentario ha sido publicado."
+
+msgid "An unexpected error occurred: %(error)s"
+msgstr "Ocurrió un error inesperado: %(error)s"
+
+msgid "Your feature preferences have been updated successfully!"
+msgstr "¡Tus preferencias de características han sido actualizadas exitosamente!"
+
+msgid "There was an error updating your feature preferences."
+msgstr "Hubo un error al actualizar tus preferencias de características."
+
+msgid "This article from URL %(url)s is already in our database."
+msgstr "Este artículo de la URL %(url)s ya está en nuestra base de datos."
+
+msgid "Your article has been submitted and is being processed in the background!"
+msgstr "¡Tu artículo ha sido enviado y está siendo procesado en segundo plano!"
+
+msgid "Your %(interaction_type)s interaction has been recorded."
+msgstr "Tu interacción de %(interaction_type)s ha sido registrada."
+
+msgid "Welcome to VeriFast, %(username)s! Your progress has been saved: %(xp)d XP and %(attempts)d quiz attempts transferred to your account."
+msgstr "¡Bienvenido a VeriFast, %(username)s! Tu progreso ha sido guardado: %(xp)d XP y %(attempts)d intentos de cuestionario transferidos a tu cuenta."
+
+msgid "Welcome to VeriFast, %(username)s! Your %(xp)d XP has been added to your account."
+msgstr "¡Bienvenido a VeriFast, %(username)s! Tus %(xp)d XP han sido añadidos a tu cuenta."
+
+msgid "Welcome to VeriFast, %(username)s! You start with 0 XP and 250 WPM reading speed."
+msgstr "¡Bienvenido a VeriFast, %(username)s! Empiezas con 0 XP y velocidad de lectura de 250 PPM."
+
+msgid "Your profile has been updated successfully!"
+msgstr "¡Tu perfil ha sido actualizado exitosamente!"
+
+# Template strings that need translation
+msgid "Submit an Article to Scrape"
+msgstr "Enviar un Artículo para Extraer"
+
+msgid "Enter the URL of an article you'd like to add to our library."
+msgstr "Ingresa la URL de un artículo que te gustaría añadir a nuestra biblioteca."
+
+msgid "Submit URL"
+msgstr "Enviar URL"
+
+msgid "Login"
+msgstr "Iniciar Sesión"
+
+msgid "Welcome Back"
+msgstr "Bienvenido de Vuelta"
+
+msgid "Sign in to continue your reading journey"
+msgstr "Inicia sesión para continuar tu viaje de lectura"
+
+msgid "Sign In"
+msgstr "Iniciar Sesión"
+
+msgid "Don't have an account?"
+msgstr "¿No tienes una cuenta?"
+
+msgid "Create one here"
+msgstr "Crea una aquí"
+
+msgid "Forgot your password?"
+msgstr "¿Olvidaste tu contraseña?"
+
+msgid "Register"
+msgstr "Registrarse"
+
+msgid "Join VeriFast"
+msgstr "Únete a VeriFast"
+
+msgid "Start your journey to faster reading and better comprehension"
+msgstr "Comienza tu viaje hacia una lectura más rápida y mejor comprensión"
+
+msgid "Create Account"
+msgstr "Crear Cuenta"
+
+msgid "Already have an account?"
+msgstr "¿Ya tienes una cuenta?"
+
+msgid "Sign in here"
+msgstr "Inicia sesión aquí"
+
+# Admin interface
+msgid "Has Quiz"
+msgstr "Tiene Cuestionario"
+
+msgid "Quiz Questions"
+msgstr "Preguntas del Cuestionario"
+
+msgid "Invalid format"
+msgstr "Formato inválido"
+
+msgid "Retry processing for selected articles"
+msgstr "Reintentar procesamiento para artículos seleccionados"
+
+msgid "Reprocess quiz for selected articles"
+msgstr "Reprocesar cuestionario para artículos seleccionados"
+
+msgid "Reprocessing %(count)d articles for quiz generation."
+msgstr "Reprocesando %(count)d artículos para generación de cuestionarios."
+
+msgid "Basic Information"
+msgstr "Información Básica"
+
+msgid "Processing Status"
+msgstr "Estado de Procesamiento"
+
+msgid "Content Analysis"
+msgstr "Análisis de Contenido"
+
+msgid "Quiz Data"
+msgstr "Datos del Cuestionario"
+
+msgid "Content"
+msgstr "Contenido"
+
+msgid "Metadata"
+msgstr "Metadatos"
+
+# Additional template strings
+msgid "Form errors"
+msgstr "Errores del formulario"
+
+msgid "Submit Article"
+msgstr "Enviar Artículo"
+
+msgid "As an admin user, you have access to all premium features for testing purposes."
+msgstr "Como usuario administrador, tienes acceso a todas las características premium para propósitos de prueba."
+
+msgid "Reading Level"
+msgstr "Nivel de Lectura"
+
+msgid "Word Count"
+msgstr "Conteo de Palabras"
+
+msgid "Publication Date"
+msgstr "Fecha de Publicación"
+
+msgid "Source"
+msgstr "Fuente"
+
+msgid "Language"
+msgstr "Idioma"
+
+msgid "English"
+msgstr "Inglés"
+
+msgid "Spanish"
+msgstr "Español"
+
+msgid "Start Reading"
+msgstr "Comenzar Lectura"
+
+msgid "Start immersive speed reading"
+msgstr "Comenzar lectura rápida inmersiva"
+
+msgid "Comprehension Quiz"
+msgstr "Cuestionario de Comprensión"
+
+msgid "Complete the speed reading above to unlock the quiz and earn XP!"
+msgstr "¡Completa la lectura rápida arriba para desbloquear el cuestionario y ganar XP!"
+
+msgid "Start Quiz"
+msgstr "Comenzar Cuestionario"
+
+msgid "Complete reading first"
+msgstr "Completa la lectura primero"
+
+msgid "Quiz is being generated for this article. Please check back later."
+msgstr "Se está generando el cuestionario para este artículo. Por favor vuelve más tarde."
+
+msgid "Comments"
+msgstr "Comentarios"
+
+msgid "Complete the quiz with a passing score to unlock commenting!"
+msgstr "¡Completa el cuestionario con una puntuación aprobatoria para desbloquear los comentarios!"
+
+msgid "Related Articles"
+msgstr "Artículos Relacionados"
+
+msgid "No related articles found."
+msgstr "No se encontraron artículos relacionados."
+
+msgid "Click Start to begin reading"
+msgstr "Haz clic en Comenzar para empezar a leer"
+
+msgid "Exit Reading"
+msgstr "Salir de la Lectura"
+
+msgid "Exit immersive reading mode"
+msgstr "Salir del modo de lectura inmersiva"
+
+msgid "Decrease speed"
+msgstr "Disminuir velocidad"
+
+msgid "Increase speed"
+msgstr "Aumentar velocidad"
+
+msgid "Answer the questions below to test your understanding."
+msgstr "Responde las preguntas a continuación para evaluar tu comprensión."
+
+# JavaScript translations already covered in context processor
+
+# API Messages
+#: verifast_app/api_views.py:70
+msgid "Login successful"
+msgstr "Inicio de sesión exitoso"
+
+#: verifast_app/api_views.py:754
+#, python-format
+msgid "Successfully purchased %(feature_name)s"
+msgstr "%(feature_name)s comprado exitosamente"
+
+#: verifast_app/api_views.py:804
+msgid "An unexpected error occurred during purchase"
+msgstr "Ocurrió un error inesperado durante la compra"
+
+#: verifast_app/context_processors.py:32
+msgid "Loading..."
+msgstr "Cargando..."
+
+#: verifast_app/context_processors.py:33
+msgid "Error"
+msgstr "Error"
+
+#: verifast_app/context_processors.py:34
+msgid "Success"
+msgstr "Éxito"
+
+#: verifast_app/context_processors.py:35
+msgid "Are you sure?"
+msgstr ""
+
+#: verifast_app/context_processors.py:36
+msgid "Cancel"
+msgstr ""
+
+#: verifast_app/context_processors.py:37
+msgid "Save"
+msgstr ""
+
+#: verifast_app/context_processors.py:38
+msgid "Delete"
+msgstr ""
+
+#: verifast_app/context_processors.py:39
+msgid "Edit"
+msgstr ""
+
+#: verifast_app/context_processors.py:40
+msgid "Close"
+msgstr ""
+
+#: verifast_app/context_processors.py:41
+msgid "Next"
+msgstr ""
+
+#: verifast_app/context_processors.py:42
+msgid "Previous"
+msgstr ""
+
+#: verifast_app/context_processors.py:45
+#: verifast_app/templates/verifast_app/article_detail.html:73
+#: verifast_app/templates/verifast_app/article_detail_test.html:40
+msgid "Start Reading"
+msgstr "Iniciar Lectura"
+
+# JavaScript Strings
+#: verifast_app/context_processors.py:46
+msgid "Pause"
+msgstr "Pausar"
+
+#: verifast_app/context_processors.py:47
+msgid "Stop"
+msgstr ""
+
+#: verifast_app/context_processors.py:48
+msgid "Resume"
+msgstr ""
+
+#: verifast_app/context_processors.py:49
+#, fuzzy
+#| msgid "Finished!"
+msgid "Reading finished!"
+msgstr "¡Terminado!"
+
+#: verifast_app/context_processors.py:50
+#: verifast_app/templates/verifast_app/article_detail.html:52
+#: verifast_app/templates/verifast_app/article_detail.html:114
+#: verifast_app/templates/verifast_app/article_detail_test.html:20
+msgid "Click Start to begin reading"
+msgstr "Haz clic en Iniciar para comenzar a leer"
+
+#: verifast_app/context_processors.py:51
+#, fuzzy
+#| msgid "No content to read"
+msgid "No content available"
+msgstr "No hay contenido para leer"
+
+#: verifast_app/context_processors.py:52
+#, fuzzy
+#| msgid "Ready to Read"
+msgid "Ready to read"
+msgstr "Listo para Leer"
+
+#: verifast_app/context_processors.py:54
+msgid "Speed changed to"
+msgstr ""
+
+#: verifast_app/context_processors.py:55
+msgid "Reading in progress. Are you sure you want to leave?"
+msgstr ""
+
+#: verifast_app/context_processors.py:58
+#, fuzzy
+#| msgid "Speed Reader"
+msgid "Speed Reader Unavailable"
+msgstr "Lector Rápido"
+
+#: verifast_app/context_processors.py:59
+msgid ""
+"The speed reader could not be loaded. You can still read the article below."
+msgstr ""
+
+#: verifast_app/context_processors.py:60
+msgid "Keyboard Shortcuts"
+msgstr ""
+
+#: verifast_app/context_processors.py:61
+msgid "Start/Pause reading"
+msgstr ""
+
+#: verifast_app/context_processors.py:62
+msgid "Reset reading"
+msgstr ""
+
+#: verifast_app/context_processors.py:63
+msgid "Toggle immersive mode"
+msgstr ""
+
+#: verifast_app/context_processors.py:64
+msgid "Increase speed"
+msgstr ""
+
+#: verifast_app/context_processors.py:65
+msgid "Decrease speed"
+msgstr ""
+
+#: verifast_app/context_processors.py:66
+msgid "Exit immersive mode"
+msgstr ""
+
+#: verifast_app/context_processors.py:67
+msgid "Show keyboard shortcuts"
+msgstr ""
+
+#: verifast_app/context_processors.py:70
+#, fuzzy
+#| msgid "Quizzes Completed"
+msgid "Quiz completed!"
+msgstr "Cuestionarios Completados"
+
+#: verifast_app/context_processors.py:71
+#, fuzzy
+#| msgid "Loading..."
+msgid "Loading quiz..."
+msgstr "Cargando..."
+
+#: verifast_app/context_processors.py:72
+msgid "Error loading quiz"
+msgstr ""
+
+#: verifast_app/context_processors.py:73
+#, fuzzy
+#| msgid "Submit Article"
+msgid "Submit Quiz"
+msgstr "Enviar Artículo"
+
+#: verifast_app/context_processors.py:74
+msgid "Your score"
+msgstr ""
+
+#: verifast_app/context_processors.py:75
+msgid "Congratulations! You passed!"
+msgstr ""
+
+#: verifast_app/context_processors.py:76
+msgid "Try again to improve your score"
+msgstr ""
+
+# API Messages
+#: verifast_app/context_processors.py:79
+#, fuzzy
+#| msgid "Login successful"
+msgid "Comment posted successfully"
+msgstr "Inicio de sesión exitoso"
+
+#: verifast_app/context_processors.py:80
+msgid "Error posting comment"
+msgstr ""
+
+#: verifast_app/context_processors.py:81
+msgid "Reply posted successfully"
+msgstr ""
+
+#: verifast_app/context_processors.py:82
+msgid "Interaction added"
+msgstr ""
+
+#: verifast_app/context_processors.py:83
+msgid "Not enough XP"
+msgstr ""
+
+# Forms
+#: verifast_app/forms.py:8
+msgid "Article URL"
+msgstr "URL del Artículo"
+
+#: verifast_app/forms.py:10
+msgid "https://example.com/news/article"
+msgstr "https://ejemplo.com/noticias/articulo"
+
+#: verifast_app/forms.py:16
+msgid "Required. Enter a valid email address."
+msgstr "Requerido. Ingresa una dirección de correo electrónico válida."
+
+#: verifast_app/forms.py:19 verifast_app/forms.py:77
+msgid "English"
+msgstr "Inglés"
+
+#: verifast_app/forms.py:19 verifast_app/forms.py:77
+msgid "Spanish"
+msgstr "Español"
+
+#: verifast_app/forms.py:21
+msgid "Choose your preferred language for content and interface."
+msgstr "Elige tu idioma preferido para el contenido e interfaz."
+
+#: verifast_app/forms.py:44
+msgid "Default"
+msgstr "Predeterminado"
+
+#: verifast_app/forms.py:45
+msgid "OpenSans"
+msgstr ""
+
+#: verifast_app/forms.py:46
+msgid "OpenDyslexic"
+msgstr ""
+
+#: verifast_app/forms.py:47
+msgid "Roboto"
+msgstr ""
+
+#: verifast_app/forms.py:48
+msgid "Merriweather"
+msgstr ""
+
+#: verifast_app/forms.py:49
+msgid "Playfair Display"
+msgstr ""
+
+#: verifast_app/forms.py:53
+msgid "Font Choice"
+msgstr "Elección de Fuente"
+
+#: verifast_app/forms.py:57
+msgid "1-Word"
+msgstr ""
+
+#: verifast_app/forms.py:58
+msgid "2-Word"
+msgstr ""
+
+#: verifast_app/forms.py:59
+msgid "3-Word"
+msgstr ""
+
+#: verifast_app/forms.py:60
+msgid "4-Word"
+msgstr ""
+
+#: verifast_app/forms.py:61
+msgid "5-Word"
+msgstr ""
+
+#: verifast_app/forms.py:65
+msgid "Word Chunking"
+msgstr "Agrupación de Palabras"
+
+#: verifast_app/forms.py:78
+msgid "Light"
+msgstr "Claro"
+
+#: verifast_app/forms.py:78
+msgid "Dark"
+msgstr "Oscuro"
+
+#: verifast_app/forms.py:83
+msgid "Your preferred reading speed (100-1000 words per minute)"
+msgstr "Tu velocidad de lectura preferida (100-1000 palabras por minuto)"
+
+#: verifast_app/forms.py:84
+msgid "Language for content and interface"
+msgstr "Idioma para contenido e interfaz"
+
+#: verifast_app/forms.py:85
+msgid "Visual theme preference"
+msgstr "Preferencia de tema visual"
+
+# Model Help Text
+#: verifast_app/models.py:15
+msgid "User's current words-per-minute reading speed."
+msgstr "Velocidad de lectura actual del usuario en palabras por minuto."
+
+#: verifast_app/models.py:16
+msgid "Current WPM"
+msgstr "PPM Actual"
+
+#: verifast_app/models.py:20
+msgid "User's highest achieved words-per-minute."
+msgstr "Máximo de palabras por minuto alcanzado por el usuario."
+
+#: verifast_app/models.py:21
+msgid "Maximum WPM"
+msgstr "PPM Máximo"
+
+#: verifast_app/models.py:25
+msgid "Total accumulated experience points (XP)."
+msgstr "Puntos de experiencia (XP) acumulados totales."
+
+#: verifast_app/models.py:30
+msgid "Spendable experience points."
+msgstr "Puntos de experiencia gastables."
+
+#: verifast_app/models.py:31
+msgid "Current XP Points"
+msgstr "Puntos XP Actuales"
+
+#: verifast_app/models.py:35
+msgid "Accumulated negative XP for admin tracking."
+msgstr "XP negativo acumulado para seguimiento administrativo."
+
+#: verifast_app/models.py:36
+msgid "Negative XP Points"
+msgstr "Puntos XP Negativos"
+
+#: verifast_app/models.py:40
+msgid "The WPM setting used on the last successfully completed quiz."
+msgstr ""
+"La configuración de PPM usada en el último cuestionario completado "
+"exitosamente."
+
+#: verifast_app/models.py:41
+msgid "Last Successful WPM Used"
+msgstr "Último PPM Exitoso Usado"
+
+#: verifast_app/models.py:45
+msgid "Number of ad-free articles the user can access."
+msgstr ""
+
+#: verifast_app/models.py:46
+msgid "Ad-free Articles Count"
+msgstr ""
+
+#: verifast_app/models.py:51
+msgid "User has purchased OpenSans font option."
+msgstr ""
+
+#: verifast_app/models.py:55
+msgid "User has purchased OpenDyslexic font for dyslexia-friendly reading."
+msgstr ""
+
+#: verifast_app/models.py:58
+msgid "User has purchased Roboto font option."
+msgstr ""
+
+#: verifast_app/models.py:61
+msgid "User has purchased Merriweather font option."
+msgstr ""
+
+#: verifast_app/models.py:64
+msgid "User has purchased Playfair Display font option."
+msgstr ""
+
+#: verifast_app/models.py:69
+msgid "User has purchased 2-word chunking capability."
+msgstr ""
+
+#: verifast_app/models.py:72
+msgid "User has purchased 3-word chunking capability."
+msgstr ""
+
+#: verifast_app/models.py:75
+msgid "User has purchased 4-word chunking capability."
+msgstr ""
+
+#: verifast_app/models.py:78
+msgid "User has purchased 5-word chunking capability."
+msgstr ""
+
+#: verifast_app/models.py:84
+msgid ""
+"User has purchased smart connector grouping (groups stop words like 'the "
+"dragon')."
+msgstr ""
+
+#: verifast_app/models.py:88
+msgid "User has purchased smart symbol handling (elegant punctuation display)."
+msgstr ""
+
+#: verifast_app/models.py:93
+msgid "Timestamp of when user last earned XP."
+msgstr ""
+
+#: verifast_app/models.py:96
+msgid "Current streak of consecutive days earning XP."
+msgstr ""
+
+#: verifast_app/models.py:99
+msgid "Total XP earned throughout user's lifetime."
+msgstr ""
+
+#: verifast_app/models.py:102
+msgid "Total XP spent throughout user's lifetime."
+msgstr ""
+
+#: verifast_app/models.py:105
+msgid "Number of perfect (100%) quiz scores achieved."
+msgstr ""
+
+#: verifast_app/models.py:108
+msgid "Total number of quiz attempts made."
+msgstr ""
+
+#: verifast_app/models.py:115
+#, fuzzy
+#| msgid "Choose your preferred language for content and interface."
+msgid "User's preferred language for the UI and content (e.g., 'en', 'es')."
+msgstr "Elige tu idioma preferido para el contenido e interfaz."
+
+#: verifast_app/models.py:120
+msgid "User's preferred visual theme (e.g., 'light', 'dark')."
+msgstr ""
+
+#: verifast_app/models.py:128
+msgid "User's encrypted API key for a preferred LLM provider."
+msgstr ""
+
+#: verifast_app/models.py:134
+msgid "The specific LLM model the user prefers to use."
+msgstr ""
+
+#: verifast_app/models.py:595
+msgid "The XP transaction record for this purchase."
+msgstr ""
+
+#: verifast_app/serializers.py:33
+msgid "Passwords don't match"
+msgstr ""
+
+# Article Detail
+#: verifast_app/templates/verifast_app/article_detail.html:17
+#, fuzzy
+#| msgid "Untitled Article"
+msgid "this article"
+msgstr "Artículo Sin Título"
+
+#: verifast_app/templates/verifast_app/article_detail.html:17
+#, python-format
+msgid "Article image for %(title)s"
+msgstr ""
+
+# Article Detail
+#: verifast_app/templates/verifast_app/article_detail.html:21
+#: verifast_app/templates/verifast_app/article_detail_test.html:9
+msgid "Untitled Article"
+msgstr "Artículo Sin Título"
+
+#: verifast_app/templates/verifast_app/article_detail.html:24
+msgid "Article tags"
+msgstr "Etiquetas del artículo"
+
+#: verifast_app/templates/verifast_app/article_detail.html:27
+#, python-format
+msgid "View all articles tagged with %(tag_name)s"
+msgstr "Ver todos los artículos etiquetados con %(tag_name)s"
+
+#: verifast_app/templates/verifast_app/article_detail.html:36
+#: verifast_app/templates/verifast_app/article_list.html:21
+msgid "Source"
+msgstr "Fuente"
+
+#: verifast_app/templates/verifast_app/article_detail.html:36
+msgid "Unknown"
+msgstr "Desconocido"
+
+#: verifast_app/templates/verifast_app/article_detail.html:38
+#: verifast_app/templates/verifast_app/article_list.html:21
+msgid "Published"
+msgstr "Publicado"
+
+#: verifast_app/templates/verifast_app/article_detail.html:45
+#: verifast_app/templates/verifast_app/article_detail.html:47
+#: verifast_app/templates/verifast_app/article_detail_test.html:14
+#: verifast_app/templates/verifast_app/article_detail_test.html:16
+msgid "Speed Reader"
+msgstr "Lector Rápido"
+
+#: verifast_app/templates/verifast_app/article_detail.html:63
+#: verifast_app/templates/verifast_app/article_detail_test.html:30
+msgid "Decrease reading speed"
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail.html:68
+#: verifast_app/templates/verifast_app/article_detail_test.html:35
+msgid "Increase reading speed"
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail.html:74
+#: verifast_app/templates/verifast_app/article_detail_test.html:43
+msgid "Reset"
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail.html:75
+#: verifast_app/templates/verifast_app/article_detail_test.html:46
+msgid "Immersive Mode"
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail.html:82
+#, fuzzy
+#| msgid "Premium Feature Store"
+msgid "Premium Features Available!"
+msgstr "Tienda de Características Premium"
+
+#: verifast_app/templates/verifast_app/article_detail.html:83
+#: verifast_app/templates/verifast_app/base.html:41
+msgid "Register"
+msgstr "Registrarse"
+
+#: verifast_app/templates/verifast_app/article_detail.html:90
+#, python-format
+msgid "You have %(xp)s XP!"
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail.html:91
+#, fuzzy
+#| msgid "User Profile"
+msgid "Visit your profile"
+msgstr "Perfil de Usuario"
+
+#: verifast_app/templates/verifast_app/article_detail.html:91
+#, fuzzy
+#| msgid "Spend your XP to unlock powerful new reading features!"
+msgid "to unlock premium reading features."
+msgstr "¡Gasta tu XP para desbloquear nuevas características de lectura!"
+
+#: verifast_app/templates/verifast_app/article_detail.html:99
+#, fuzzy
+#| msgid "Start"
+msgid "Start Quiz"
+msgstr "Iniciar"
+
+#: verifast_app/templates/verifast_app/article_detail.html:100
+msgid "Complete the reading first, then test your comprehension!"
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail.html:104
+msgid "Quiz not available for this article."
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail.html:120
+msgid "Stop Reading"
+msgstr ""
+
+# Core UI Elements
+#: verifast_app/templates/verifast_app/article_detail.html:126
+#, fuzzy
+#| msgid "Articles"
+msgid "Article Access"
+msgstr "Artículos"
+
+#: verifast_app/templates/verifast_app/article_detail.html:127
+msgid "Use the speed reader above for the best experience, or:"
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail.html:130
+msgid "View Original Article"
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail.html:134
+msgid ""
+"Note: Only speed reading provides WPM bonuses and speed improvement tracking"
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail.html:163
+msgid "Post a Comment"
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail.html:167
+msgid "Your comment:"
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail.html:170
+#, python-format
+msgid ""
+"Cost: 10 XP (you have %(xp)s\n"
+"                        spendable XP)"
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail.html:174
+msgid "10 XP"
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail.html:180
+msgid "Complete the quiz to unlock commenting!"
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail.html:181
+#, python-format
+msgid "You need to pass the quiz with at least 60%% to post comments."
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail.html:187
+msgid "Great job completing the quiz!"
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail.html:191
+msgid "Your progress will be automatically transferred to your new account."
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail.html:195
+msgid "Complete the quiz above to see what you can unlock!"
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail.html:196
+msgid ""
+"Try the speed reader and quiz - no registration required to get started."
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail.html:236
+msgid "Bronze (5 XP)"
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail.html:242
+msgid "Silver (15 XP)"
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail.html:248
+msgid "Gold (30 XP)"
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail.html:251
+msgid "Report"
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail.html:257
+msgid "You need more XP to interact with comments."
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail.html:262
+#, python-format
+msgid ""
+"You gave\n"
+"                            this comment a %(interaction_type)s interaction."
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail.html:265
+#, python-format
+msgid "Comment author gets 50%% of XP you spend."
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail.html:272
+msgid "This is your comment."
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail.html:310
+msgid "No comments yet. Be the first to share your thoughts!"
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail.html:312
+msgid "Complete the quiz above to start the discussion."
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail_test.html:5
+msgid "Test Template"
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail_test.html:9
+msgid "Test Template is Working"
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail_test.html:16
+#, fuzzy
+#| msgid "Word Chunking"
+msgid "Working"
+msgstr "Agrupación de Palabras"
+
+#: verifast_app/templates/verifast_app/article_detail_test.html:24
+msgid "Reading progress"
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail_test.html:28
+msgid "Speed controls"
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_detail_test.html:38
+msgid "Reader controls"
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_list.html:4
+#: verifast_app/templates/verifast_app/article_list.html:8
+#, fuzzy
+#| msgid "Browse Available Articles"
+msgid "Available Articles"
+msgstr "Explorar Artículos Disponibles"
+
+#: verifast_app/templates/verifast_app/article_list.html:9
+msgid "Browse our library of content ready for speed reading."
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_list.html:16
+#, python-format
+msgid "Image for %(title)s"
+msgstr ""
+
+#: verifast_app/templates/verifast_app/article_list.html:26
+msgid "No articles are available at the moment."
+msgstr ""
+
+# Core UI Elements
+#: verifast_app/templates/verifast_app/base.html:22
+msgid "Articles"
+msgstr "Artículos"
+
+#: verifast_app/templates/verifast_app/base.html:24
+msgid "Profile"
+msgstr "Perfil"
+
+#: verifast_app/templates/verifast_app/base.html:25
+msgid "XP"
+msgstr "XP"
+
+#: verifast_app/templates/verifast_app/base.html:27
+msgid "Submit Article"
+msgstr "Enviar Artículo"
+
+#: verifast_app/templates/verifast_app/base.html:35
+msgid "Logout"
+msgstr "Cerrar Sesión"
+
+#: verifast_app/templates/verifast_app/base.html:40
+msgid "Login"
+msgstr "Iniciar Sesión"
+
+#: verifast_app/templates/verifast_app/index.html:4
+msgid "Welcome"
+msgstr "Bienvenido"
+
+#: verifast_app/templates/verifast_app/index.html:9
+msgid "Welcome to VeriFast"
+msgstr "Bienvenido a VeriFast"
+
+#: verifast_app/templates/verifast_app/index.html:10
+msgid "Your journey to faster reading and better comprehension starts here."
+msgstr ""
+"Tu viaje hacia una lectura más rápida y mejor comprensión comienza aquí."
+
+#: verifast_app/templates/verifast_app/index.html:12
+msgid "Browse Available Articles"
+msgstr "Explorar Artículos Disponibles"
+
+# View Messages
+#: verifast_app/views.py:134
+#, python-format
+msgid "%(title)s You earned %(xp_earned)d XP."
+msgstr "%(title)s Ganaste %(xp_earned)d XP."
+
+#: verifast_app/views.py:162
+#, python-format
+msgid ""
+"Quiz passed! You earned %(xp)d XP. Register to save your progress and unlock "
+"commenting!"
+msgstr ""
+"¡Cuestionario aprobado! Ganaste %(xp)d XP. ¡Regístrate para guardar tu "
+"progreso y desbloquear comentarios!"
+
+#: verifast_app/views.py:164
+#, python-format
+msgid ""
+"Quiz completed with %(score).0f%%. You earned %(xp)d XP. Register to save "
+"your progress!"
+msgstr ""
+"Cuestionario completado con %(score).0f%%. Ganaste %(xp)d XP. ¡Regístrate "
+"para guardar tu progreso!"
+
+#: verifast_app/views.py:168
+msgid "Please register or login to post comments."
+msgstr "Por favor regístrate o inicia sesión para publicar comentarios."
+
+#: verifast_app/views.py:188
+msgid "Your comment has been posted."
+msgstr "Tu comentario ha sido publicado."
+
+#: verifast_app/views.py:192 verifast_app/views.py:296
+#, python-format
+msgid "An unexpected error occurred: %(error)s"
+msgstr "Ocurrió un error inesperado: %(error)s"
+
+#: verifast_app/views.py:253
+msgid "Your feature preferences have been updated successfully!"
+msgstr ""
+"¡Tus preferencias de características han sido actualizadas exitosamente!"
+
+#: verifast_app/views.py:256
+msgid "There was an error updating your feature preferences."
+msgstr "Hubo un error actualizando tus preferencias de características."
+
+#: verifast_app/views.py:269
+#, python-format
+msgid "This article from URL %(url)s is already in our database."
+msgstr "Este artículo de la URL %(url)s ya está en nuestra base de datos."
+
+#: verifast_app/views.py:273
+msgid ""
+"Your article has been submitted and is being processed in the background!"
+msgstr "¡Tu artículo ha sido enviado y está siendo procesado en segundo plano!"
+
+#: verifast_app/views.py:292
+#, python-format
+msgid "Your %(interaction_type)s interaction has been recorded."
+msgstr "Tu interacción de %(interaction_type)s ha sido registrada."
+
+#: verifast_app/views.py:347
+#, python-format
+msgid ""
+"Welcome to VeriFast, %(username)s! Your progress has been saved: %(xp)d XP "
+"and %(attempts)d quiz attempts transferred to your account."
+msgstr ""
+"¡Bienvenido a VeriFast, %(username)s! Tu progreso ha sido guardado: %(xp)d "
+"XP y %(attempts)d intentos de cuestionario transferidos a tu cuenta."
+
+#: verifast_app/views.py:349
+#, python-format
+msgid ""
+"Welcome to VeriFast, %(username)s! Your %(xp)d XP has been added to your "
+"account."
+msgstr ""
+"¡Bienvenido a VeriFast, %(username)s! Tus %(xp)d XP han sido añadidos a tu "
+"cuenta."
+
+#: verifast_app/views.py:351
+#, python-format
+msgid ""
+"Welcome to VeriFast, %(username)s! You start with 0 XP and 250 WPM reading "
+"speed."
+msgstr ""
+"¡Bienvenido a VeriFast, %(username)s! Comienzas con 0 XP y velocidad de "
+"lectura de 250 PPM."
+
+#: verifast_app/views.py:365
+msgid "Your profile has been updated successfully!"
+msgstr "¡Tu perfil ha sido actualizado exitosamente!"
+
+#~ msgid "Load More Transactions"
+#~ msgstr "Cargar Más Transacciones"
+
+#~ msgid "Warning"
+#~ msgstr "Advertencia"
+
+#~ msgid "Information"
+#~ msgstr "Información"

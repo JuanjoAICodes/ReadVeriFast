@@ -1,0 +1,1314 @@
+{% extends 'verifast_app/base.html' %}
+{% load static %}
+{% load i18n %}
+{% load comment_tags %}
+{% load xp_filters %}
+
+{% block title %}{{ article.title|default:_("Article") }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<main class="article-detail" role="main">
+    {% csrf_token %}
+
+    <!-- Article Header Section -->
+    <header class="article-header">
+        {% if article.image_url %}
+        <img src="{{ article.image_url }}"
+            alt="{% blocktrans with title=article.title|default:_('this article') %}Article image for {{ title }}{% endblocktrans %}"
+            class="article-image">
+        {% endif %}
+
+        <h1 class="article-title">{{ article.title|default:_("Untitled Article") }}</h1>
+
+        {% if article.tags.exists %}
+        <nav class="tag-container" aria-label="{% trans 'Article tags' %}">
+            {% for tag in article.tags.all %}
+            <a href="{% url 'verifast_app:tag_detail' tag_name=tag.name %}" class="tag-link"
+                title="{% blocktrans with tag_name=tag.name %}View all articles tagged with {{ tag_name }}{% endblocktrans %}">
+                🏷️ {{ tag.name }}
+            </a>
+            {% endfor %}
+        </nav>
+        {% endif %}
+
+        <div class="article-meta">
+            <small>
+                {% trans "Source" %}: {{ article.source|default:_("Unknown") }}
+                {% if article.publication_date %}
+                | {% trans "Published" %}: {{ article.publication_date|date:"Y-m-d" }}
+                {% endif %}
+            </small>
+        </div>
+    </header>
+
+    <!-- Speed Reader Section -->
+    <section id="speed-reader-section" class="speed-reader-section" data-content="{{ article.content|escape }}"
+        data-user-wpm="{{ user_wpm|default:250 }}" aria-label="{% trans 'Speed Reader' %}">
+
+        <h2>{% trans "Speed Reader" %}</h2>
+
+        <div class="speed-reader-container">
+            <div id="word-display" class="word-display" aria-live="polite" role="status">
+                {% trans "Click Start to begin reading" %}
+            </div>
+
+            <progress id="progress-bar" class="reading-progress" value="0" max="100"
+                aria-label="{% trans 'Reading progress' %}">
+                0%
+            </progress>
+
+            <div class="speed-controls" role="group" aria-label="{% trans 'Speed controls' %}">
+                <button id="speed-decrease" class="speed-btn" type="button"
+                    aria-label="{% trans 'Decrease reading speed' %}">-</button>
+                <span class="speed-display" aria-live="polite">
+                    <span id="current-speed">{{ user_wpm|default:250 }}</span> {% trans "WPM" %}
+                </span>
+                <button id="speed-increase" class="speed-btn" type="button"
+                    aria-label="{% trans 'Increase reading speed' %}">+</button>
+            </div>
+
+            <div class="reader-controls" role="group" aria-label="{% trans 'Reader controls' %}">
+                <button id="start-pause-btn" class="primary-btn" type="button">
+                    {% trans "Start Reading" %}
+                </button>
+                <button id="reset-btn" class="secondary-btn" type="button">
+                    {% trans "Reset" %}
+                </button>
+            </div>
+        </div>
+
+        <!-- Premium Features Notice -->
+        {% if is_admin_user %}
+        <div class="admin-premium-notice"
+            style="background: #e8f5e8; padding: 1rem; border-radius: 4px; margin: 1rem 0; border-left: 4px solid #4caf50;">
+            <p>
+                🔧 <strong>{{ admin_premium_notice }}</strong><br>
+                <small>{% trans "All premium reading features are available for testing. No XP required." %}</small>
+            </p>
+        </div>
+        {% elif not user.is_authenticated %}
+        <div class="premium-notice">
+            <p>
+                🔒 <strong>{% trans "Premium Features Available!" %}</strong>
+                <a href="{% url 'verifast_app:register' %}">{% trans "Register" %}</a>
+                {% trans "and earn XP to unlock advanced chunking, premium fonts, and smart reading features." %}
+            </p>
+        </div>
+        {% elif user.current_xp_points > 0 %}
+        <div class="xp-notice">
+            <p>
+                {% url 'verifast_app:user_profile' as profile_url %}
+                {% blocktrans with xp=user.current_xp_points %}You have {{ xp }} XP!{% endblocktrans %}
+                <a href="{{ profile_url }}">{% trans "Visit your profile" %}</a>
+                {% trans "to unlock premium reading features." %}
+            </p>
+        </div>
+        {% endif %}
+
+        <!-- Quiz Section -->
+        {% if article.quiz_data %}
+        <div class="quiz-section">
+            <button id="start-quiz-btn" class="quiz-btn" type="button">
+                {% trans "Start Quiz" %}
+            </button>
+            <small>{% trans "Complete the reading first, then test your comprehension!" %}</small>
+        </div>
+        {% else %}
+        <div class="no-quiz-notice">
+            <small>{% trans "Quiz not available for this article." %}</small>
+        </div>
+        {% endif %}
+    </section>
+
+    <!-- Immersive Speed Reader Overlay -->
+    <div id="immersive-overlay" class="immersive-overlay" role="dialog"
+        aria-label="{% trans 'Immersive Speed Reader' %}" aria-hidden="true">
+        <div id="immersive-word-display" class="immersive-word-display" aria-live="polite" role="status">
+            {% trans "Ready to read" %}
+        </div>
+        <div class="immersive-controls">
+            <div class="immersive-progress">
+                <div id="immersive-progress-bar" class="immersive-progress-bar"></div>
+            </div>
+            <button id="immersive-stop-btn" class="immersive-stop-btn" type="button">
+                {% trans "Stop Reading" %}
+            </button>
+        </div>
+    </div>
+
+    <!-- Quiz Overlay -->
+    <div id="quiz-overlay" class="quiz-overlay" role="dialog" aria-label="{% trans 'Article Quiz' %}"
+        aria-hidden="true">
+        <div class="quiz-overlay-content">
+            <div class="quiz-header">
+                <h2>{% trans "Article Quiz" %}</h2>
+                <button id="quiz-close-btn" class="quiz-close-btn" type="button" aria-label="{% trans 'Close quiz' %}">
+                    &times;
+                </button>
+            </div>
+            <div class="quiz-body">
+                <div id="quiz-question-container">
+                    <!-- Quiz questions will be dynamically inserted here -->
+                </div>
+                <div class="quiz-navigation">
+                    <button id="quiz-prev-btn" class="quiz-nav-btn" type="button" style="display: none;">
+                        {% trans "Previous" %}
+                    </button>
+                    <div class="quiz-progress">
+                        <span id="quiz-progress-text">{% trans "Question 1 of" %} {{ article.quiz_data|length }}</span>
+                    </div>
+                    <button id="quiz-next-btn" class="quiz-nav-btn" type="button">
+                        {% trans "Next" %}
+                    </button>
+                    <button id="quiz-submit-btn" class="quiz-submit-btn" type="button" style="display: none;">
+                        {% trans "Submit Quiz" %}
+                    </button>
+                </div>
+            </div>
+            <div id="quiz-results" class="quiz-results" style="display: none;">
+                <!-- Quiz results will be displayed here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Article Access Options -->
+    <section class="article-access">
+        <h3>{% trans "Article Access" %}</h3>
+        <p>{% trans "Use the speed reader above for the best experience, or:" %}</p>
+        {% if article.url %}
+        <a href="{{ article.url }}" target="_blank" rel="noopener noreferrer" class="external-link">
+            📖 {% trans "View Original Article" %}
+        </a>
+        {% endif %}
+        <small class="access-note">
+            {% trans "Note: Only speed reading provides WPM bonuses and speed improvement tracking" %}
+        </small>
+    </section>
+</main>
+
+<!-- Comments Section -->
+<section class="comments-section" aria-label="{% trans 'Comments' %}">
+    <h2>{% trans "Comments" %}</h2>
+
+    <!-- Comment Posting Form -->
+    {% if user.is_authenticated %}
+    {% if user_has_completed_quiz %}
+    <div class="comment-form-container">
+        <h3>{% trans "Post a Comment" %}</h3>
+        <form method="post" class="comment-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="comment_content">{% trans "Your comment:" %}</label>
+                <textarea name="comment_content" id="comment_content" rows="3"
+                    placeholder="{% trans 'Share your thoughts about this article...' %}" required></textarea>
+                <small class="form-help">
+                    {% trans "Cost: 10 XP" %} ({% blocktrans with xp=user.current_xp_points %}you have {{ xp }}
+                    spendable XP{% endblocktrans %})
+                </small>
+            </div>
+            {% if is_admin_user %}
+            <button type="submit" name="post_comment" value="1" class="comment-submit-btn">
+                {% trans "Post Comment" %} ({% trans "Admin - No XP Cost" %})
+            </button>
+            {% elif user.current_xp_points < 10 %} <button type="submit" name="post_comment" value="1"
+                class="comment-submit-btn" disabled title="{% trans 'Not enough spendable XP' %}">
+                {% trans "Post Comment" %} ({% trans "10 XP" %})
+                </button>
+                {% else %}
+                <button type="submit" name="post_comment" value="1" class="comment-submit-btn">
+                    {% trans "Post Comment" %} ({% trans "10 XP" %})
+                </button>
+                {% endif %}
+        </form>
+    </div>
+    {% else %}
+    <div class="quiz-required-notice">
+        <p><strong>{% trans "Complete the quiz to unlock commenting!" %}</strong></p>
+        <small>{% trans "You need to pass the quiz with at least 60% to post comments." %}</small>
+    </div>
+    {% endif %}
+    {% else %}
+    {% if user_has_completed_quiz %}
+    <div class="register-prompt">
+        <p><strong>{% trans "Great job completing the quiz!" %}</strong></p>
+        <p>
+            {% blocktrans with xp=total_xp|default:0 %}You've earned {{ xp }} XP.{% endblocktrans %}
+            <a href="{% url 'verifast_app:register' %}">{% trans "Register now" %}</a>
+            {% trans "to save your progress and unlock commenting!" %}
+        </p>
+        <small>{% trans "Your progress will be automatically transferred to your new account." %}</small>
+    </div>
+    {% else %}
+    <div class="try-quiz-prompt">
+        <p><strong>{% trans "Complete the quiz above to see what you can unlock!" %}</strong></p>
+        <small>{% trans "Try the speed reader and quiz - no registration required to get started." %}</small>
+    </div>
+    {% endif %}
+    {% endif %}
+
+    <!-- Comments Display -->
+    <div class="comments-list">
+        {% for comment in article.comments.all %}
+        <article class="comment">
+            <div class="comment-content">
+                <p>{{ comment.content|linebreaks }}</p>
+            </div>
+
+            <footer class="comment-footer">
+                <div class="comment-meta">
+                    <strong>{{ comment.user.username }}</strong>
+                    <time datetime="{{ comment.timestamp|date:'c' }}">
+                        {{ comment.timestamp|date:"M d, Y \a\t H:i" }}
+                    </time>
+                </div>
+            </footer>
+        </article>
+        {% empty %}
+        <div class="no-comments">
+            <p>{% trans "No comments yet. Be the first to share your thoughts!" %}</p>
+            {% if user.is_authenticated and not user_has_completed_quiz %}
+            <small>{% trans "Complete the quiz above to start the discussion." %}</small>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'verifast_app/css/speed-reader.css' %}">
+<style>
+    /* Quiz Overlay Styles */
+    .quiz-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.95);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        transition: opacity 0.3s ease;
+    }
+
+    .quiz-overlay.active {
+        display: flex;
+    }
+
+    .quiz-overlay-content {
+        background: var(--background-color, #fff);
+        border-radius: 8px;
+        max-width: 90%;
+        max-height: 90%;
+        width: 800px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        overflow-y: auto;
+        position: relative;
+    }
+
+    .quiz-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid var(--muted-border-color, #ddd);
+        padding-bottom: 1rem;
+    }
+
+    .quiz-header h2 {
+        margin: 0;
+        color: var(--primary, #007bff);
+    }
+
+    .quiz-close-btn {
+        background: none;
+        border: none;
+        font-size: 2rem;
+        cursor: pointer;
+        color: var(--muted-color, #666);
+        padding: 0;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+    }
+
+    .quiz-close-btn:hover {
+        background-color: var(--muted-border-color, #ddd);
+    }
+
+    .quiz-body {
+        margin-bottom: 2rem;
+    }
+
+    #quiz-question-container {
+        min-height: 200px;
+        margin-bottom: 2rem;
+    }
+
+    .quiz-question {
+        margin-bottom: 1.5rem;
+    }
+
+    .quiz-question h3 {
+        margin-bottom: 1rem;
+        color: var(--color, #333);
+    }
+
+    .quiz-options {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .quiz-option {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem;
+        border: 1px solid var(--muted-border-color, #ddd);
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .quiz-option:hover {
+        background-color: var(--muted-background-color, #f8f9fa);
+    }
+
+    .quiz-option input[type="radio"] {
+        margin-right: 0.75rem;
+    }
+
+    .quiz-navigation {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1rem;
+        border-top: 1px solid var(--muted-border-color, #ddd);
+    }
+
+    .quiz-nav-btn,
+    .quiz-submit-btn {
+        padding: 0.75rem 1.5rem;
+        border: 1px solid var(--primary, #007bff);
+        background-color: var(--primary, #007bff);
+        color: white;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .quiz-nav-btn:hover,
+    .quiz-submit-btn:hover {
+        background-color: var(--primary-hover, #0056b3);
+    }
+
+    .quiz-nav-btn:disabled {
+        background-color: var(--muted-color, #666);
+        border-color: var(--muted-color, #666);
+        cursor: not-allowed;
+    }
+
+    .quiz-progress {
+        font-weight: 600;
+        color: var(--color, #333);
+    }
+
+    .quiz-results {
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .quiz-results h3 {
+        color: var(--primary, #007bff);
+        margin-bottom: 1rem;
+    }
+
+    .quiz-score {
+        font-size: 2rem;
+        font-weight: bold;
+        margin: 1rem 0;
+    }
+
+    .quiz-score.good {
+        color: #28a745;
+    }
+
+    .quiz-score.average {
+        color: #ffc107;
+    }
+
+    .quiz-score.poor {
+        color: #dc3545;
+    }
+
+    /* Enhanced Immersive Speed Reader Styles */
+    .immersive-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.9);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        transition: opacity 0.3s ease;
+    }
+
+    .immersive-overlay.active {
+        display: flex;
+    }
+
+    .immersive-word-display {
+        background: white;
+        color: black;
+        padding: 3rem 6rem;
+        border-radius: 12px;
+        font-size: 4rem;
+        font-weight: bold;
+        text-align: center;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+        min-width: 60%;
+        min-height: 150px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Arial', sans-serif;
+        letter-spacing: 0.05em;
+        line-height: 1.2;
+        border: 3px solid #f0f0f0;
+    }
+
+    .immersive-controls {
+        position: absolute;
+        bottom: 5%;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .immersive-progress {
+        width: 300px;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .immersive-progress-bar {
+        height: 100%;
+        background: white;
+        transition: width 0.3s ease;
+        border-radius: 4px;
+    }
+
+    .immersive-stop-btn {
+        background: rgba(255, 255, 255, 0.9);
+        color: black;
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 8px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .immersive-stop-btn:hover {
+        background: white;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .quiz-overlay-content {
+            max-width: 95%;
+            padding: 1rem;
+        }
+
+        .quiz-navigation {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .quiz-nav-btn,
+        .quiz-submit-btn {
+            width: 100%;
+        }
+
+        .immersive-word-display {
+            font-size: 2.5rem;
+            padding: 2rem 3rem;
+            min-width: 80%;
+            min-height: 120px;
+        }
+
+        .immersive-progress {
+            width: 250px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'verifast_app/js/test-debug.js' %}"></script>
+<script src="{% static 'verifast_app/js/speed-reader.js' %}"></script>
+<script src="{% static 'verifast_app/js/quiz-interface.js' %}"></script>
+<script>
+    // Initialize i18n translations from Django
+    window.i18n = {
+        translations: {{ js_translations_json|safe }},
+        _: function(key, params = {}) {
+            let translation = this.translations[key] || key;
+            // Simple parameter substitution
+            for (let param in params) {
+                translation = translation.replace('{' + param + '}', params[param]);
+            }
+            return translation;
+        }
+    };
+
+    // Global translation function
+    window._ = function(key, params = {}) {
+        if (typeof window.i18n === 'object' && typeof window.i18n._ === 'function') {
+            return window.i18n._(key, params);
+        }
+        return key;
+    };
+
+    // Initialize quiz data for the quiz interface
+    window.quizData = {{ article.quiz_data|default:"[]"|safe }};
+    window.articleId = {{ article.id }};
+
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Article Detail: Page loaded');
+        
+        // Connect speed reader completion to quiz unlock
+        if (window.speedReader && window.quizInterface) {
+            window.speedReader.onReadingComplete = function() {
+                const startQuizBtn = document.getElementById('start-quiz-btn');
+                if (startQuizBtn) {
+                    startQuizBtn.disabled = false;
+                    startQuizBtn.textContent = 'Start Quiz';
+                }
+            };
+        }
+    });
+
+    // Simple, working speed reader implementation
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log('Speed Reader: Starting implementation...');
+
+        // Global translation function
+        window._ = function (key, params = {}) {
+            if (typeof window.i18n === 'object' && typeof window.i18n._ === 'function') {
+                return window.i18n._(key, params);
+            }
+            return key;
+        };
+
+        // Load user profile settings
+        const userSettings = {{ owned_features|default:"{}"|safe }};
+        console.log('Speed Reader: User settings loaded:', userSettings);
+
+        // Apply user settings to speed reader
+        function applyUserSettings() {
+            // Apply chunking settings
+            let chunkSize = 1; // Default single word
+            if (userSettings.has_5word_chunking) chunkSize = 5;
+            else if (userSettings.has_4word_chunking) chunkSize = 4;
+            else if (userSettings.has_3word_chunking) chunkSize = 3;
+            else if (userSettings.has_2word_chunking) chunkSize = 2;
+            
+            window.currentChunkSize = chunkSize;
+            console.log('Speed Reader: Chunk size set to', chunkSize);
+
+            // Apply smart features
+            window.smartConnectorGrouping = userSettings.has_smart_connector_grouping || false;
+            window.smartSymbolHandling = userSettings.has_smart_symbol_handling || false;
+            
+            console.log('Speed Reader: Smart features -', {
+                connectorGrouping: window.smartConnectorGrouping,
+                symbolHandling: window.smartSymbolHandling
+            });
+        }
+
+        // Apply settings on load
+        applyUserSettings();
+
+        // Get elements
+        const section = document.getElementById('speed-reader-section');
+        const wordDisplay = document.getElementById('word-display');
+        const startBtn = document.getElementById('start-pause-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const speedDisplay = document.getElementById('current-speed');
+        const speedIncBtn = document.getElementById('speed-increase');
+        const speedDecBtn = document.getElementById('speed-decrease');
+        const progressBar = document.getElementById('progress-bar');
+
+        console.log('Elements found:', {
+            section: !!section,
+            wordDisplay: !!wordDisplay,
+            startBtn: !!startBtn,
+            resetBtn: !!resetBtn,
+            speedDisplay: !!speedDisplay,
+            progressBar: !!progressBar
+        });
+
+        if (!section || !wordDisplay || !startBtn) {
+            console.error('Speed Reader: Essential elements missing');
+            return;
+        }
+
+        // Get content
+        const content = section.dataset.content;
+        if (!content) {
+            console.error('Speed Reader: No content found');
+            wordDisplay.textContent = _('no_content_available');
+            return;
+        }
+
+        // Split into words
+        const words = content.replace(/\s+/g, ' ').trim().split(' ').filter(w => w.length > 0);
+        console.log('Speed Reader: Found', words.length, 'words');
+
+        // State
+        let currentIndex = 0;
+        let isRunning = false;
+        let intervalId = null;
+        let wpm = parseInt(speedDisplay.textContent) || 250;
+
+        // Immersive mode elements
+        const immersiveOverlay = document.getElementById('immersive-overlay');
+        const immersiveWordDisplay = document.getElementById('immersive-word-display');
+        const immersiveProgressBar = document.getElementById('immersive-progress-bar');
+        const immersiveStopBtn = document.getElementById('immersive-stop-btn');
+
+        // Functions with immersive mode integration
+        function showWord() {
+            if (currentIndex < words.length) {
+                const word = words[currentIndex];
+                wordDisplay.textContent = word;
+                if (immersiveWordDisplay) {
+                    immersiveWordDisplay.textContent = word;
+                }
+
+                const progress = ((currentIndex + 1) / words.length) * 100;
+                if (progressBar) {
+                    progressBar.value = progress;
+                }
+                if (immersiveProgressBar) {
+                    immersiveProgressBar.style.width = progress + '%';
+                }
+                currentIndex++;
+            } else {
+                wordDisplay.textContent = _('reading_finished');
+                if (immersiveWordDisplay) {
+                    immersiveWordDisplay.textContent = _('reading_finished');
+                }
+                stopReading();
+                enableQuiz(); // Enable quiz when reading is finished
+            }
+        }
+
+        function startImmersiveMode() {
+            if (immersiveOverlay) {
+                immersiveOverlay.classList.add('active');
+                immersiveOverlay.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
+                console.log('Speed Reader: Immersive mode activated');
+            }
+        }
+
+        function stopImmersiveMode() {
+            if (immersiveOverlay) {
+                immersiveOverlay.classList.remove('active');
+                immersiveOverlay.setAttribute('aria-hidden', 'true');
+                document.body.style.overflow = '';
+                console.log('Speed Reader: Immersive mode deactivated');
+            }
+        }
+
+        function startReading() {
+            if (intervalId) clearInterval(intervalId);
+            const interval = 60000 / wpm;
+            intervalId = setInterval(showWord, interval);
+            startBtn.textContent = _('pause_reading');
+            isRunning = true;
+
+            // Always start in immersive mode
+            startImmersiveMode();
+
+            console.log('Speed Reader: Started at', wpm, 'WPM in immersive mode');
+        }
+
+        function stopReading() {
+            if (intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+            startBtn.textContent = _('start_reading');
+            isRunning = false;
+
+            // Exit immersive mode when stopping
+            stopImmersiveMode();
+
+            console.log('Speed Reader: Stopped');
+        }
+
+        function resetReading() {
+            stopReading();
+            currentIndex = 0;
+            wordDisplay.textContent = _('click_start_reading');
+            if (progressBar) progressBar.value = 0;
+            console.log('Speed Reader: Reset');
+        }
+
+        function updateSpeed(newWpm) {
+            wpm = Math.max(50, Math.min(1000, newWpm));
+            speedDisplay.textContent = wpm;
+            if (isRunning) {
+                stopReading();
+                startReading();
+            }
+            console.log('Speed Reader: Speed updated to', wpm, 'WPM');
+        }
+
+        // Event listeners
+        startBtn.addEventListener('click', function () {
+            console.log('Speed Reader: Start/Pause clicked');
+            if (isRunning) {
+                stopReading();
+            } else {
+                if (currentIndex >= words.length) {
+                    resetReading();
+                }
+                startReading();
+            }
+        });
+
+        // Immersive stop button
+        if (immersiveStopBtn) {
+            immersiveStopBtn.addEventListener('click', function () {
+                stopReading();
+            });
+        }
+
+        if (resetBtn) {
+            resetBtn.addEventListener('click', resetReading);
+        }
+
+        if (speedIncBtn) {
+            speedIncBtn.addEventListener('click', () => updateSpeed(wpm + 25));
+        }
+
+        if (speedDecBtn) {
+            speedDecBtn.addEventListener('click', () => updateSpeed(wpm - 25));
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function (e) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+            switch (e.key) {
+                case ' ':
+                    e.preventDefault();
+                    startBtn.click();
+                    break;
+                case 'r':
+                case 'R':
+                    resetBtn.click();
+                    break;
+                case 'ArrowUp':
+                    e.preventDefault();
+                    if (speedIncBtn) speedIncBtn.click();
+                    break;
+                case 'ArrowDown':
+                    e.preventDefault();
+                    if (speedDecBtn) speedDecBtn.click();
+                    break;
+            }
+        });
+
+        console.log('Speed Reader: Implementation ready');
+
+        // Quiz enabling functionality
+        let quizEnabled = false;
+        
+        function enableQuiz() {
+            console.log('Quiz: Enabling quiz functionality');
+            quizEnabled = true;
+            const startQuizBtn = document.getElementById('start-quiz-btn');
+            if (startQuizBtn) {
+                startQuizBtn.disabled = false;
+                startQuizBtn.style.opacity = '1';
+                startQuizBtn.style.cursor = 'pointer';
+                // Update the help text
+                const quizSection = document.querySelector('.quiz-section small');
+                if (quizSection) {
+                    quizSection.textContent = 'Great! You can now take the quiz to test your comprehension.';
+                    quizSection.style.color = 'green';
+                }
+            }
+        }
+        
+        function disableQuiz() {
+            console.log('Quiz: Disabling quiz functionality');
+            quizEnabled = false;
+            const startQuizBtn = document.getElementById('start-quiz-btn');
+            if (startQuizBtn) {
+                startQuizBtn.disabled = true;
+                startQuizBtn.style.opacity = '0.5';
+                startQuizBtn.style.cursor = 'not-allowed';
+            }
+        }
+        
+        // Track external article link clicks
+        const externalLink = document.querySelector('.external-link');
+        if (externalLink) {
+            externalLink.addEventListener('click', function() {
+                console.log('Quiz: External article link clicked, enabling quiz');
+                setTimeout(() => {
+                    enableQuiz();
+                }, 1000); // Small delay to ensure user has time to read
+            });
+        }
+        
+        // Initially disable the quiz
+        disableQuiz();
+
+        // Quiz functionality
+        const startQuizBtn = document.getElementById('start-quiz-btn');
+        const quizOverlay = document.getElementById('quiz-overlay');
+        const quizCloseBtn = document.getElementById('quiz-close-btn');
+        const quizQuestionContainer = document.getElementById('quiz-question-container');
+        const quizPrevBtn = document.getElementById('quiz-prev-btn');
+        const quizNextBtn = document.getElementById('quiz-next-btn');
+        const quizSubmitBtn = document.getElementById('quiz-submit-btn');
+        const quizProgressText = document.getElementById('quiz-progress-text');
+        const quizResults = document.getElementById('quiz-results');
+
+        // Quiz data from Django template
+        const quizDataRaw = {{ article.quiz_data|default:"[]"|safe }};
+    let quizData;
+    try {
+        quizData = typeof quizDataRaw === 'string' ? JSON.parse(quizDataRaw) : quizDataRaw;
+    } catch (e) {
+        console.error('Quiz: Failed to parse quiz data', e);
+        quizData = [];
+    }
+    console.log('Quiz Data loaded:', quizData);
+    console.log('Quiz Data length:', quizData ? quizData.length : 0);
+    console.log('Quiz button element:', startQuizBtn);
+    console.log('Quiz overlay element:', quizOverlay);
+    let currentQuestionIndex = 0;
+    let userAnswers = {};
+
+    function showQuizOverlay() {
+        if (quizOverlay) {
+            quizOverlay.classList.add('active');
+            quizOverlay.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+            window.quizStartTime = Date.now(); // Track quiz start time
+            renderCurrentQuestion();
+            console.log('Quiz: Overlay shown');
+        }
+    }
+
+    function hideQuizOverlay() {
+        if (quizOverlay) {
+            quizOverlay.classList.remove('active');
+            quizOverlay.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+            console.log('Quiz: Overlay hidden');
+        }
+    }
+
+    function renderCurrentQuestion() {
+        if (!quizData || !quizData[currentQuestionIndex]) {
+            console.error('Quiz: No question data available');
+            return;
+        }
+
+        const question = quizData[currentQuestionIndex];
+        const questionHtml = `
+                <div class="quiz-question">
+                    <h3>${currentQuestionIndex + 1}. ${question.question}</h3>
+                    <div class="quiz-options">
+                        ${question.options.map((option, index) => `
+                            <label class="quiz-option">
+                                <input type="radio" name="question-${currentQuestionIndex}" value="${option}" 
+                                       ${userAnswers[currentQuestionIndex] === option ? 'checked' : ''}>
+                                ${option}
+                            </label>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+        quizQuestionContainer.innerHTML = questionHtml;
+
+        // Add event listeners to radio buttons
+        const radioButtons = quizQuestionContainer.querySelectorAll('input[type="radio"]');
+        radioButtons.forEach(radio => {
+            radio.addEventListener('change', function () {
+                userAnswers[currentQuestionIndex] = this.value;
+                console.log('Quiz: Answer selected:', this.value);
+            });
+        });
+
+        // Update navigation
+        updateQuizNavigation();
+    }
+
+    function updateQuizNavigation() {
+        // Update progress text
+        if (quizProgressText) {
+            quizProgressText.textContent = `Question ${currentQuestionIndex + 1} of ${quizData.length}`;
+        }
+
+        // Show/hide previous button
+        if (quizPrevBtn) {
+            quizPrevBtn.style.display = currentQuestionIndex > 0 ? 'inline-block' : 'none';
+        }
+
+        // Show/hide next vs submit button
+        if (currentQuestionIndex < quizData.length - 1) {
+            if (quizNextBtn) quizNextBtn.style.display = 'inline-block';
+            if (quizSubmitBtn) quizSubmitBtn.style.display = 'none';
+        } else {
+            if (quizNextBtn) quizNextBtn.style.display = 'none';
+            if (quizSubmitBtn) quizSubmitBtn.style.display = 'inline-block';
+        }
+    }
+
+    function resetQuiz() {
+        currentQuestionIndex = 0;
+        userAnswers = {};
+        if (quizResults) quizResults.style.display = 'none';
+        const quizBody = document.querySelector('.quiz-body');
+        if (quizBody) quizBody.style.display = 'block';
+        renderCurrentQuestion();
+    }
+
+    function submitQuiz() {
+        console.log('Quiz: Submitting quiz with answers:', userAnswers);
+        
+        // Calculate score
+        let correctAnswers = 0;
+        for (let i = 0; i < quizData.length; i++) {
+            if (userAnswers[i] === quizData[i].correct_answer) {
+                correctAnswers++;
+            }
+        }
+
+        const score = Math.round((correctAnswers / quizData.length) * 100);
+        console.log('Quiz: Score calculated:', score, '%');
+
+        // Show results
+        showQuizResults(score, correctAnswers);
+
+        // Submit to server
+        submitQuizToServer(userAnswers, score);
+    }
+
+    function showQuizResults(score, correctAnswers) {
+        let scoreClass = 'poor';
+        let message = 'Keep practicing!';
+
+        if (score >= 80) {
+            scoreClass = 'good';
+            message = 'Excellent work!';
+        } else if (score >= 60) {
+            scoreClass = 'average';
+            message = 'Good job!';
+        }
+
+        const resultsHtml = `
+                <h3>Quiz Complete!</h3>
+                <div class="quiz-score ${scoreClass}">${score}%</div>
+                <p>You got ${correctAnswers} out of ${quizData.length} questions correct.</p>
+                <p><strong>${message}</strong></p>
+                <button id="quiz-restart-btn" class="quiz-nav-btn" type="button">Take Again</button>
+                <button id="quiz-finish-btn" class="quiz-submit-btn" type="button">Finish</button>
+            `;
+
+        quizResults.innerHTML = resultsHtml;
+        quizResults.style.display = 'block';
+
+        // Hide quiz body
+        const quizBody = document.querySelector('.quiz-body');
+        if (quizBody) quizBody.style.display = 'none';
+
+        // Add event listeners for result buttons
+        const restartBtn = document.getElementById('quiz-restart-btn');
+        const finishBtn = document.getElementById('quiz-finish-btn');
+
+        if (restartBtn) {
+            restartBtn.addEventListener('click', function () {
+                resetQuiz();
+            });
+        }
+
+        if (finishBtn) {
+            finishBtn.addEventListener('click', function () {
+                hideQuizOverlay();
+            });
+        }
+    }
+
+    function submitQuizToServer(answers, score) {
+        console.log('Quiz: Submitting to server...');
+        
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        formData.append('submit_quiz', 'true');
+        formData.append('user_answers', JSON.stringify(answers));
+        formData.append('score_percentage', score);
+        formData.append('wpm', window.currentWPM || 250); // Use current WPM from speed reader
+        formData.append('quiz_time_seconds', Math.floor((Date.now() - window.quizStartTime) / 1000) || 60);
+
+        fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                console.log('Quiz: Successfully submitted to server');
+                // Reload page to show updated messages and XP
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000);
+            } else {
+                console.error('Quiz: Server error:', response.status);
+            }
+        })
+        .catch(error => {
+            console.error('Quiz: Network error:', error);
+        });
+    }
+
+    // Quiz event listeners
+    console.log('Quiz: Checking event listener conditions...');
+    console.log('Quiz: startQuizBtn exists:', !!startQuizBtn);
+    console.log('Quiz: quizData exists:', !!quizData);
+    console.log('Quiz: quizData length:', quizData ? quizData.length : 'N/A');
+
+    if (startQuizBtn && quizData && quizData.length > 0) {
+        console.log('Quiz: Adding click event listener to start button');
+        startQuizBtn.addEventListener('click', function () {
+            console.log('Quiz: Start button clicked');
+            showQuizOverlay();
+        });
+    } else {
+        console.log('Quiz: Event listener NOT added. Conditions not met.');
+        if (!startQuizBtn) {
+            console.log('Quiz: Missing start button element');
+            // Show fallback message
+            const quizSection = document.querySelector('.quiz-section');
+            if (quizSection) {
+                quizSection.innerHTML = '<p class="quiz-error">Quiz functionality is temporarily unavailable. Please refresh the page and try again.</p>';
+            }
+        }
+        if (!quizData) {
+            console.log('Quiz: Missing quiz data');
+            const noQuizNotice = document.querySelector('.no-quiz-notice');
+            if (noQuizNotice) {
+                noQuizNotice.style.display = 'block';
+            }
+        }
+        if (quizData && quizData.length === 0) {
+            console.log('Quiz: Quiz data is empty');
+            const noQuizNotice = document.querySelector('.no-quiz-notice');
+            if (noQuizNotice) {
+                noQuizNotice.style.display = 'block';
+            }
+        }
+    }
+
+    if (quizCloseBtn) {
+        quizCloseBtn.addEventListener('click', hideQuizOverlay);
+    }
+
+    if (quizPrevBtn) {
+        quizPrevBtn.addEventListener('click', function () {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderCurrentQuestion();
+            }
+        });
+    }
+
+    if (quizNextBtn) {
+        quizNextBtn.addEventListener('click', function () {
+            if (currentQuestionIndex < quizData.length - 1) {
+                currentQuestionIndex++;
+                renderCurrentQuestion();
+            }
+        });
+    }
+
+    if (quizSubmitBtn) {
+        quizSubmitBtn.addEventListener('click', submitQuiz);
+    }
+
+    // Close quiz overlay on escape key
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            if (quizOverlay && quizOverlay.classList.contains('active')) {
+                hideQuizOverlay();
+            }
+        }
+    });
+
+    // Make quiz functions available globally for debugging
+    window.debugQuiz = {
+        showQuizOverlay: showQuizOverlay,
+        hideQuizOverlay: hideQuizOverlay,
+        startQuizBtn: startQuizBtn,
+        quizOverlay: quizOverlay,
+        quizData: quizData
+    };
+    
+    console.log('Quiz: Implementation ready');
+    console.log('Quiz: Debug functions available at window.debugQuiz');
+            if (quizSubmitBtn) quizSubmitBtn.style.display = 'none';
+        } else {
+            if (quizNextBtn) quizNextBtn.style.display = 'none';
+            if (quizSubmitBtn) quizSubmitBtn.style.display = 'inline-block';
+        }
+    }
+
+    function submitQuiz() {
+        // Check if all questions are answered
+        const unansweredQuestions = [];
+        for (let i = 0; i < quizData.length; i++) {
+            if (!userAnswers[i]) {
+                unansweredQuestions.push(i + 1);
+            }
+        }
+
+        if (unansweredQuestions.length > 0) {
+            alert(`Please answer all questions. Missing: ${unansweredQuestions.join(', ')}`);
+            return;
+        }
+
+        // Calculate score
+        let correctAnswers = 0;
+        for (let i = 0; i < quizData.length; i++) {
+            if (userAnswers[i] === quizData[i].correct_answer) {
+                correctAnswers++;
+            }
+        }
+
+        const score = Math.round((correctAnswers / quizData.length) * 100);
+        console.log('Quiz: Score calculated:', score, '%');
+
+        // Show results
+        showQuizResults(score, correctAnswers);
+
+        // Submit to server
+        submitQuizToServer(userAnswers, score);
+    }
+
+    function showQuizResults(score, correctAnswers) {
+        let scoreClass = 'poor';
+        let message = 'Keep practicing!';
+
+        if (score >= 80) {
+            scoreClass = 'good';
+            message = 'Excellent work!';
+        } else if (score >= 60) {
+            scoreClass = 'average';
+            message = 'Good job!';
+        }
+
+        const resultsHtml = `
+                <h3>Quiz Complete!</h3>
+                <div class="quiz-score ${scoreClass}">${score}%</div>
+                <p>You got ${correctAnswers} out of ${quizData.length} questions correct.</p>
+                <p><strong>${message}</strong></p>
+                <button id="quiz-restart-btn" class="quiz-nav-btn" type="button">Take Again</button>
+                <button id="quiz-finish-btn" class="quiz-submit-btn" type="button">Finish</button>
+            `;
+
+        quizResults.innerHTML = resultsHtml;
+        quizResults.style.display = 'block';
+
+        // Hide quiz body
+        const quizBody = document.querySelector('.quiz-body');
+        if (quizBody) quizBody.style.display = 'none';
+
+        // Add event listeners for result buttons
+        const restartBtn = document.getElementById('quiz-restart-btn');
+        const finishBtn = document.getElementById('quiz-finish-btn');
+
+        if (restartBtn) {
+            restartBtn.addEventListener('click', function () {
+                resetQuiz();
+            });
+        }
+
+        if (finishBtn) {
+            finishBtn.addEventListener('click', function () {
+                hideQuizOverlay();
+            });
+        }
+    }
+
+    function resetQuiz() {
+        currentQuestionIndex = 0;
+        userAnswers = {};
+        quizResults.style.display = 'none';
+
+        const quizBody = document.querySelector('.quiz-body');
+        if (quizBody) quizBody.style.display = 'block';
+
+        renderCurrentQuestion();
+    }
+
+    function submitQuizToServer(answers, score) {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch(window.location.href, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken,
+            },
+            body: JSON.stringify({
+                action: 'submit_quiz',
+                quiz_answers: answers,
+                quiz_score: score
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Quiz: Server response:', data);
+                if (data.success && data.xp_earned) {
+                    console.log('Quiz: XP earned:', data.xp_earned);
+                }
+            })
+            .catch(error => {
+                console.error('Quiz: Submission error:', error);
+            });
+    }
+
+
+</script>
+{% endblock %}

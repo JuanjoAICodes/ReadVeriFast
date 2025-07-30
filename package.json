@@ -1,0 +1,19 @@
+{
+  "name": "verifast-testing",
+  "version": "1.0.0",
+  "description": "VeriFast E2E Testing Suite",
+  "scripts": {
+    "test": "node tests/puppeteer/test_runner.js",
+    "test:headless": "HEADLESS=true node tests/puppeteer/test_runner.js",
+    "test:visible": "HEADLESS=false node tests/puppeteer/test_runner.js",
+    "test:slow": "HEADLESS=false SLOW_MO=250 node tests/puppeteer/test_runner.js",
+    "test:full": "./scripts/run_full_test_suite.sh"
+  },
+  "dependencies": {
+    "puppeteer": "^24.14.0"
+  },
+  "devDependencies": {},
+  "keywords": ["testing", "e2e", "puppeteer", "django"],
+  "author": "VeriFast Team",
+  "license": "MIT"
+}

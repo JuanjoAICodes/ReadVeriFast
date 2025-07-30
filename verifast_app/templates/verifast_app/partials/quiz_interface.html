@@ -1,0 +1,37 @@
+<!-- Quiz Interface Partial -->
+<div class="quiz-interface" id="quiz-interface">
+    <div class="quiz-header">
+        <h4>{% trans "Comprehension Quiz" %}</h4>
+        <p>{% trans "Answer the questions below to test your understanding and earn XP." %}</p>
+    </div>
+
+    <div class="quiz-content">
+        <div id="quiz-questions">
+            <!-- Questions will be loaded here by JavaScript -->
+        </div>
+
+        <div class="quiz-navigation">
+            <div class="quiz-progress">
+                <span id="current-question">1</span> / <span id="total-questions">{{ quiz_data|length }}</span>
+            </div>
+
+            <div class="quiz-buttons">
+                <button id="prev-question" type="button" disabled>
+                    {% trans "Previous" %}
+                </button>
+                <button id="next-question" type="button">
+                    {% trans "Next" %}
+                </button>
+                <button id="submit-quiz" type="button" style="display: none;">
+                    {% trans "Submit Quiz" %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Initialize quiz data for the quiz interface
+    window.quizData = {{ quiz_data |default: "[]" | safe }};
+    window.articleId = {{ article.id }};
+</script>

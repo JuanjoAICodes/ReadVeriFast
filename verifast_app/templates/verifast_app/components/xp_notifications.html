@@ -1,0 +1,495 @@
+<!-- XP Notifications Component -->
+<div class="xp-notifications-container" id="xp-notifications-container">
+    <!-- Notifications will be dynamically added here -->
+</div>
+
+<!-- XP Notification Templates -->
+<template id="xp-notification-template">
+    <div class="xp-notification" data-notification-id="">
+        <div class="notification-icon"></div>
+        <div class="notification-content">
+            <div class="notification-title"></div>
+            <div class="notification-message"></div>
+            <div class="notification-xp-amount"></div>
+        </div>
+        <button class="notification-close" onclick="dismissNotification(this)">&times;</button>
+    </div>
+</template>
+
+<!-- XP Level Up Modal Template -->
+<template id="xp-levelup-modal-template">
+    <div class="xp-levelup-modal-overlay" onclick="closeLevelUpModal()">
+        <div class="xp-levelup-modal" onclick="event.stopPropagation()">
+            <div class="levelup-animation">
+                <div class="levelup-star">⭐</div>
+                <div class="levelup-rays"></div>
+            </div>
+            <div class="levelup-content">
+                <h2 class="levelup-title">Level Up!</h2>
+                <div class="levelup-level">Level <span class="level-number"></span></div>
+                <div class="levelup-message">Congratulations on reaching a new level!</div>
+                <div class="levelup-stats">
+                    <div class="levelup-stat">
+                        <span class="stat-value total-xp"></span>
+                        <span class="stat-label">Total XP</span>
+                    </div>
+                    <div class="levelup-stat">
+                        <span class="stat-value spendable-xp"></span>
+                        <span class="stat-label">Spendable XP</span>
+                    </div>
+                </div>
+                <button class="levelup-close-btn" onclick="closeLevelUpModal()">Continue</button>
+            </div>
+        </div>
+    </div>
+</template>
+
+<!-- XP Notifications Styles -->
+<style>
+.xp-notifications-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    max-width: 400px;
+    pointer-events: none;
+}
+
+.xp-notification {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transform: translateX(100%);
+    opacity: 0;
+    animation: slideInNotification 0.3s ease forwards;
+    pointer-events: auto;
+    border-left: 4px solid #10b981;
+}
+
+.xp-notification.earned {
+    border-left-color: #10b981;
+}
+
+.xp-notification.spent {
+    border-left-color: #ef4444;
+}
+
+.xp-notification.bonus {
+    border-left-color: #f59e0b;
+}
+
+.xp-notification.levelup {
+    border-left-color: #8b5cf6;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+@keyframes slideInNotification {
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutNotification {
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+.notification-icon {
+    font-size: 1.5rem;
+    width: 32px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-title {
+    font-weight: 600;
+    margin-bottom: 2px;
+    font-size: 0.9rem;
+}
+
+.notification-message {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-bottom: 4px;
+}
+
+.xp-notification.levelup .notification-message {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.notification-xp-amount {
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.notification-xp-amount.positive {
+    color: #10b981;
+}
+
+.notification-xp-amount.negative {
+    color: #ef4444;
+}
+
+.xp-notification.levelup .notification-xp-amount {
+    color: #ffd700;
+}
+
+.notification-close {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 4px;
+    color: #9ca3af;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.notification-close:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.xp-notification.levelup .notification-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+/* Level Up Modal Styles */
+.xp-levelup-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    animation: fadeInModal 0.3s ease forwards;
+}
+
+@keyframes fadeInModal {
+    to { opacity: 1; }
+}
+
+.xp-levelup-modal {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    position: relative;
+    transform: scale(0.8);
+    animation: scaleInModal 0.3s ease forwards;
+}
+
+@keyframes scaleInModal {
+    to { transform: scale(1); }
+}
+
+.levelup-animation {
+    position: relative;
+    margin-bottom: 24px;
+}
+
+.levelup-star {
+    font-size: 4rem;
+    animation: starPulse 2s ease-in-out infinite;
+}
+
+@keyframes starPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+.levelup-rays {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: raysRotate 3s linear infinite;
+}
+
+@keyframes raysRotate {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.levelup-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 8px;
+}
+
+.levelup-level {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #667eea;
+    margin-bottom: 16px;
+}
+
+.levelup-message {
+    color: #6b7280;
+    margin-bottom: 24px;
+}
+
+.levelup-stats {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    margin-bottom: 32px;
+}
+
+.levelup-stat {
+    text-align: center;
+}
+
+.levelup-stat .stat-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 4px;
+}
+
+.levelup-stat .stat-label {
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.levelup-close-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 32px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.levelup-close-btn:hover {
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .xp-notifications-container {
+        left: 20px;
+        right: 20px;
+        max-width: none;
+    }
+    
+    .xp-notification {
+        margin-bottom: 8px;
+    }
+    
+    .xp-levelup-modal {
+        padding: 24px;
+    }
+    
+    .levelup-stats {
+        gap: 20px;
+    }
+}
+</style>
+
+<!-- XP Notifications JavaScript -->
+<script>
+class XPNotificationManager {
+    constructor() {
+        this.container = document.getElementById('xp-notifications-container');
+        this.template = document.getElementById('xp-notification-template');
+        this.levelUpTemplate = document.getElementById('xp-levelup-modal-template');
+        this.notificationId = 0;
+    }
+    
+    showNotification(type, title, message, xpAmount, duration = 5000) {
+        const notification = this.template.content.cloneNode(true);
+        const notificationElement = notification.querySelector('.xp-notification');
+        
+        // Set unique ID
+        const id = ++this.notificationId;
+        notificationElement.setAttribute('data-notification-id', id);
+        
+        // Set notification type
+        notificationElement.classList.add(type);
+        
+        // Set content
+        notification.querySelector('.notification-title').textContent = title;
+        notification.querySelector('.notification-message').textContent = message;
+        
+        // Set XP amount
+        const xpAmountElement = notification.querySelector('.notification-xp-amount');
+        if (xpAmount > 0) {
+            xpAmountElement.textContent = `+${xpAmount} XP`;
+            xpAmountElement.classList.add('positive');
+        } else if (xpAmount < 0) {
+            xpAmountElement.textContent = `${xpAmount} XP`;
+            xpAmountElement.classList.add('negative');
+        } else {
+            xpAmountElement.textContent = '';
+        }
+        
+        // Set icon based on type
+        const iconElement = notification.querySelector('.notification-icon');
+        switch (type) {
+            case 'earned':
+                iconElement.textContent = '💰';
+                break;
+            case 'spent':
+                iconElement.textContent = '💸';
+                break;
+            case 'bonus':
+                iconElement.textContent = '🎁';
+                break;
+            case 'levelup':
+                iconElement.textContent = '⭐';
+                break;
+            default:
+                iconElement.textContent = '📊';
+        }
+        
+        // Add to container
+        this.container.appendChild(notification);
+        
+        // Auto-dismiss after duration
+        if (duration > 0) {
+            setTimeout(() => {
+                this.dismissNotification(id);
+            }, duration);
+        }
+        
+        return id;
+    }
+    
+    dismissNotification(idOrElement) {
+        let element;
+        if (typeof idOrElement === 'number') {
+            element = this.container.querySelector(`[data-notification-id="${idOrElement}"]`);
+        } else if (idOrElement.closest) {
+            element = idOrElement.closest('.xp-notification');
+        } else {
+            element = idOrElement;
+        }
+        
+        if (element) {
+            element.style.animation = 'slideOutNotification 0.3s ease forwards';
+            setTimeout(() => {
+                if (element.parentNode) {
+                    element.parentNode.removeChild(element);
+                }
+            }, 300);
+        }
+    }
+    
+    showLevelUpModal(newLevel, totalXP, spendableXP) {
+        const modal = this.levelUpTemplate.content.cloneNode(true);
+        const modalElement = modal.querySelector('.xp-levelup-modal-overlay');
+        
+        // Set level information
+        modal.querySelector('.level-number').textContent = newLevel;
+        modal.querySelector('.total-xp').textContent = totalXP.toLocaleString();
+        modal.querySelector('.spendable-xp').textContent = spendableXP.toLocaleString();
+        
+        // Add to body
+        document.body.appendChild(modal);
+        
+        // Play level up sound (if available)
+        this.playLevelUpSound();
+    }
+    
+    playLevelUpSound() {
+        // Create a simple level up sound using Web Audio API
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+            oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // E5
+            oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2); // G5
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        } catch (e) {
+            // Fallback: no sound if Web Audio API is not supported
+            console.log('Level up! (Sound not available)');
+        }
+    }
+}
+
+// Global XP notification manager
+const xpNotifications = new XPNotificationManager();
+
+// Global functions for template usage
+function dismissNotification(element) {
+    xpNotifications.dismissNotification(element);
+}
+
+function closeLevelUpModal() {
+    const modal = document.querySelector('.xp-levelup-modal-overlay');
+    if (modal) {
+        modal.style.animation = 'fadeOutModal 0.3s ease forwards';
+        setTimeout(() => {
+            if (modal.parentNode) {
+                modal.parentNode.removeChild(modal);
+            }
+        }, 300);
+    }
+}
+
+// CSS for fade out animation
+const style = document.createElement('style');
+style.textContent = `
+@keyframes fadeOutModal {
+    to { opacity: 0; }
+}
+`;
+document.head.appendChild(style);
+
+// Example usage functions (to be called from other parts of the application)
+function showXPEarned(amount, source, description) {
+    xpNotifications.showNotification('earned', 'XP Earned!', description, amount);
+}
+
+function showXPSpent(amount, purpose, description) {
+    xpNotifications.showNotification('spent', 'XP Spent', description, -amount);
+}
+
+function showXPBonus(amount, bonusType, description) {
+    xpNotifications.showNotification('bonus', `${bonusType} Bonus!`, description, amount);
+}
+
+function showLevelUp(newLevel, totalXP, spendableXP) {
+    xpNotifications.showLevelUpModal(newLevel, totalXP, spendableXP);
+}
+</script>

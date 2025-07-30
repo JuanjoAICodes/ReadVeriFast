@@ -1,0 +1,24 @@
+{% load comment_tags %}
+
+<div class="comment {% if comment.parent %}reply {% else %}top-level {% endif %}" id="comment-{{ comment.id }}">
+    <div class="comment-header">
+        <span class="comment-author">{{ comment.author.username }}</span>
+        <span class="comment-meta"> - {{ comment.created_at|date:"Y-m-d H:i" }}</span>
+    </div>
+    <div class="comment-body">
+        <p class="comment-content">{{ comment.content }}</p>
+        <div class="comment-actions">
+            <button class="reply-button" data-comment-id="{{ comment.id }}">Reply</button>
+            {# Add like button/logic here if needed #}
+        </div>
+        {% if comment.xp_deducted %} <p class="xp-info">XP deducted: {{ comment.xp_deducted }}</p>{% endif %}
+    </div>
+    
+    {% if comment.replies.exists %}
+        <div class="comment-replies">
+            {% for reply in comment.replies.all %}
+                {% include "verifast_app/comment.html" with comment=reply %}
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>

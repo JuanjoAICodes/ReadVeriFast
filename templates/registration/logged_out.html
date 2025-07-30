@@ -1,0 +1,25 @@
+{% extends 'verifast_app/base.html' %}
+
+{% block title %}Logged Out - {{ block.super }}{% endblock %}
+
+{% block content %}
+  <div style="max-width: 400px; margin: 0 auto; text-align: center;">
+    <hgroup>
+      <h1>You've Been Logged Out</h1>
+      <h2>Thanks for using VeriFast!</h2>
+    </hgroup>
+
+    <article>
+      <p>You have successfully logged out of your account.</p>
+      <p>Your reading progress and XP have been saved.</p>
+    </article>
+
+    <div style="margin-top: 2rem;">
+      <a href="{% url 'verifast_app:index' %}" role="button" class="contrast">Return to Homepage</a>
+      <p style="margin-top: 1rem;">
+        <a href="{% url 'login' %}">Sign in again</a> or 
+        <a href="{% url 'verifast_app:register' %}">create a new account</a>
+      </p>
+    </div>
+  </div>
+{% endblock %}

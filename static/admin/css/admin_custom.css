@@ -1,0 +1,5 @@
+/* static/admin/css/admin_custom.css */
+/* Swap the order of Available and Chosen boxes */
+.selector .selector-chosen { order: 1; }
+.selector .selector-available { order: -1; }
+.selector { gap: 20px; }

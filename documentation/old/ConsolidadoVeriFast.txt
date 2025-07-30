@@ -1,0 +1,234 @@
+﻿
+VeriFast v1.0 - Product Requirements Document (PRD) Consolidado
+
+1. Visión del Producto
+VeriFast es una innovadora aplicación web diseñada para transformar la lectura en una experiencia interactiva y de entrenamiento. Nuestro enfoque es mejorar la velocidad de lectura y la comprensión, utilizando un lector de velocidad avanzado, cuestionarios generados por IA y un sistema de gamificación robusto. La plataforma será multilingüe, con soporte completo en inglés y español, y capacidad de expansión a otros idiomas, buscando una audiencia global y diversa. La experiencia de usuario será limpia y minimalista, con una arquitectura robusta preparada para futuras expansiones y adaptación al nivel de lectura de cada usuario.
+Además, VeriFast proporcionará una API flexible para una experiencia fluida en diversas plataformas (web, móvil y escritorio), asegurando accesibilidad y adaptabilidad. Incluirá una sección de noticias importantes del día, curadas por su cobertura en múltiples fuentes de alta calidad. Buscamos aumentar la retención y el engagement del usuario mediante mecánicas de juego más profundas y la capacidad de guardar artículos para lectura y quizzes offline, sincronizando resultados al recuperar la conexión. El lector rápido permitirá leer más de una palabra a la vez para velocidades muy altas y se incorporará una evaluación automatizada del nivel de lectura por artículo. Las fuentes de contenido se expandirán a Wikipedia y libros con licencias Creative Commons.
+La aplicación tendrá un componente social robusto, permitiendo la interacción de usuarios a través de comentarios en los artículos. La participación en los comentarios estará condicionada a haber leído y aprobado el cuestionario de comprensión del artículo, y a poseer suficientes Puntos de Experiencia (XP). La experiencia del usuario se gestionará mediante Experiencia Total (XP acumulado) y Puntos de Experiencia (XP gastable en interacciones sociales).
+
+2. Stack Tecnológico
+La arquitectura de VeriFast se basará en tecnologías modernas y eficientes para garantizar escalabilidad y rendimiento:
+    • Backend: Flask, siguiendo el patrón "Application Factory" para una estructura modular y escalable.
+    • Tareas Asíncronas: Celery (con proceso Worker y Beat) para operaciones de larga duración como la ingesta y procesamiento de artículos, incluyendo las llamadas a LLMs.
+    • Cola de Mensajes / Broker: Redis, actuando como intermediario para las tareas de Celery.
+    • Base de Datos: PostgreSQL, gestionada con SQLAlchemy y Flask-Migrate para un control robusto del esquema de la base de datos.
+    • ORM: SQLAlchemy con Flask-SQLAlchemy para la interacción con la base de datos.
+    • Migraciones de Base de Datos: Alembic con Flask-Migrate.
+    • Frontend: Plantillas Jinja2 con el framework CSS Pico.css, priorizando un diseño minimalista y semántico.
+    • Servidor WSGI: Gunicorn, para el despliegue de la aplicación Flask. Para producción, se usará un proxy inverso como Nginx o Apache para manejar conexiones de clientes, servir archivos estáticos, proporcionar SSL/TLS (HTTPS) y actuar como balanceador de carga.
+    • Autenticación: Flask-Login.
+    • Formularios: Flask-WTF.
+    • Internacionalización (i18n): Una solución "in-house" basada en diccionarios de Python y un context_processor, complementada con Flask-Babel para una gestión completa de idiomas. Esto incluye convenciones estrictas para claves de traducción, uso de pybabel para automatización, soporte para plurales y contextos gramaticales, y pruebas exhaustivas.
+
+3. Modelo de Datos (app/models.py)
+El modelo de datos está diseñado para soportar las funcionalidades principales y su futura extensibilidad. Todos los modelos incluirán un método .to_dict() para una representación serializable.
+User (UserMixin, db.Model)
+    • id (Integer, Primary Key)
+    • email (String, Unique, Not Null, Index)
+    • username (String, Unique, Index)
+    • password_hash (String, Not Null)
+    • is_admin (Boolean, default False, Not Null)
+    • current_wpm (Integer, default 200, Not Null) - WPM dinámico que se ajusta.
+    • max_wpm (Integer, default 250, Not Null)
+    • total_xp (Integer, default 0, Not Null) - Experiencia total acumulada.
+    • current_xp_points (Integer, default 0, Not Null) - Puntos de experiencia disponibles para gastar.
+    • negative_xp_points (Integer, default 0, Not Null) - Puntos negativos acumulados (solo visible en perfil privado).
+    • preferred_language (String, nullable, default 'en')
+    • theme (String, Default: 'light')
+    • last_successful_wpm_used (Integer, nullable) - WPM del último quiz exitoso.
+    • llm_api_key_encrypted (String, nullable) - Campo añadido para almacenar la API key del LLM cifrada del usuario.
+    • preferred_llm_model (String, nullable) - Campo añadido para el LLM preferido del usuario.
+    • quiz_attempts (Relación one-to-many con QuizAttempt)
+    • articles (Relación one-to-many con Article)
+    • comments (Relación one-to-many con Comment)
+    • comment_interactions (Relación one-to-many con CommentInteraction)
+    • ad_free_articles_count (Integer, default 0, Not Null)
+    • Método: .to_dict()
+Article (db.Model)
+    • id (Integer, Primary Key)
+    • url (String, Unique, Not Null)
+    • title (String, Not Null, default "(Processing...)")
+    • image_url (String, nullable)
+    • language (String, nullable, Index)
+    • processing_status (String, Not Null, default 'pending')
+    • quiz_data (JSONB, Not Null, default {}) - Tipo de dato nativo para JSON en PostgreSQL.
+    • raw_content (Text) - Contenido original sin procesar.
+    • content (Text) - Contenido limpio para lectura.
+    • source (String)
+    • publication_date (DateTime, Index)
+    • is_user_submitted (Boolean, default False, Not Null)
+    • timestamp (DateTime, Not Null, default utcnow)
+    • user_id (Integer, ForeignKey a User, nullable) - Si el artículo fue enviado por un usuario.
+    • llm_model_used (String, nullable) - Campo añadido para registrar qué LLM generó el quiz.
+    • tags (Relación many-to-many con Tag)
+    • quiz_attempts (Relación one-to-many con QuizAttempt)
+    • reading_level (String, nullable) - Nivel de lectura estimado del artículo.
+    • comments (Relación one-to-many con Comment)
+    • Método: .to_dict()
+Tag (db.Model)
+    • id (Integer, Primary Key)
+    • name (String, Unique, Not Null)
+    • articles (Secondary relationship to Article)
+    • Método: .to_dict()
+QuizAttempt (db.Model)
+    • id (Integer, Primary Key)
+    • user_id (FK a User)
+    • article_id (FK a Article)
+    • score (Integer)
+    • wpm_used (Integer)
+    • xp_earned (Integer)
+    • xp_awarded (Boolean, default False, Not Null)
+    • result (String: 'success', 'fail', 'anonymous')
+    • timestamp (DateTime, Not Null, Default: now)
+    • reading_time_seconds (Integer, nullable)
+    • quiz_time_seconds (Integer, nullable)
+    • quiz_rating (Integer, nullable) - Calificación del quiz de 1 a 5 estrellas.
+    • quiz_feedback (Text, nullable)
+    • Método: .to_dict()
+Comment (db.Model)
+    • id (Integer, Primary Key)
+    • user_id (FK a User, Not Null)
+    • article_id (FK a Article, Not Null)
+    • text (Text, Not Null)
+    • timestamp (DateTime, Not Null, Default: now)
+    • parent_comment_id (FK a Comment, nullable)
+    • Método: .to_dict()
+CommentInteraction (db.Model)
+    • id (Integer, Primary Key)
+    • user_id (FK a User, Not Null)
+    • comment_id (FK a Comment, Not Null)
+    • type (String, Not Null) - 'like' o 'dislike'.
+    • level (String, Not Null) - 'bronze', 'silver', 'gold', 'troll', 'trash', 'poop'.
+    • xp_cost (Integer, Not Null)
+    • timestamp (DateTime, Not Null, Default: now)
+    • Método: .to_dict()
+AdminCorrectionDataset (db.Model)
+    • id (Integer, Primary Key)
+    • original_article_url (String, Not Null)
+    • original_content_hash (String, Not Null) - Hash del contenido original para referencia.
+    • corrected_content (Text, nullable)
+    • correction_type (String, Not Null)
+    • admin_user_id (FK a User, Not Null)
+    • timestamp (DateTime, Not Null, Default: now)
+    • Método: .to_dict()
+
+4. Flujo de Usuario Anónimo
+El usuario no registrado puede explorar y experimentar las funcionalidades principales de VeriFast:
+    • Landing Page (/): Muestra el eslogan principal, la descripción, y las secciones "How It Works" y "Key Benefits". Completamente internacionalizada.
+    • Navegación: La barra de navegación permitirá el acceso a "Articles", "Login" y "Register", y contendrá el selector de idioma funcional.
+    • Listado de Artículos (/articles, /articles/trending, /tags): El usuario podrá explorar todos los artículos completados y los tags sin necesidad de iniciar sesión. Habrá una barra de búsqueda para buscar múltiples tags simultáneamente (ej. "NY baseball"). El filtrado por Nivel de Lectura estará disponible en forma de tags.
+    • Detalle de Artículo y Quiz (Interfaz y Comportamiento):
+        ◦ La página del artículo mostrará la imagen, título y contenido principal.
+        ◦ Botón de "Lectura Rápida" con opción visible para ajustar la velocidad (WPM).
+        ◦ Al iniciar la lectura rápida, todos los demás elementos de la página se oscurecerán o difuminarán, destacando solo el lector, que mostrará las palabras secuencialmente.
+        ◦ Al finalizar la lectura rápida, el quiz se activará.
+        ◦ Al comenzar el quiz, las preguntas se presentarán una por una, con un medidor de tiempo visible para una respuesta rápida.
+
+5. Flujo de Usuario Registrado
+Los usuarios registrados acceden a una experiencia personalizada y gamificada:
+    • Registro (/auth/register): Un formulario permite crear una cuenta con username, email y password. Al registrarse, cualquier progreso almacenado en la sesión de invitado se transfiere a la nueva cuenta. El usuario inicia sesión automáticamente.
+    • Login (/auth/login): Un formulario de inicio de sesión estándar. Incluye un enlace mailto: para soporte en caso de olvidar la contraseña (verifast01@gmail.com).
+    • Página de Perfil (/profile): Muestra las estadísticas clave del usuario (XP total, WPM actual y máximo, artículos leídos, puntos de experiencia disponibles, puntos negativos privados) y su historial de lectura paginado. Permite cambiar el tema de la interfaz (claro/oscuro) y el idioma preferido. Si el usuario es administrador, mostrará un enlace/botón prominente para acceder al Dashboard de Administración. También incluirá campos para gestionar las API keys de LLMs y el modelo preferido del usuario.
+    • Subida de Artículos por el Usuario:
+        ◦ En el perfil del usuario, se incluirá una opción para subir artículos utilizando la URL del artículo.
+        ◦ Selección de LLM para procesamiento: Al subir un artículo, el usuario podrá seleccionar el LLM que desea usar para generar el quiz y los tags (suponiendo que haya configurado una API key en su perfil o eligiendo el modelo predeterminado de VeriFast).
+        ◦ Para la versión 2.0 y la aplicación móvil, se contempla un plan para que los usuarios puedan enviar artículos directamente desde su ubicación o cuenta (mediante un complemento de navegador o la funcionalidad de compartir URL en apps móviles), evitando restricciones de paywalls.
+    • Lógica de Gamificación:
+        ◦ Al pasar un quiz, el total_xp del usuario aumenta y su current_wpm se actualiza a la wpm_used del intento exitoso.
+        ◦ Si un quiz es contestado al 100% y la wpm_used es igual a la max_wpm actual del usuario, la max_wpm aumenta según la regla:
+            ▪ Si max_wpm < 300, se suman +25 WPM.
+            ▪ Si 300 <= max_wpm < 600, se suman +10 WPM.
+            ▪ Si max_wpm >= 600, se suman +5 WPM.
+        ◦ El medidor de velocidad se mostrará como "200/250 WPM" (current_wpm/max_wpm).
+        ◦ El usuario podrá ajustar su current_wpm con botones (+/- 5 WPM), sin exceder su max_wpm. WPM iniciales: current_wpm=200, max_wpm=250.
+        ◦ El tiempo de lectura se calcula dinámicamente según current_wpm y longitud del texto.
+        ◦ Al fallar un quiz, las estadísticas (excepto current_wpm) no cambian. El current_wpm se reducirá a la last_successful_wpm_used. Si no hay registro exitoso previo, se reducirán 10 WPM adicionales de la wpm_used del intento fallido. El usuario puede ajustar manualmente current_wpm hasta su max_wpm.
+        ◦ Registro de Tiempos: Se registrará el tiempo en lectura rápida y en quiz para cada intento.
+        ◦ Intentos de Quiz y XP: Cada quiz solo otorga XP/puntos de experiencia en el primer intento exitoso (xp_awarded). Múltiples intentos para pasar un quiz (para comentar) no generarán XP adicional.
+        ◦ Fórmula de XP: XP_ganado = (Complejidad_Texto_Factor * Velocidad_Leida_Factor * Porcentaje_Correcto_Quiz) + Bonus_100_Por_Ciento + Bonus_Mejora_Velocidad
+            ▪ Complejidad_Texto_Factor: Del reading_level (1 a 10).
+            ▪ Velocidad_Leida_Factor: wpm_used / max_wpm (máx. 1.0), recompensa velocidad cercana al límite personal.
+            ▪ Porcentaje_Correcto_Quiz: Puntaje del quiz (0.0 a 1.0).
+            ▪ Bonus_100_Por_Ciento: 50 XP si el quiz es 100% correcto.
+            ▪ Bonus_Mejora_Velocidad: Multiplicador de 1.2 al XP base si wpm_used actual es superior al wpm_used del último quiz exitoso.
+        ◦ Los campos base para gamificación avanzada (total_xp, current_xp_points, timestamp) ya están en el modelo User y QuizAttempt.
+    • Componente Social (Comentarios e Interacciones):
+        ◦ Los comentarios se mostrarán en la página del artículo y se podrán leer libremente.
+        ◦ Los usuarios pueden comentar o interactuar con comentarios solo si han leído y pasado el cuestionario del artículo y tienen suficientes current_xp_points.
+        ◦ Gasto de Puntos de Experiencia: Un comentario simple costará entre 5 y 10 current_xp_points.
+        ◦ Interacciones de Comentarios (Me Gusta/No me gusta): Costo exponencial en current_xp_points por niveles:
+            ▪ Me Gusta: Bronce (5 XP), Plata (10 XP), Oro (20 XP).
+            ▪ No me gusta: Molestia Leve (5 XP), Desacuerdo Fuerte (10 XP), Contenido Ofensivo (20 XP).
+        ◦ Ganancia de Puntos por Interacción: Una parte (ej. 50%) de los current_xp_points gastados por otros usuarios al dar "Me Gusta" a un comentario se sumará a los current_xp_points del autor.
+        ◦ Puntos Negativos: Se acumularán en negative_xp_points (solo visibles en el perfil privado) para identificar patrones de comportamiento disruptivos.
+    • Mejora del Lector Rápido (Chunking y Fuentes):
+        ◦ El JavaScript del Speed Reader permitirá la agrupación de palabras en "chunks" de 2 o 3, con control en la UI.
+        ◦ Opción para remover símbolos confusos (guiones, comillas, apóstrofes).
+        ◦ Las palabras conectoras (ej. "el", "the") se presentarán junto a la palabra principal (ej. "the dragon") para mantener el contexto. Con múltiples conectores, se agruparán en pares, asegurando que al menos uno permanezca con la palabra principal.
+        ◦ Estas mejoras serán "power-ups" opcionales (con costo en XP) o disponibles inmediatamente para suscriptores premium.
+        ◦ Opción de "Múltiples Fuentes" con fuentes especializadas (ej. OpenDyslexic) usando CSS font-family (carga asíncrona, fallbacks), configurable en el perfil.
+        ◦ Configuración del tema de la interfaz (claro/oscuro) desde el perfil del usuario.
+    • Enlaces Post-Quiz al Artículo Original y Opciones de Compartir:
+        ◦ Enlace al artículo original. Si se usa antes del quiz, liberará el quiz para ser respondido sin el lector rápido. El XP ganado será menor, ya que la gamificación recompensa la velocidad.
+        ◦ Botón para copiar el enlace al artículo/quiz de VeriFast.
+        ◦ Widget para compartir en plataformas sociales (WhatsApp, Facebook, Twitter, Bluesky).
+        ◦ Ambos disponibles también al finalizar un quiz exitoso.
+    • Calificación del Quiz y Feedback de Resultados:
+        ◦ Opción para calificar el quiz de 1 a 5 estrellas antes de recibir la calificación (no obligatorio).
+        ◦ Si se califica con 1 estrella, se abrirá un espacio de texto opcional para feedback.
+        ◦ Éxito del Quiz: Se considera exitoso con 60% o más de respuestas correctas.
+        ◦ Resultados de Quiz Exitoso: Mostrará XP obtenido y otras recompensas. Feedback detallado para preguntas incorrectas: pregunta original, respuesta correcta (verde, más grande), respuesta incorrecta del usuario (tachada, roja). Enlace para donaciones (Ko-fi) visible.
+        ◦ Resultados de Quiz Fallido: Mensaje de fallo. NO feedback detallado (para incentivar re-intento). Enlace al artículo original y enlace para re-intentar la lectura rápida. La velocidad sugerida será la last_successful_wpm_used o 25 WPM menos que la velocidad del intento fallido. El contenido limpio de VeriFast seguirá disponible para revisión.
+
+6. Motor de Contenido (fetch_new_articles_task)
+VeriFast ingiere artículos automáticamente mediante una tarea periódica de Celery Beat, ejecutando una ingesta multi-capa:
+    • Capa 1 (RSS Feeds): Procesa una lista de feeds RSS desde config.py.
+    • Capa 2 (GNews Curado): Busca artículos en una lista de dominios de alta calidad (desde config.py) con palabras clave específicas curadas por el administrador.
+    • Capa 3 (GNews Exploratorio): Busca artículos basados en tags de tendencia (desde Redis) o temas de fallback (desde config.py).
+    • Capa 4 (Contenido Estructurado - Wikipedia y Libros Creative Commons): Se segmentará en capítulos o secciones lógicas, tratando cada segmento como un Article individual.
+    • Deduplicación Robusta: Todas las capas deduplicarán por URL (normalizando URLs, usando Unique=True en Article.url y realizando una consulta a la DB antes de encolar tareas).
+    • Encolará tareas process_article_task para los artículos nuevos. Este motor es el cimiento para un futuro agregador de noticias "Top 10 del Día".
+
+7. Tarea de Procesamiento (process_article_task)
+Una tarea de Celery que, para un article_id dado:
+    • Descarga y parsea el artículo usando newspaper3k (o herramientas adaptadas para Wikipedia/libros).
+    • Calcula el reading_level del artículo (ej. usando textstat) y lo almacena.
+    • Llama a la API del LLM: Utilizará la capa de abstracción de LLMs para generar quiz_data y tags.
+        ◦ Por defecto, usará el LLM principal de VeriFast. Si el artículo fue enviado por un usuario, y este ha configurado un preferred_llm_model y su llm_api_key_encrypted, se priorizará este LLM para el procesamiento.
+        ◦ El prompt se pasará en el idioma original del texto. Se usará ingeniería de prompts para asegurar un formato consistente (JSON).
+        ◦ Para manejar artículos largos y límites de tokens, se implementará "chunking" del texto, dividiendo el raw_content en segmentos lógicos, generando preguntas por segmento y consolidando los quizzes.
+        ◦ Para libros, los quizzes se presentarán al final de cada capítulo/segmento.
+        ◦ Las preguntas generadas por la IA serán acordes con el nivel de complejidad del texto (reading_level) y cubrirán los puntos principales.
+    • Actualiza el objeto Article con título, texto, quiz, tags, raw_content, content, source, publication_date, y el llm_model_used.
+    • Cambia el processing_status a 'complete'.
+    • Si cualquier paso falla, cambia el estado a 'failed' y registra el error.
+    • Realiza un db.session.commit() para guardar los cambios.
+
+8. Dashboard de Administración (/admin/dashboard)
+El dashboard, accesible solo para usuarios is_admin=True, ofrecerá control sobre el contenido y la gestión de datos:
+    • Vista de Artículos: Tabla paginada con todos los artículos.
+        ◦ Columnas Visibles: ID, Título, Fuente, Idioma, Fecha de Publicación, Estado de Procesamiento, Nivel de Lectura, LLM Usado.
+        ◦ Filtros: Por Idioma, Fuente, Título (búsqueda), y Nivel de Lectura (rango o categorías).
+        ◦ Acciones:
+            ▪ "Buscar Artículos" (Botón): Dispara manualmente las tareas de Celery para las capas 2 y 3.
+            ▪ "Eliminar" (Botón): Permite eliminar un artículo.
+            ▪ Gestión de Artículos Fallidos: Sección para ver artículos con processing_status='failed' y su error. Botón "Reintentar Procesamiento" para re-encolar la tarea.
+    • Vista Detallada y Edición de Artículos (para Dataset de Entrenamiento): El backend/admin dashboard permitirá ver artículos en pantalla completa. El administrador podrá modificar el content si es necesario (la versión modificada se publicará). Los artículos no viables (ej. 'pagina_podcast') se marcarán con etiquetas específicas y se retirarán de la vista pública, pero se conservarán en el AdminCorrectionDataset para optimizar futuras ingestas y entrenar modelos.
+    • Gestión de Modelos LLM: En el futuro, podría incluir una sección para gestionar los LLMs disponibles en el sistema y sus configuraciones.
+
+9. Consideraciones de Arquitectura y Extensibilidad (v1.0)
+Para sentar las bases de futuras funcionalidades clave, la versión 1.0 de VeriFast incluirá los siguientes requisitos arquitectónicos:
+
+API JSON (Prerrequisito para Futuras Aplicaciones Cliente)
+Las rutas de la aplicación se diseñarán pensando en que, en el futuro, se les añadirá un decorador o una lógica que compruebe la cabecera Accept (application/json) para devolver JSON en lugar de renderizar una plantilla. Esto es un paso fundamental para garantizar que VeriFast pueda soportar aplicaciones cliente en diversas plataformas de manera fluida y consistente.
+
+Integración Flexible de Modelos de Lenguaje (LLM Flexibility)
+Anticipando la rápida evolución del panorama de la Inteligencia Artificial, y para ofrecer una experiencia de usuario altamente personalizable y potente, VeriFast se diseñará con una arquitectura que permita la integración flexible de diversos modelos de lenguaje grandes (LLMs). Inicialmente se usará Gemini, pero el sistema estará preparado para mucho más.
+Este enfoque estratégico no solo nos permite optimizar costos y rendimiento internamente, sino que también otorga a los usuarios un control sin precedentes sobre cómo se procesa su contenido.
+La implementación incluirá una capa de abstracción robusta que encapsulará todas las interacciones con las APIs de los LLMs. Esta capa habilitará las siguientes funcionalidades clave, preparadas para la versión 1.0 y más allá:
+    • API Keys Personalizadas: Los usuarios registrados podrán introducir sus propias API keys de modelos de lenguaje compatibles (por ejemplo, OpenAI, Anthropic, etc.) en su perfil. Esto les permitirá utilizar sus modelos preferidos para procesar los artículos que ellos mismos suban mediante URL.
+    • Procesamiento de Artículos Existentes: En el futuro, los usuarios también podrán seleccionar un artículo ya presente en nuestra base de datos y regenerar su cuestionario o tags utilizando el LLM de su elección, ofreciendo una experiencia a medida incluso con contenido ya disponible en la plataforma.
+    • Rankings de LLMs y Feedback: Se implementará un sistema para calificar el rendimiento de los LLMs en la generación de quizzes. Usando un sistema de estrellas, los usuarios podrán valorar la calidad de los cuestionarios generados por diferentes modelos. Esta tabla de rankings de LLMs proporcionará información valiosa sobre cuál modelo es el "mejor" para la tarea de comprensión lectora, basándose en la retroalimentación de la comunidad.
+    • Intercambiabilidad y Optimización: La modularidad de esta capa facilitará la conexión con nuevos LLMs y nos permitirá seleccionar el modelo más adecuado para distintas tareas o volúmenes de procesamiento, buscando el equilibrio óptimo entre costo, velocidad y calidad de la respuesta. Esto también reduce la dependencia de un solo proveedor de IA, protegiendo la operación.
+Esta arquitectura abierta y extensible asegura que VeriFast pueda evolucionar con las innovaciones en IA, manteniendo la eficiencia, la calidad y, sobre todo, la autonomía del usuario en el procesamiento de su experiencia de lectura y aprendizaje.
+

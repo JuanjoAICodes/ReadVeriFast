@@ -1,0 +1,51 @@
+# Environments
+.env
+.venv
+venv/
+verifast/
+__pycache__/
+*.pyc
+
+# Django
+*.log
+db.sqlite3
+db.sqlite3-journal
+
+# Build and test directories
+/build_workspace/
+/test_output/
+
+# IDE
+.idea/
+.vscode/
+.vscode/chrome-debug-profile/
+
+# Node modules
+node_modules/
+
+# Cache directories
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# Log files
+celery.log
+django.log
+honcho.log
+
+# Test files in root (should be in proper directories)
+test_*.html
+test_*.js
+simple_*_test.py
+
+# Utility scripts in root (should be in tools/ or archived)
+fix_*.py
+list_*.py
+agent.py
+
+.env

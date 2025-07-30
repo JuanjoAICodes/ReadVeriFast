@@ -1,0 +1,178 @@
+{% extends 'verifast_app/base.html' %}
+
+{% block title %}{{ user_profile.username }}'s Profile - {{ block.super }}{% endblock %}
+
+{% block content %}
+  <!-- Include XP Balance Widget -->
+  {% include 'verifast_app/components/xp_balance_widget.html' with user=user_profile %}
+  
+  <!-- Include XP Notifications -->
+  {% include 'verifast_app/components/xp_notifications.html' %}
+  
+  <!-- Include XP Transaction History -->
+  {% include 'verifast_app/components/xp_transaction_history.html' %}
+  <div style="max-width: 800px; margin: 0 auto;">
+    <hgroup>
+      <h1>{{ user_profile.get_full_name|default:user_profile.username }}'s Profile</h1>
+      <h2>Your reading journey and achievements</h2>
+    </hgroup>
+
+    <!-- User Stats Cards -->
+    <div class="grid">
+      <article>
+        <header><strong>Reading Speed</strong></header>
+        <h2>{{ user_profile.current_wpm }} WPM</h2>
+        <footer>
+          <small>Max: {{ user_profile.max_wpm }} WPM</small>
+        </footer>
+      </article>
+      
+      <article>
+        <header><strong>Experience Points</strong></header>
+        <h2>{{ user_profile.total_xp }} XP</h2>
+        <footer>
+          <small>Spendable: {{ user_profile.current_xp_points }} XP</small>
+        </footer>
+      </article>
+      
+      <article>
+        <header><strong>Articles Read</strong></header>
+        <h2>{{ quiz_attempts_count }}</h2>
+        <footer>
+          <small>Quizzes completed</small>
+        </footer>
+      </article>
+    </div>
+
+    <!-- Personal Information -->
+    <article>
+      <header>
+        <h3>Personal Information</h3>
+        <a href="{% url 'verifast_app:profile_edit' %}" role="button" class="outline">Edit Profile</a>
+      </header>
+      
+      <div class="grid">
+        <div>
+          <p><strong>Username:</strong> {{ user_profile.username }}</p>
+          <p><strong>Email:</strong> {{ user_profile.email|default:"Not provided" }}</p>
+          <p><strong>Name:</strong> {{ user_profile.get_full_name|default:"Not provided" }}</p>
+        </div>
+        <div>
+          <p><strong>Language:</strong> 
+            {% if user_profile.preferred_language == 'en' %}English{% elif user_profile.preferred_language == 'es' %}Spanish{% else %}{{ user_profile.preferred_language }}{% endif %}
+          </p>
+          <p><strong>Theme:</strong> {{ user_profile.theme|capfirst }}</p>
+          <p><strong>Member since:</strong> {{ user_profile.date_joined|date:"F Y" }}</p>
+        </div>
+      </div>
+    </article>
+
+    <!-- Recent Quiz Attempts -->
+    {% if recent_quiz_attempts %}
+    <article>
+      <header><h3>Recent Quiz Results</h3></header>
+      <figure>
+        <table>
+          <thead>
+            <tr>
+              <th>Article</th>
+              <th>Score</th>
+              <th>WPM Used</th>
+              <th>XP Earned</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for attempt in recent_quiz_attempts %}
+            <tr>
+              <td>
+                <a href="{% url 'verifast_app:article_detail' attempt.article.pk %}">
+                  {{ attempt.article.title|truncatechars:40 }}
+                </a>
+              </td>
+              <td>
+                <span style="color: {% if attempt.score >= 60 %}green{% else %}red{% endif %};">
+                  {{ attempt.score|floatformat:0 }}%
+                </span>
+              </td>
+              <td>{{ attempt.wpm_used }} WPM</td>
+              <td>{{ attempt.xp_awarded }} XP</td>
+              <td>{{ attempt.timestamp|date:"M d, Y" }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </figure>
+    </article>
+    {% endif %}
+
+    <!-- Reading Progress -->
+    <article>
+      <header><h3>Reading Progress</h3></header>
+      
+      {% if quiz_attempts_count > 0 %}
+      <div class="grid">
+        <div>
+          <h4>Average Score</h4>
+          <p style="font-size: 2rem; color: {% if average_score >= 60 %}green{% else %}orange{% endif %};">
+            {{ average_score|floatformat:1 }}%
+          </p>
+        </div>
+        <div>
+          <h4>Total XP Earned</h4>
+          <p style="font-size: 2rem; color: var(--primary);">
+            {{ total_xp_earned }} XP
+          </p>
+        </div>
+      </div>
+      
+      <div style="margin-top: 2rem;">
+        <h4>Performance Trend</h4>
+        {% if average_score >= 80 %}
+          <p style="color: green;">🎉 Excellent! You're mastering speed reading comprehension.</p>
+        {% elif average_score >= 60 %}
+          <p style="color: orange;">📈 Good progress! Keep practicing to improve your scores.</p>
+        {% else %}
+          <p style="color: red;">📚 Focus on comprehension. Try reading more slowly to improve understanding.</p>
+        {% endif %}
+      </div>
+      {% else %}
+      <div style="text-align: center; padding: 2rem;">
+        <p>No quiz attempts yet. Start reading articles to track your progress!</p>
+        <a href="{% url 'verifast_app:article_list' %}" role="button" class="contrast">Browse Articles</a>
+      </div>
+      {% endif %}
+    </article>
+
+    <!-- Feature Controls -->
+    <article>
+      <header>
+        <h3>Feature Controls</h3>
+        <small>Manage your reading features</small>
+      </header>
+      <form method="post" action="{% url 'verifast_app:user_profile' %}">
+          {% csrf_token %}
+          <div class="grid">
+              <div>
+                  <h5>Font Choice</h5>
+                  {{ form.font_choice }}
+              </div>
+              <div>
+                  <h5>Word Chunking</h5>
+                  {{ form.chunking_choice }}
+              </div>
+          </div>
+          <div class="grid">
+            <label for="id_has_smart_connector_grouping">
+                <input type="checkbox" id="id_has_smart_connector_grouping" name="has_smart_connector_grouping" {% if form.instance.has_smart_connector_grouping %}checked{% endif %}>
+                Smart Connector Grouping
+            </label>
+            <label for="id_has_smart_symbol_handling">
+                <input type="checkbox" id="id_has_smart_symbol_handling" name="has_smart_symbol_handling" {% if form.instance.has_smart_symbol_handling %}checked{% endif %}>
+                Smart Symbol Handling
+            </label>
+          </div>
+          <button type="submit">Save Feature Preferences</button>
+      </form>
+    </article>
+{% endblock %}

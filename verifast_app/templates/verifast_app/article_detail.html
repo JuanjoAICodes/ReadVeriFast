@@ -240,7 +240,7 @@
             </div>
 
             <div class="reader-controls">
-                <button hx-post="{% url 'verifast_app:speed_reader_start' article.id %}"
+                <button hx-post="{% url 'verifast_app:speed_reader_init' article.id 'regular' %}"
                     hx-target="#speed-reader-section" hx-swap="outerHTML"
                     hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' class="primary-btn" type="button">
                     {% trans "Start Reading" %}
@@ -408,11 +408,6 @@
                 </div>
                 <div class="quiz-buttons">
                     <button id="quiz-prev-btn" type="button" disabled 
-                            hx-post="{% url 'verifast_app:quiz_prev' article.id %}"
-                            hx-target="#quiz-question-container"
-                            hx-swap="innerHTML"
-                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
-                        {% trans "Previous" %}
                     </button>
                     <button id="quiz-next-btn" type="button"
                             hx-post="{% url 'verifast_app:quiz_next' article.id %}"

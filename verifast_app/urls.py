@@ -30,4 +30,13 @@ urlpatterns = [
     # Language System URLs
     path('language/update/', views.update_language_preference, name='update_language_preference'),
     path('articles/filter/', views.language_filter_articles, name='language_filter_articles'),
+
+    # HTMX endpoints for Speed Reader and Quiz
+    path('speed-reader/init/<int:article_id>/', views.speed_reader_init, name='speed_reader_init'),
+    path('speed-reader/init/<int:article_id>/<str:article_type>/', views.speed_reader_init, name='speed_reader_init'),
+    path('reading-complete/<int:article_id>/', views.speed_reader_complete, name='speed_reader_complete'),
+    path('reading-complete/<int:article_id>/<str:article_type>/', views.speed_reader_complete, name='speed_reader_complete'),
+    path('quiz/start/<int:article_id>/', views.QuizStartView.as_view(), name='quiz_start'),
+    path('quiz/next/<int:article_id>/', views.QuizNextQuestionView.as_view(), name='quiz_next'),
+    path('quiz/submit/<int:article_id>/', views.QuizSubmitView.as_view(), name='quiz_submit'),
 ]

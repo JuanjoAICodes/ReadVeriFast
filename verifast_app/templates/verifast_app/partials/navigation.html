@@ -1,0 +1,28 @@
+<nav class="container-fluid">
+    <ul>
+        <li><strong><a href="{% url 'verifast_app:index' %}">VeriFast</a></strong></li>
+    </ul>
+    <ul>
+        <li><a href="{% url 'verifast_app:browse_articles' %}">{% trans "Browse Articles" %}</a></li>
+        {% if user.is_authenticated %}
+            <li><a href="{% url 'verifast_app:user_profile' %}">{% trans "Profile" %}</a></li>
+            <li><strong>{% trans "XP" %}:</strong> {{ total_xp|default:"0" }}</li>
+        {% endif %}
+        <li><a href="{% url 'verifast_app:scrape_article' %}" role="button" class="secondary">{% trans "Submit Article" %}</a></li>
+    </ul>
+    <ul>
+        {% if user.is_authenticated %}
+            <li>
+                <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" style="background: none; border: none; color: inherit; text-decoration: underline; cursor: pointer; font: inherit;">
+                        {% trans "Logout" %}
+                    </button>
+                </form>
+            </li>
+        {% else %}
+            <li><a href="{% url 'login' %}">{% trans "Login" %}</a></li>
+            <li><a href="{% url 'verifast_app:register' %}" role="button" class="outline">{% trans "Register" %}</a></li>
+        {% endif %}
+    </ul>
+</nav>

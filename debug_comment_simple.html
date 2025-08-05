@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Comment Form Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug-info { background: #f0f0f0; padding: 15px; margin: 15px 0; border: 1px solid #ccc; }
+        .comment-form { background: #e8f5e8; padding: 15px; margin: 15px 0; border: 1px solid #4CAF50; }
+        textarea { width: 100%; height: 100px; margin: 10px 0; }
+        button { padding: 10px 20px; background: #4CAF50; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Comment Form Debug Test</h1>
+    
+    <div class="debug-info">
+        <h3>Testing Comment Form for Article 14</h3>
+        <p>This page tests if the comment form should be visible for the current user.</p>
+    </div>
+
+    <script>
+        // Test the comment form logic
+        fetch('/es/articles/14/')
+            .then(response => response.text())
+            .then(html => {
+                console.log('Page loaded successfully');
+                
+                // Extract debug information
+                const debugMatch = html.match(/User authenticated: (\w+)/);
+                const canCommentMatch = html.match(/User can comment: (\w+)/);
+                const completedQuizMatch = html.match(/User has completed quiz: (\w+)/);
+                const usernameMatch = html.match(/Username: (\w+)/);
+                
+                document.getElementById('debug-results').innerHTML = `
+                    <h3>Debug Results:</h3>
+                    <p><strong>User authenticated:</strong> ${debugMatch ? debugMatch[1] : 'Not found'}</p>
+                    <p><strong>User can comment:</strong> ${canCommentMatch ? canCommentMatch[1] : 'Not found'}</p>
+                    <p><strong>User has completed quiz:</strong> ${completedQuizMatch ? completedQuizMatch[1] : 'Not found'}</p>
+                    <p><strong>Username:</strong> ${usernameMatch ? usernameMatch[1] : 'Not found'}</p>
+                `;
+                
+                // Check if comment form exists
+                const hasTextarea = html.includes('<textarea');
+                const hasCommentForm = html.includes('add-comment-form');
+                const hasLockedMessage = html.includes('Complete the quiz');
+                
+                document.getElementById('form-status').innerHTML = `
+                    <h3>Form Status:</h3>
+                    <p><strong>Has textarea:</strong> ${hasTextarea ? '✅ Yes' : '❌ No'}</p>
+                    <p><strong>Has comment form:</strong> ${hasCommentForm ? '✅ Yes' : '❌ No'}</p>
+                    <p><strong>Has locked message:</strong> ${hasLockedMessage ? '✅ Yes' : '❌ No'}</p>
+                `;
+                
+                // Show what should happen
+                const authenticated = debugMatch && debugMatch[1] === 'True';
+                const canComment = canCommentMatch && canCommentMatch[1] === 'True';
+                
+                let expectedBehavior = '';
+                if (authenticated && canComment) {
+                    expectedBehavior = '✅ Should show comment form with textarea';
+                } else if (authenticated && !canComment) {
+                    expectedBehavior = '⚠️ Should show "Complete the quiz" message';
+                } else {
+                    expectedBehavior = '⚠️ Should show "Complete the quiz" message for anonymous user';
+                }
+                
+                document.getElementById('expected-behavior').innerHTML = `
+                    <h3>Expected Behavior:</h3>
+                    <p>${expectedBehavior}</p>
+                `;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('debug-results').innerHTML = `
+                    <h3>Error:</h3>
+                    <p style="color: red;">${error.message}</p>
+                `;
+            });
+    </script>
+    
+    <div id="debug-results" class="debug-info">
+        <p>Loading debug information...</p>
+    </div>
+    
+    <div id="form-status" class="debug-info">
+        <p>Checking form status...</p>
+    </div>
+    
+    <div id="expected-behavior" class="debug-info">
+        <p>Analyzing expected behavior...</p>
+    </div>
+    
+    <div class="comment-form">
+        <h3>Manual Comment Form Test</h3>
+        <p>If the automatic form doesn't work, you can test commenting manually here:</p>
+        <form action="/es/articles/14/comments/add/" method="post">
+            <textarea name="content" placeholder="Test comment..."></textarea>
+            <button type="submit">Submit Test Comment</button>
+        </form>
+    </div>
+</body>
+</html>

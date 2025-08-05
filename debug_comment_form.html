@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Comment Form</title>
+</head>
+<body>
+    <h1>Comment Form Debug</h1>
+    <p>This page will help us debug why the comment form isn't showing.</p>
+    
+    <script>
+        // Test the current page
+        fetch('/en/article/4/')
+            .then(response => response.text())
+            .then(html => {
+                console.log('Page loaded successfully');
+                
+                // Check if user is authenticated
+                const userInfo = html.match(/user\.is_authenticated.*?(\w+)/);
+                console.log('User authentication info:', userInfo);
+                
+                // Check for comment form
+                const hasCommentForm = html.includes('add-comment-form');
+                console.log('Has comment form:', hasCommentForm);
+                
+                // Check for locked message
+                const hasLockedMessage = html.includes('comment-locked');
+                console.log('Has locked message:', hasLockedMessage);
+                
+                // Check for user_can_comment
+                const canComment = html.includes('user_can_comment');
+                console.log('Contains user_can_comment:', canComment);
+                
+                // Display relevant parts
+                const commentSection = html.match(/<section class="comments-section">[\s\S]*?<\/section>/);
+                if (commentSection) {
+                    document.getElementById('comment-section-debug').innerHTML = commentSection[0];
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    </script>
+    
+    <div id="comment-section-debug">
+        <p>Loading comment section...</p>
+    </div>
+</body>
+</html>

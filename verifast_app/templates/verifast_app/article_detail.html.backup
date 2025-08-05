@@ -1,0 +1,481 @@
+{% extends 'verifast_app/base.html' %}
+{% load static %}
+{% load i18n language_tags %}
+
+{% block title %}{{ article.title }} - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/article_detail.css' %}">
+<style>
+    /* Quiz Modal Styles - Critical for functionality */
+    .quiz-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 10000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .quiz-content {
+        background: white;
+        border-radius: 8px;
+        padding: 2rem;
+        max-width: 600px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .quiz-question {
+        margin-bottom: 2rem;
+    }
+
+    .quiz-question h4 {
+        color: #333;
+        margin-bottom: 1rem;
+    }
+
+    .question-text {
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+    }
+
+    .quiz-options {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .quiz-option {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .quiz-option:hover {
+        border-color: #007bff;
+        background-color: #f8f9fa;
+    }
+
+    .quiz-option input[type="radio"] {
+        margin-right: 0.75rem;
+        transform: scale(1.2);
+    }
+
+    .quiz-option span {
+        flex: 1;
+        font-size: 1rem;
+    }
+
+    .quiz-navigation {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e0e0e0;
+    }
+
+    .quiz-progress {
+        font-weight: bold;
+        color: #666;
+    }
+
+    .quiz-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .quiz-buttons button {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: background-color 0.2s ease;
+    }
+
+    .quiz-buttons button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    #quiz-prev-btn,
+    #quiz-next-btn {
+        background: #6c757d;
+        color: white;
+    }
+
+    #quiz-prev-btn:hover:not(:disabled),
+    #quiz-next-btn:hover:not(:disabled) {
+        background: #5a6268;
+    }
+
+    #quiz-submit-btn {
+        background: #28a745;
+        color: white;
+    }
+
+    #quiz-submit-btn:hover {
+        background: #218838;
+    }
+
+    .quiz-results {
+        text-align: center;
+    }
+
+    .score-display {
+        margin: 2rem 0;
+    }
+
+    .score-circle {
+        display: inline-block;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: #28a745;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+    }
+
+    .score-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: white;
+    }
+
+    .result-message {
+        font-size: 1.1rem;
+        margin: 1rem 0;
+    }
+
+    .xp-earned {
+        background: #ffc107;
+        color: #212529;
+        padding: 1rem;
+        border-radius: 6px;
+        margin: 1rem 0;
+        font-size: 1.1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<main class="container" role="main">
+    <article class="article-detail">
+        <!-- 1. Article Header Section -->
+        <header class="article-header">
+            <div class="article-header-content">
+                {% if article.image_url %}
+                <div class="article-image">
+                    <img src="{{ article.image_url }}" alt="{{ article.title }}" loading="lazy">
+                </div>
+                {% endif %}
+
+                <div class="article-meta">
+                    <h1>{{ article.get_display_title|default:article.title }}</h1>
+
+                    <div class="article-info">
+                        <p><strong>{% trans "Source" %}:</strong> {{ article.get_source_display|default:article.source
+                            }}</p>
+
+                        {% if article.publication_date %}
+                        <p><strong>{% trans "Published" %}:</strong> {{ article.publication_date|date:"F j, Y" }}</p>
+                        {% endif %}
+
+                        {% if article.reading_level %}
+                        <p><strong>{% trans "Reading Level" %}:</strong> {{ article.reading_level|floatformat:1 }}</p>
+                        {% endif %}
+
+                        {% if article.word_count %}
+                        <p><strong>{% trans "Word Count" %}:</strong> {{ article.word_count|floatformat:0 }}</p>
+                        {% endif %}
+
+                        <p><strong>{% trans "Language" %}:</strong>
+                            {% language_badge article.language 'large' %}
+                        </p>
+
+                        {% if article.is_wikipedia_article %}
+                        <p><span class="wikipedia-badge">{% trans "Wikipedia Article" %}</span></p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 2. Tags Section -->
+        <section class="article-tags">
+            <h3>{% trans "Tags" %}</h3>
+            {% if article.tags.exists %}
+            <div class="tag-list">
+                {% for tag in article.tags.all %}
+                <a href="{{ tag.get_absolute_url }}" class="tag-link">{{ tag.name }}</a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="no-tags">{% trans "No tags available for this article." %}</p>
+            {% endif %}
+        </section>
+
+        <!-- 3. Speed Reader Section - HTMX COMPLIANT -->
+        <section id="speed-reader-section" class="speed-reader-section">
+            <h3>{% trans "Speed Reader" %}</h3>
+            <p>{% trans "Experience immersive speed reading with full-screen focus." %}</p>
+
+            <div class="speed-reader-info">
+                <p>{% trans "Reading Speed" %}: {{ user.current_wpm|default:"250" }} WPM</p>
+                <p>{% trans "Words" %}: {{ article.word_count|default:"0" }}</p>
+            </div>
+
+            <div class="reader-controls">
+                <button hx-post="{% url 'verifast_app:speed_reader_start' article.id %}"
+                    hx-target="#speed-reader-section" hx-swap="outerHTML"
+                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' class="primary-btn" type="button">
+                    {% trans "Start Reading" %}
+                </button>
+            </div>
+        </section>
+
+        <!-- 4. Quiz Section - HTMX COMPLIANT -->
+        {% if article.quiz_data %}
+        <section id="quiz-section" class="quiz-section">
+            <h3>{% trans "Comprehension Quiz" %}</h3>
+            <p>{% trans "Complete the speed reading above to unlock the quiz and earn XP!" %}</p>
+
+            <div id="quiz-container">
+                <button hx-post="{% url 'verifast_app:quiz_start' article.id %}" hx-target="#quiz-container"
+                    hx-swap="outerHTML" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' type="button" class="primary"
+                    disabled>
+                    {% trans "Start Quiz" %} ({% trans "Complete reading first" %})
+                </button>
+            </div>
+        </section>
+        {% else %}
+        <section class="quiz-section">
+            <h3>{% trans "Comprehension Quiz" %}</h3>
+            <p>{% trans "Quiz is being generated for this article. Please check back later." %}</p>
+        </section>
+        {% endif %}
+
+        <!-- 5. Comments Section -->
+        <section class="comments-section">
+            <h3>{% trans "Comments" %} ({{ comments.count }})</h3>
+
+            <!-- Add Comment Form - Available for both authenticated and anonymous users -->
+            <div class="add-comment-form">
+                <!-- DEBUG INFO (temporary) -->
+                <div style="background: #f0f0f0; padding: 10px; margin: 10px 0; border: 1px solid #ccc;">
+                    <strong>Debug Info:</strong><br>
+                    User authenticated: {{ user.is_authenticated }}<br>
+                    User can comment: {{ user_can_comment }}<br>
+                    User has completed quiz: {{ user_has_completed_quiz }}<br>
+                    {% if user.is_authenticated %}
+                    Username: {{ user.username }}<br>
+                    User XP: {{ user.total_xp }}<br>
+                    {% endif %}
+                </div>
+                
+                {% if user.is_authenticated and user_can_comment %}
+                <!-- Authenticated user who passed quiz -->
+                <form hx-post="{% url 'verifast_app:add_comment' article.id %}" hx-target="#comments-list"
+                    hx-swap="outerHTML" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+                    {% csrf_token %}
+                    <textarea name="content" placeholder="{% trans 'Share your thoughts...' %}" required></textarea>
+                    <div class="comment-form-footer">
+                        <span class="xp-cost">{% trans "Cost" %}: 10 XP</span>
+                        <button type="submit" class="primary">
+                            {% trans "Add Comment" %}
+                        </button>
+                    </div>
+                </form>
+                {% elif user.is_authenticated and not user_can_comment %}
+                <!-- Authenticated user who hasn't passed quiz -->
+                <p class="comment-locked">
+                    {% trans "Complete the quiz with a passing score to unlock commenting!" %}
+                </p>
+                {% elif not user.is_authenticated %}
+                <!-- Anonymous user - show form after quiz completion via JavaScript -->
+                <div id="anonymous-comment-section">
+                    <p class="comment-locked">
+                        {% trans "Complete the quiz with a passing score to unlock commenting!" %}
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Comments List -->
+            {% include 'verifast_app/partials/comments_list.html' %}
+        </section>
+
+        <!-- 6. Related Articles Section -->
+        <section class="related-articles">
+            <h3>{% trans "Related Articles" %}</h3>
+            {% if related_articles %}
+            <div class="related-articles-grid">
+                {% for related in related_articles %}
+                <article class="related-article-card">
+                    <a href="{{ related.get_absolute_url }}">
+                        {% if related.image_url %}
+                        <img src="{{ related.image_url }}" alt="{{ related.title }}" loading="lazy">
+                        {% endif %}
+                        <h4>{{ related.title }}</h4>
+                        <p class="article-meta">
+                            {{ related.get_source_display|default:related.source }}
+                            {% if related.word_count %} • {{ related.word_count }} words{% endif %}
+                        </p>
+                    </a>
+                </article>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p>{% trans "No related articles found." %}</p>
+            {% endif %}
+        </section>
+    </article>
+
+    <div id="article-content-data" style="display: none;">{{ article.content }}</div>
+
+    <!-- Immersive Speed Reader Overlay -->
+    <div id="immersive-overlay"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; flex-direction: column;">
+        <!-- Word Display Area -->
+        <div id="word-display"
+            style="background: white; color: black; font-size: 4rem; font-weight: bold; padding: 2rem 4rem; width: 60%; min-height: 120px; display: flex; align-items: center; justify-content: center; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); margin-bottom: 2rem; text-align: center;">
+            Ready to read
+        </div>
+
+        <!-- Speed Controls -->
+        <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+            <button x-data x-on:click="$dispatch('adjust-speed', -25)"
+                style="padding: 0.5rem 1rem; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Slower (-25)
+            </button>
+            <div id="speed-display"
+                style="padding: 0.5rem 1rem; background: rgba(255,255,255,0.1); color: white; border-radius: 4px; min-width: 100px; text-align: center;">
+                250 WPM
+            </div>
+            <button x-data x-on:click="$dispatch('adjust-speed', 25)"
+                style="padding: 0.5rem 1rem; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Faster (+25)
+            </button>
+        </div>
+
+        <!-- Exit Button -->
+        <button x-data x-on:click="$dispatch('exit-reading')"
+            style="padding: 1rem 2rem; font-size: 1.2rem; background: #ff6b6b; color: white; border: none; border-radius: 25px; cursor: pointer;">
+            Exit Reading
+        </button>
+    </div>
+
+    <!-- Scroll to Top Button -->
+    <div x-data="{ showButton: false }"
+        x-init="window.addEventListener('scroll', () => { showButton = window.scrollY > 300 })" x-show="showButton"
+        x-transition>
+        <button class="scroll-to-top" @click="window.scrollTo({top: 0, behavior: 'smooth'})"
+            title="{% trans 'Scroll to top' %}">
+            ↑
+        </button>
+    </div>
+
+    <!-- Quiz Modal -->
+    <div id="quiz-modal" class="quiz-modal" style="display: none;">
+        <div class="quiz-content">
+            <div id="quiz-header">
+                <h2>{% trans "Comprehension Quiz" %}</h2>
+                <p>{% trans "Answer the questions below to test your understanding." %}</p>
+            </div>
+            <div id="quiz-question-container">
+                <!-- Questions will be loaded here by JavaScript -->
+            </div>
+            <div id="quiz-results" style="display: none;">
+                <!-- Results will be shown here -->
+            </div>
+            <div class="quiz-navigation">
+                <div class="quiz-progress">
+                    <span id="current-question">1</span> / <span id="total-questions">5</span>
+                </div>
+                <div class="quiz-buttons">
+                    <button id="quiz-prev-btn" type="button" disabled 
+                            hx-post="{% url 'verifast_app:quiz_prev' article.id %}"
+                            hx-target="#quiz-question-container"
+                            hx-swap="innerHTML"
+                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+                        {% trans "Previous" %}
+                    </button>
+                    <button id="quiz-next-btn" type="button"
+                            hx-post="{% url 'verifast_app:quiz_next' article.id %}"
+                            hx-target="#quiz-question-container"
+                            hx-swap="innerHTML"
+                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+                        {% trans "Next" %}
+                    </button>
+                    <button id="quiz-submit-btn" type="button" style="display: none;"
+                            hx-post="{% url 'verifast_app:quiz_submit' article.id %}"
+                            hx-target="#quiz-results"
+                            hx-swap="innerHTML"
+                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+                        {% trans "Submit Quiz" %}
+                    </button>
+                </div>""
+            </div>
+        </div>
+    </div>
+</main>
+
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // --- MINIMAL HTMX-COMPLIANT JAVASCRIPT (< 50 lines) ---
+
+    // Global data for HTMX endpoints
+    window.articleId = {{ article.id }};
+    window.userWpm = {{ user.current_wpm|default:"250" }};
+
+    // Minimal Alpine.js components for UI state only
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('speedReader', () => ({
+            isReading: false,
+            currentWpm: {{ user.current_wpm|default:"250" }},
+            
+            adjustSpeed(delta) {
+                this.currentWpm = Math.max(50, Math.min(1000, this.currentWpm + delta));
+                document.getElementById('speed-display').textContent = `${this.currentWpm} WPM`;
+            },
+            
+            exitReading() {
+                this.isReading = false;
+                document.getElementById('immersive-overlay').style.display = 'none';
+                document.body.style.overflow = '';
+            }
+        }));
+    });
+
+    // Quiz functionality handled by HTMX endpoints
+
+    // Basic initialization for Alpine.js components
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('HTMX-compliant initialization complete');
+    });
+
+    function exitSpeedReader() {
+        if (window.speedReader) {
+            window.speedReader.exitReading();
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,42 @@
+<div x-data="speedReader({{ word_chunks_json|safe }}, { wpm: {{ user_wpm|default:250 }} }, '{{ article_id }}', '{{ article_type }}')" 
+     class="speed-reader-active">
+    
+    <!-- Immersive Overlay - Single Mode Interface -->
+    <div x-show="isActive" 
+         x-transition
+         class="immersive-overlay"
+         x-init="startImmersiveReading()">
+        
+        <!-- Full-width white strip -->
+        <div class="immersive-word-display" x-text="currentChunk">
+            Ready to read
+        </div>
+        
+        <!-- Controls -->
+        <div class="immersive-controls">
+            <button @click="toggleReading()" 
+                    class="immersive-control-btn"
+                    x-text="isRunning ? 'Pause' : 'Play'">
+                Play
+            </button>
+            
+            <div class="speed-controls">
+                <button @click="adjustSpeed(-25)" class="speed-btn">-</button>
+                <span class="speed-display" x-text="wpm + ' WPM'">250 WPM</span>
+                <button @click="adjustSpeed(25)" class="speed-btn">+</button>
+            </div>
+            
+            <button @click="exitReading()" class="immersive-exit-btn">
+                {% trans "Exit Reading" %}
+            </button>
+        </div>
+    </div>
+    
+    <!-- Reading Complete Handler -->
+    <div x-show="isComplete" 
+         hx-post="{% url 'verifast_app:speed_reader_complete' article_id %}"
+         hx-target="#quiz-section"
+         hx-trigger="load"
+         hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+    </div>
+</div>

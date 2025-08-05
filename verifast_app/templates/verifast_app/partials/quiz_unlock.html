@@ -1,15 +1,1 @@
-<!-- Quiz Unlock Partial -->
-<div class="quiz-unlocked">
-    <p class="success-message">
-        <strong>{% trans "Reading Complete!" %}</strong> 
-        {% trans "You can now take the quiz to test your comprehension and earn XP." %}
-    </p>
-    
-    <button id="quiz-start-btn" 
-            hx-get="{% url 'verifast_app:quiz_init' article.id %}"
-            hx-target="#quiz-container"
-            hx-swap="innerHTML"
-            class="primary">
-        {% trans "Start Quiz" %}
-    </button>
-</div>
+<p>Quiz unlocked!</p>

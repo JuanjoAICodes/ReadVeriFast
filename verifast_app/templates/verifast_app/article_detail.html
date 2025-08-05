@@ -5,910 +5,169 @@
 {% block title %}{{ article.title }} - {{ block.super }}{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/article_detail.css' %}">
 <style>
-    /* Global Article Page Enhancements */
-    .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 2rem 1rem;
-    }
-    
-    .article-detail {
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        min-height: 100vh;
-        padding: 2rem 0;
-    }
-    
-    /* Smooth scrolling for the entire page */
-    html {
-        scroll-behavior: smooth;
-    }
-    
-    /* Enhanced typography */
-    body {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        line-height: 1.6;
-        color: #2d3436;
-    }
-    
-    /* Section spacing and flow */
-    .article-detail > * {
-        animation: fadeInUp 0.6s ease-out;
-        animation-fill-mode: both;
-    }
-    
-    .article-detail > *:nth-child(1) { animation-delay: 0.1s; }
-    .article-detail > *:nth-child(2) { animation-delay: 0.2s; }
-    .article-detail > *:nth-child(3) { animation-delay: 0.3s; }
-    .article-detail > *:nth-child(4) { animation-delay: 0.4s; }
-    .article-detail > *:nth-child(5) { animation-delay: 0.5s; }
-    .article-detail > *:nth-child(6) { animation-delay: 0.6s; }
-    
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    
-    /* Floating action button style for scroll to top */
-    .scroll-to-top {
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
-        width: 50px;
-        height: 50px;
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        color: white;
-        border: none;
-        border-radius: 50%;
-        cursor: pointer;
-        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
-        transition: all 0.3s ease;
-        z-index: 1000;
-    }
-    
-    .scroll-to-top:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 30px rgba(102, 126, 234, 0.6);
-    }</style>
-    /* Enhanced Article Header Styles */
-    .article-header {
-        margin-bottom: 3rem;
-        padding: 3rem;
-        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-        border-radius: 12px;
-        border: 1px solid #e9ecef;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .article-header::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, #007bff, #0056b3, #004085);
-    }
-    
-    .article-header-content {
-        display: grid;
-        grid-template-columns: 320px 1fr;
-        gap: 3rem;
-        align-items: start;
-    }
-    
-    .article-image {
-        position: relative;
-    }
-    
-    .article-image img {
-        width: 100%;
-        max-width: 320px;
-        height: 240px;
-        object-fit: cover;
-        border-radius: 12px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    
-    .article-image img:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.16);
-    }
-    
-    .article-meta h1 {
-        margin-bottom: 1.5rem;
-        color: #1a1a1a;
-        font-size: 2.5rem;
-        font-weight: 700;
-        line-height: 1.2;
-        letter-spacing: -0.02em;
-    }
-    
-    .article-info {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 1rem;
-        margin-top: 1.5rem;
-        padding: 1.5rem;
-        background: rgba(0, 123, 255, 0.04);
-        border-radius: 8px;
-        border-left: 4px solid #007bff;
-    }
-    
-    .article-info p {
-        margin-bottom: 0.75rem;
-        color: #495057;
-        font-size: 0.95rem;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .article-info p strong {
-        color: #212529;
-        font-weight: 600;
-        min-width: 100px;
-    }
-    
-    .wikipedia-badge {
-        background: #0066cc;
-        color: white;
-        padding: 0.25rem 0.5rem;
-        border-radius: 0.25rem;
-        font-size: 0.875rem;
-        display: inline-block;
-    }
-    
-    /* Enhanced Tags Section Styles */
-    .article-tags {
-        margin-bottom: 3rem;
-        padding: 2rem;
-        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-        border-radius: 12px;
-        border: 1px solid #e9ecef;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-        position: relative;
-    }
-    
-    .article-tags::before {
-        content: '🏷️';
-        position: absolute;
-        top: -10px;
-        left: 20px;
-        background: #ffffff;
-        padding: 0 8px;
-        font-size: 1.2rem;
-    }
-    
-    .article-tags h3 {
-        margin-bottom: 1.5rem;
-        color: #212529;
-        font-size: 1.4rem;
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .tag-list {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-    
-    .tag-link {
-        background: #007bff;
-        color: #ffffff !important;
-        padding: 0.25rem 0.75rem;
-        border-radius: 1rem;
-        text-decoration: none !important;
-        font-size: 0.875rem;
-        font-weight: 500;
-        transition: all 0.2s ease;
-        display: inline-block;
-        border: 1px solid #007bff;
-    }
-    
-    .tag-link:hover {
-        background: #0056b3;
-        color: #ffffff !important;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
-        border-color: #0056b3;
-    }
-    
-    .no-tags {
-        color: var(--muted-color);
-        font-style: italic;
-    }
-    
-    /* Enhanced Speed Reader Section Styles */
-    .speed-reader-section {
-        margin: 3rem 0;
-        padding: 3rem;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 16px;
-        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
-        color: white;
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .speed-reader-section::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-        animation: float 6s ease-in-out infinite;
-    }
-    
-    @keyframes float {
-        0%, 100% { transform: translateY(0px) rotate(0deg); }
-        50% { transform: translateY(-20px) rotate(180deg); }
-    }
-    
-    .speed-reader-section h3 {
-        color: white;
-        font-size: 2rem;
-        font-weight: 700;
-        margin-bottom: 1rem;
-        text-align: center;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    }
-    
-    .speed-reader-section p {
-        color: rgba(255,255,255,0.9);
-        text-align: center;
-        font-size: 1.1rem;
-        margin-bottom: 2rem;
-    }
-    
-    .speed-reader-info {
-        margin-bottom: 2rem;
-        padding: 1.5rem;
-        background: rgba(255, 255, 255, 0.15);
-        border-radius: 12px;
-        text-align: center;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-    
-    .speed-reader-info p {
-        margin: 0;
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: white;
-    }
-    
-    .reader-controls {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 2rem;
-        flex-wrap: wrap;
-        position: relative;
-        z-index: 2;
-    }
-    
-    .speed-selector {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .speed-selector label {
-        color: white;
-        font-size: 1rem;
-        font-weight: 600;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    }
-    
-    .speed-selector select {
-        padding: 0.75rem 1rem;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-radius: 25px;
-        background: rgba(255, 255, 255, 0.9);
-        color: #333;
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        backdrop-filter: blur(10px);
-    }
-    
-    .speed-selector select:focus {
-        outline: none;
-        border-color: #ffc107;
-        box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.3);
-    }
-    
-    .speed-selector select:hover {
-        background: rgba(255, 255, 255, 1);
-        border-color: rgba(255, 255, 255, 0.5);
-    }
-    
-    .reader-controls button {
-        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-        color: white;
-        border: none;
-        padding: 1rem 2.5rem;
-        font-size: 1.2rem;
-        font-weight: 600;
-        border-radius: 50px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(238, 90, 36, 0.4);
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-    
-    .reader-controls button:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(238, 90, 36, 0.6);
-        background: linear-gradient(135deg, #ee5a24, #ff6b6b);
-    }
-    
-    .reader-controls button:active {
-        transform: translateY(-1px);
-    }
-    
-    /* Immersive Mode Styles - Full-Width White Strip Design */
-    .immersive-overlay {
+    /* Quiz Modal Styles - Critical for functionality */
+    .quiz-modal {
         position: fixed;
         top: 0;
         left: 0;
         width: 100vw;
         height: 100vh;
-        background-color: rgba(0, 0, 0, 0.9);
-        display: none;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-        transition: all 0.3s ease;
-        opacity: 0;
-        visibility: hidden;
-    }
-    .immersive-overlay.active {
-        display: flex;
-        opacity: 1;
-        visibility: visible;
-    }
-    .immersive-word-display {
-        /* FULL-WIDTH WHITE STRIP - SIDE TO SIDE */
-        width: 100vw;
-        height: 200px;
-        background: #ffffff;
-        color: #000000;
-        font-size: 4rem;
-        font-weight: bold;
-        text-align: center;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 3px solid #333333;
-        box-sizing: border-box;
-        padding: 2rem;
-        word-wrap: break-word;
-        margin-bottom: 2rem;
-        /* Ensure text doesn't overflow */
-        overflow: hidden;
-        /* Smooth font rendering */
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-    }
-    .immersive-controls {
-        display: flex;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 10000;
         justify-content: center;
         align-items: center;
     }
-    .immersive-exit-btn {
-        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-        color: white;
-        border: none;
-        padding: 1rem 2.5rem;
-        font-size: 1.2rem;
-        font-weight: 600;
-        border-radius: 50px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(238, 90, 36, 0.4);
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-    .immersive-exit-btn:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(238, 90, 36, 0.6);
-        background: linear-gradient(135deg, #ee5a24, #ff6b6b);
-    }
-    
-    /* Enhanced Quiz Section Styles */
-    .quiz-section {
-        margin: 3rem 0;
-        padding: 3rem;
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-        border-radius: 16px;
-        box-shadow: 0 8px 32px rgba(40, 167, 69, 0.3);
-        color: white;
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .quiz-section::before {
-        content: '🧠';
-        position: absolute;
-        top: 20px;
-        right: 30px;
-        font-size: 3rem;
-        opacity: 0.3;
-    }
-    
-    .quiz-section h3 {
-        color: white;
-        font-size: 2rem;
-        font-weight: 700;
-        margin-bottom: 1rem;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    }
-    
-    .quiz-section p {
-        color: rgba(255,255,255,0.9);
-        font-size: 1.1rem;
-        margin-bottom: 2rem;
-        line-height: 1.6;
-    }
-    
-    #quiz-container button {
-        background: linear-gradient(135deg, #ffc107, #fd7e14);
-        color: #212529;
-        border: none;
-        padding: 1rem 2.5rem;
-        font-size: 1.2rem;
-        font-weight: 600;
-        border-radius: 50px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-    
-    #quiz-container button:hover:not(:disabled) {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(255, 193, 7, 0.6);
-        background: linear-gradient(135deg, #fd7e14, #ffc107);
-    }
-    
-    #quiz-container button:disabled {
-        background: rgba(255,255,255,0.3);
-        color: rgba(255,255,255,0.7);
-        cursor: not-allowed;
-        transform: none;
-        box-shadow: none;
-    }
-    
-    /* Enhanced Comments Section Styles */
-    .comments-section {
-        margin: 3rem 0;
-        padding: 3rem;
-        background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
-        border-radius: 16px;
-        box-shadow: 0 8px 32px rgba(108, 92, 231, 0.3);
-        color: white;
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .comments-section::before {
-        content: '💬';
-        position: absolute;
-        top: 20px;
-        right: 30px;
-        font-size: 3rem;
-        opacity: 0.3;
-    }
-    
-    .comments-section h3 {
-        color: white;
-        font-size: 2rem;
-        font-weight: 700;
-        margin-bottom: 2rem;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    }
-    
-    .add-comment-form {
-        margin-bottom: 2rem;
-        padding: 2rem;
-        background: rgba(255, 255, 255, 0.15);
-        border-radius: 12px;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-    
-    .add-comment-form textarea {
-        width: 100%;
-        min-height: 120px;
-        padding: 1.5rem;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-radius: 12px;
-        resize: vertical;
-        font-family: inherit;
-        background: rgba(255, 255, 255, 0.9);
-        color: #333;
-        font-size: 1rem;
-        transition: all 0.3s ease;
-    }
-    
-    .add-comment-form textarea:focus {
-        border-color: #ffc107;
-        box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.3);
-        outline: none;
-    }
-    
-    .comment-form-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: 1.5rem;
-    }
-    
-    .xp-cost {
-        color: rgba(255, 255, 255, 0.8);
-        font-size: 1rem;
-        font-weight: 500;
-    }
-    
-    .comment-form-footer button {
-        background: linear-gradient(135deg, #ffc107, #fd7e14);
-        color: #212529;
-        border: none;
-        padding: 0.75rem 2rem;
-        font-size: 1rem;
-        font-weight: 600;
-        border-radius: 25px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
-    }
-    
-    .comment-form-footer button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(255, 193, 7, 0.6);
-    }
-    
-    .comment-locked {
-        color: rgba(255, 255, 255, 0.8);
-        font-style: italic;
-        text-align: center;
-        padding: 2rem;
-        font-size: 1.1rem;
-    }
-    
-    .comment {
-        margin-bottom: 2rem;
-        padding: 2rem;
-        background: rgba(255, 255, 255, 0.95);
-        border-radius: 12px;
-        border-left: 4px solid #6c5ce7;
-        color: #333;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-    
-    .comment-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1rem;
-        padding-bottom: 0.5rem;
-        border-bottom: 1px solid #e9ecef;
-    }
-    
-    .comment-header strong {
-        color: #6c5ce7;
-        font-weight: 600;
-        font-size: 1.1rem;
-    }
-    
-    .comment-date {
-        color: #6c757d;
-        font-size: 0.9rem;
-    }
-    
-    .comment-content {
-        margin-bottom: 1.5rem;
-        line-height: 1.7;
-        font-size: 1rem;
-        color: #495057;
-    }
-    
-    .comment-actions {
-        display: flex;
-        gap: 0.75rem;
-    }
-    
-    .interaction-btn {
-        padding: 0.5rem 1rem;
-        border: none;
-        border-radius: 20px;
-        font-size: 0.875rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .interaction-btn.bronze {
-        background: linear-gradient(135deg, #cd7f32, #b8860b);
-        color: white;
-        box-shadow: 0 2px 8px rgba(205, 127, 50, 0.3);
-    }
-    
-    .interaction-btn.silver {
-        background: linear-gradient(135deg, #c0c0c0, #a8a8a8);
-        color: #333;
-        box-shadow: 0 2px 8px rgba(192, 192, 192, 0.3);
-    }
-    
-    .interaction-btn.gold {
-        background: linear-gradient(135deg, #ffd700, #ffed4e);
-        color: #333;
-        box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
-    }
-    
-    .interaction-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    }
-    
-    .no-comments {
-        text-align: center;
-        color: rgba(255, 255, 255, 0.8);
-        font-style: italic;
-        padding: 3rem;
-        font-size: 1.2rem;
-    }
-    
-    /* Enhanced Related Articles Styles */
-    .related-articles {
-        margin: 3rem 0;
-        padding: 3rem;
-        background: linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%);
-        border-radius: 16px;
-        box-shadow: 0 8px 32px rgba(253, 121, 168, 0.3);
-        color: white;
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .related-articles::before {
-        content: '📚';
-        position: absolute;
-        top: 20px;
-        right: 30px;
-        font-size: 3rem;
-        opacity: 0.3;
-    }
-    
-    .related-articles h3 {
-        color: white;
-        font-size: 2rem;
-        font-weight: 700;
-        margin-bottom: 2rem;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    }
-    
-    .related-articles > p {
-        color: rgba(255,255,255,0.9);
-        font-size: 1.2rem;
-        text-align: center;
-        padding: 2rem;
-    }
-    
-    .related-articles-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-        gap: 2rem;
-        margin-top: 2rem;
-    }
-    
-    .related-article-card {
-        background: rgba(255, 255, 255, 0.95);
-        border-radius: 16px;
-        overflow: hidden;
-        transition: all 0.3s ease;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-        color: #333;
-    }
-    
-    .related-article-card:hover {
-        transform: translateY(-8px) scale(1.02);
-        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
-    }
-    
-    .related-article-card a {
-        display: block;
-        text-decoration: none;
-        color: inherit;
-        height: 100%;
-    }
-    
-    .related-article-card img {
-        width: 100%;
-        height: 220px;
-        object-fit: cover;
-        transition: transform 0.3s ease;
-    }
-    
-    .related-article-card:hover img {
-        transform: scale(1.05);
-    }
-    
-    .related-article-card h4 {
-        padding: 1.5rem 1.5rem 1rem;
-        margin: 0;
-        font-size: 1.3rem;
-        font-weight: 600;
-        line-height: 1.4;
-        color: #2d3436;
-    }
-    
-    .related-article-card .article-meta {
-        padding: 0 1.5rem 1.5rem;
-        color: #636e72;
-        font-size: 0.95rem;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .related-article-card .article-meta::before {
-        content: '📄';
-        font-size: 1rem;
-    }
-    
-    /* Mobile Responsiveness */
-    @media (max-width: 768px) {
-        .article-header-content {
-            grid-template-columns: 1fr;
-        }
-        
-        .article-image {
-            text-align: center;
-        }
-        
-        .article-image img {
-            max-width: 100%;
-        }
-        
-        .article-info {
-            grid-template-columns: 1fr;
-        }
-        
-        .tag-list {
-            justify-content: center;
-        }
-        
-        .comment-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.5rem;
-        }
-        
-        .comment-actions {
-            flex-wrap: wrap;
-        }
-        
-        .related-articles-grid {
-            grid-template-columns: 1fr;
-        }
-        
-        .immersive-controls {
-            flex-direction: column;
-            gap: 1rem;
-        }
-        
-        .immersive-speed-controls {
-            margin-left: 0;
-        }
-    }
-    
-    /* Quiz Modal Styles */
-    .quiz-modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.8);
-        display: none;
-        justify-content: center;
-        align-items: center;
-        z-index: 1001;
-    }
-    .quiz-modal.active {
-        display: flex;
-    }
+
     .quiz-content {
-        background-color: var(--card-background-color);
+        background: white;
+        border-radius: 8px;
         padding: 2rem;
-        border-radius: var(--border-radius);
         max-width: 600px;
         width: 90%;
         max-height: 80vh;
         overflow-y: auto;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     }
-    .question {
+
+    .quiz-question {
         margin-bottom: 2rem;
     }
-    .options {
+
+    .quiz-question h4 {
+        color: #333;
+        margin-bottom: 1rem;
+    }
+
+    .question-text {
+        font-size: 1.1rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+    }
+
+    .quiz-options {
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 0.75rem;
     }
-    .options label {
+
+    .quiz-option {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem;
-        border: 1px solid var(--muted-border-color);
-        border-radius: var(--border-radius);
+        padding: 0.75rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
         cursor: pointer;
-        transition: background-color 0.2s;
+        transition: all 0.2s ease;
     }
-    .options label:hover {
-        background-color: var(--muted-background-color);
+
+    .quiz-option:hover {
+        border-color: #007bff;
+        background-color: #f8f9fa;
     }
-    .options input[type="radio"] {
-        margin: 0;
+
+    .quiz-option input[type="radio"] {
+        margin-right: 0.75rem;
+        transform: scale(1.2);
     }
+
+    .quiz-option span {
+        flex: 1;
+        font-size: 1rem;
+    }
+
     .quiz-navigation {
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-top: 2rem;
         padding-top: 1rem;
-        border-top: 1px solid var(--muted-border-color);
+        border-top: 1px solid #e0e0e0;
     }
+
+    .quiz-progress {
+        font-weight: bold;
+        color: #666;
+    }
+
     .quiz-buttons {
         display: flex;
-        gap: 1rem;
+        gap: 0.5rem;
     }
+
+    .quiz-buttons button {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: background-color 0.2s ease;
+    }
+
+    .quiz-buttons button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    #quiz-prev-btn,
+    #quiz-next-btn {
+        background: #6c757d;
+        color: white;
+    }
+
+    #quiz-prev-btn:hover:not(:disabled),
+    #quiz-next-btn:hover:not(:disabled) {
+        background: #5a6268;
+    }
+
+    #quiz-submit-btn {
+        background: #28a745;
+        color: white;
+    }
+
+    #quiz-submit-btn:hover {
+        background: #218838;
+    }
+
     .quiz-results {
         text-align: center;
     }
-    .quiz-results .success {
-        color: var(--primary);
+
+    .score-display {
+        margin: 2rem 0;
+    }
+
+    .score-circle {
+        display: inline-block;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: #28a745;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+    }
+
+    .score-number {
+        font-size: 2rem;
         font-weight: bold;
+        color: white;
     }
-    .quiz-results .error {
-        color: var(--del-color);
-        font-weight: bold;
+
+    .result-message {
+        font-size: 1.1rem;
+        margin: 1rem 0;
     }
-    .feedback {
-        text-align: left;
-        margin-top: 1rem;
-    }
-    .feedback-item {
-        margin-bottom: 0.5rem;
-        padding: 0.5rem;
-        background-color: var(--muted-background-color);
-        border-radius: var(--border-radius);
+
+    .xp-earned {
+        background: #ffc107;
+        color: #212529;
+        padding: 1rem;
+        border-radius: 6px;
+        margin: 1rem 0;
+        font-size: 1.1rem;
     }
 </style>
 {% endblock %}
@@ -924,29 +183,30 @@
                     <img src="{{ article.image_url }}" alt="{{ article.title }}" loading="lazy">
                 </div>
                 {% endif %}
-                
+
                 <div class="article-meta">
                     <h1>{{ article.get_display_title|default:article.title }}</h1>
-                    
+
                     <div class="article-info">
-                        <p><strong>{% trans "Source" %}:</strong> {{ article.get_source_display|default:article.source }}</p>
-                        
+                        <p><strong>{% trans "Source" %}:</strong> {{ article.get_source_display|default:article.source
+                            }}</p>
+
                         {% if article.publication_date %}
                         <p><strong>{% trans "Published" %}:</strong> {{ article.publication_date|date:"F j, Y" }}</p>
                         {% endif %}
-                        
+
                         {% if article.reading_level %}
                         <p><strong>{% trans "Reading Level" %}:</strong> {{ article.reading_level|floatformat:1 }}</p>
                         {% endif %}
-                        
+
                         {% if article.word_count %}
                         <p><strong>{% trans "Word Count" %}:</strong> {{ article.word_count|floatformat:0 }}</p>
                         {% endif %}
-                        
-                        <p><strong>{% trans "Language" %}:</strong> 
+
+                        <p><strong>{% trans "Language" %}:</strong>
                             {% language_badge article.language 'large' %}
                         </p>
-                        
+
                         {% if article.is_wikipedia_article %}
                         <p><span class="wikipedia-badge">{% trans "Wikipedia Article" %}</span></p>
                         {% endif %}
@@ -959,82 +219,45 @@
         <section class="article-tags">
             <h3>{% trans "Tags" %}</h3>
             {% if article.tags.exists %}
-                <div class="tag-list">
-                    {% for tag in article.tags.all %}
-                        <a href="{{ tag.get_absolute_url }}" class="tag-link">{{ tag.name }}</a>
-                    {% endfor %}
-                </div>
+            <div class="tag-list">
+                {% for tag in article.tags.all %}
+                <a href="{{ tag.get_absolute_url }}" class="tag-link">{{ tag.name }}</a>
+                {% endfor %}
+            </div>
             {% else %}
-                <p class="no-tags">{% trans "No tags available for this article." %}</p>
+            <p class="no-tags">{% trans "No tags available for this article." %}</p>
             {% endif %}
         </section>
 
-        <!-- 3. Speed Reader Section -->
-        <section id="speed-reader-section" class="speed-reader-section" 
-                 data-content="{{ article.content|escape }}"
-                 data-user-wpm="{{ user_wpm|default:250 }}"
-                 data-article-id="{{ article.id }}">
+        <!-- 3. Speed Reader Section - HTMX COMPLIANT -->
+        <section id="speed-reader-section" class="speed-reader-section">
             <h3>{% trans "Speed Reader" %}</h3>
             <p>{% trans "Experience immersive speed reading with full-screen focus." %}</p>
-            
+
             <div class="speed-reader-info">
-                <p>
-                    {% trans "Current Speed" %}: <span id="current-wpm">{{ user_wpm|default:250 }}</span> {% trans "WPM" %}
-                    {% if user.is_authenticated %}
-                        | {% trans "Max Speed" %}: {{ user.max_wpm|default:250 }} {% trans "WPM" %}
-                    {% endif %}
-                </p>
+                <p>{% trans "Reading Speed" %}: {{ user.current_wpm|default:"250" }} WPM</p>
+                <p>{% trans "Words" %}: {{ article.word_count|default:"0" }}</p>
             </div>
-            
+
             <div class="reader-controls">
-                <!-- DEBUG: Speed selector should appear here -->
-                <div class="speed-selector">
-                    <label for="wpm-selector">{% trans "Reading Speed:" %}</label>
-                    <select id="wpm-selector">
-                        <option value="100">100 WPM</option>
-                        <option value="125">125 WPM</option>
-                        <option value="150">150 WPM</option>
-                        <option value="175">175 WPM</option>
-                        <option value="200">200 WPM</option>
-                        <option value="225">225 WPM</option>
-                        <option value="250" selected>250 WPM</option>
-                        <option value="275">275 WPM</option>
-                        <option value="300">300 WPM</option>
-                        <option value="325">325 WPM</option>
-                        <option value="350">350 WPM</option>
-                        <option value="375">375 WPM</option>
-                        <option value="400">400 WPM</option>
-                        <option value="425">425 WPM</option>
-                        <option value="450">450 WPM</option>
-                        <option value="475">475 WPM</option>
-                        <option value="500">500 WPM</option>
-                        <option value="525">525 WPM</option>
-                        <option value="550">550 WPM</option>
-                        <option value="575">575 WPM</option>
-                        <option value="600">600 WPM</option>
-                    </select>
-                </div>
-                <button id="start-reading-btn" type="button" class="primary" aria-label="{% trans 'Start immersive speed reading' %}">
+                <button hx-post="{% url 'verifast_app:speed_reader_start' article.id %}"
+                    hx-target="#speed-reader-section" hx-swap="outerHTML"
+                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' class="primary-btn" type="button">
                     {% trans "Start Reading" %}
                 </button>
             </div>
         </section>
 
-        <!-- 4. Quiz Section -->
+        <!-- 4. Quiz Section - HTMX COMPLIANT -->
         {% if article.quiz_data %}
         <section id="quiz-section" class="quiz-section">
             <h3>{% trans "Comprehension Quiz" %}</h3>
             <p>{% trans "Complete the speed reading above to unlock the quiz and earn XP!" %}</p>
-            
+
             <div id="quiz-container">
-                <button id="quiz-start-btn" 
-                        type="button"
-                        class="primary"
-                        disabled
-                        hx-get="{% url 'verifast_app:quiz_init' article.id %}"
-                        hx-target="#quiz-container"
-                        hx-swap="innerHTML"
-                        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+                <button hx-post="{% url 'verifast_app:quiz_start' article.id %}" hx-target="#quiz-container"
+                    hx-swap="outerHTML" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' type="button" class="primary"
+                    disabled>
                     {% trans "Start Quiz" %} ({% trans "Complete reading first" %})
                 </button>
             </div>
@@ -1049,34 +272,49 @@
         <!-- 5. Comments Section -->
         <section class="comments-section">
             <h3>{% trans "Comments" %} ({{ comments.count }})</h3>
-            
-            {% if user.is_authenticated %}
-                <!-- Add Comment Form -->
-                <div class="add-comment-form">
-                    {% if user_can_comment %}
-                        <form hx-post="{% url 'verifast_app:add_comment' article.id %}"
-                              hx-target="#comments-list"
-                              hx-swap="outerHTML"
-                              hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
-                            {% csrf_token %}
-                            <textarea name="content" 
-                                      placeholder="{% trans 'Share your thoughts...' %}"
-                                      required></textarea>
-                            <div class="comment-form-footer">
-                                <span class="xp-cost">{% trans "Cost" %}: 10 XP</span>
-                                <button type="submit" class="primary">
-                                    {% trans "Add Comment" %}
-                                </button>
-                            </div>
-                        </form>
-                    {% else %}
-                        <p class="comment-locked">
-                            {% trans "Complete the quiz with a passing score to unlock commenting!" %}
-                        </p>
+
+            <!-- Add Comment Form - Available for both authenticated and anonymous users -->
+            <div class="add-comment-form">
+                <!-- DEBUG INFO (temporary) -->
+                <div style="background: #f0f0f0; padding: 10px; margin: 10px 0; border: 1px solid #ccc;">
+                    <strong>Debug Info:</strong><br>
+                    User authenticated: {{ user.is_authenticated }}<br>
+                    User can comment: {{ user_can_comment }}<br>
+                    User has completed quiz: {{ user_has_completed_quiz }}<br>
+                    {% if user.is_authenticated %}
+                    Username: {{ user.username }}<br>
+                    User XP: {{ user.total_xp }}<br>
                     {% endif %}
                 </div>
-            {% endif %}
-            
+                
+                {% if user.is_authenticated and user_can_comment %}
+                <!-- Authenticated user who passed quiz -->
+                <form hx-post="{% url 'verifast_app:add_comment' article.id %}" hx-target="#comments-list"
+                    hx-swap="outerHTML" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+                    {% csrf_token %}
+                    <textarea name="content" placeholder="{% trans 'Share your thoughts...' %}" required></textarea>
+                    <div class="comment-form-footer">
+                        <span class="xp-cost">{% trans "Cost" %}: 10 XP</span>
+                        <button type="submit" class="primary">
+                            {% trans "Add Comment" %}
+                        </button>
+                    </div>
+                </form>
+                {% elif user.is_authenticated and not user_can_comment %}
+                <!-- Authenticated user who hasn't passed quiz -->
+                <p class="comment-locked">
+                    {% trans "Complete the quiz with a passing score to unlock commenting!" %}
+                </p>
+                {% elif not user.is_authenticated %}
+                <!-- Anonymous user - show form after quiz completion via JavaScript -->
+                <div id="anonymous-comment-section">
+                    <p class="comment-locked">
+                        {% trans "Complete the quiz with a passing score to unlock commenting!" %}
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+
             <!-- Comments List -->
             {% include 'verifast_app/partials/comments_list.html' %}
         </section>
@@ -1085,154 +323,159 @@
         <section class="related-articles">
             <h3>{% trans "Related Articles" %}</h3>
             {% if related_articles %}
-                <div class="related-articles-grid">
-                    {% for related in related_articles %}
-                        <article class="related-article-card">
-                            <a href="{{ related.get_absolute_url }}">
-                                {% if related.image_url %}
-                                    <img src="{{ related.image_url }}" alt="{{ related.title }}" loading="lazy">
-                                {% endif %}
-                                <h4>{{ related.title }}</h4>
-                                <p class="article-meta">
-                                    {{ related.get_source_display|default:related.source }}
-                                    {% if related.word_count %} • {{ related.word_count }} words{% endif %}
-                                </p>
-                            </a>
-                        </article>
-                    {% endfor %}
-                </div>
+            <div class="related-articles-grid">
+                {% for related in related_articles %}
+                <article class="related-article-card">
+                    <a href="{{ related.get_absolute_url }}">
+                        {% if related.image_url %}
+                        <img src="{{ related.image_url }}" alt="{{ related.title }}" loading="lazy">
+                        {% endif %}
+                        <h4>{{ related.title }}</h4>
+                        <p class="article-meta">
+                            {{ related.get_source_display|default:related.source }}
+                            {% if related.word_count %} • {{ related.word_count }} words{% endif %}
+                        </p>
+                    </a>
+                </article>
+                {% endfor %}
+            </div>
             {% else %}
-                <p>{% trans "No related articles found." %}</p>
+            <p>{% trans "No related articles found." %}</p>
             {% endif %}
         </section>
     </article>
 
+    <div id="article-content-data" style="display: none;">{{ article.content }}</div>
+
+    <!-- Immersive Speed Reader Overlay -->
+    <div id="immersive-overlay"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; flex-direction: column;">
+        <!-- Word Display Area -->
+        <div id="word-display"
+            style="background: white; color: black; font-size: 4rem; font-weight: bold; padding: 2rem 4rem; width: 60%; min-height: 120px; display: flex; align-items: center; justify-content: center; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); margin-bottom: 2rem; text-align: center;">
+            Ready to read
+        </div>
+
+        <!-- Speed Controls -->
+        <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+            <button x-data x-on:click="$dispatch('adjust-speed', -25)"
+                style="padding: 0.5rem 1rem; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Slower (-25)
+            </button>
+            <div id="speed-display"
+                style="padding: 0.5rem 1rem; background: rgba(255,255,255,0.1); color: white; border-radius: 4px; min-width: 100px; text-align: center;">
+                250 WPM
+            </div>
+            <button x-data x-on:click="$dispatch('adjust-speed', 25)"
+                style="padding: 0.5rem 1rem; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Faster (+25)
+            </button>
+        </div>
+
+        <!-- Exit Button -->
+        <button x-data x-on:click="$dispatch('exit-reading')"
+            style="padding: 1rem 2rem; font-size: 1.2rem; background: #ff6b6b; color: white; border: none; border-radius: 25px; cursor: pointer;">
+            Exit Reading
+        </button>
+    </div>
+
     <!-- Scroll to Top Button -->
-    <div x-data="{ showButton: false }" 
-         x-init="window.addEventListener('scroll', () => { showButton = window.scrollY > 300 })"
-         x-show="showButton" 
-         x-transition>
-        <button class="scroll-to-top" 
-                @click="window.scrollTo({top: 0, behavior: 'smooth'})" 
-                title="{% trans 'Scroll to top' %}">
+    <div x-data="{ showButton: false }"
+        x-init="window.addEventListener('scroll', () => { showButton = window.scrollY > 300 })" x-show="showButton"
+        x-transition>
+        <button class="scroll-to-top" @click="window.scrollTo({top: 0, behavior: 'smooth'})"
+            title="{% trans 'Scroll to top' %}">
             ↑
         </button>
     </div>
 
-    <!-- Immersive Mode Overlay -->
-    <div id="immersive-overlay" class="immersive-overlay">
-        <div id="immersive-word-display" class="immersive-word-display">
-            {% trans "Click Start to begin reading" %}
-        </div>
-        <div class="immersive-controls">
-            <button id="exit-reading-btn" type="button" class="immersive-exit-btn" aria-label="{% trans 'Exit immersive reading mode' %}">
-                {% trans "Exit Reading" %}
-            </button>
-            <div class="immersive-speed-controls">
-                <button id="immersive-speed-decrease" type="button" aria-label="{% trans 'Decrease speed' %}">-</button>
-                <span id="immersive-speed-display">{{ user_wpm|default:250 }} {% trans "WPM" %}</span>
-                <button id="immersive-speed-increase" type="button" aria-label="{% trans 'Increase speed' %}">+</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Quiz Modal -->
-    <div id="quiz-modal" class="quiz-modal">
+    <div id="quiz-modal" class="quiz-modal" style="display: none;">
         <div class="quiz-content">
             <div id="quiz-header">
                 <h2>{% trans "Comprehension Quiz" %}</h2>
                 <p>{% trans "Answer the questions below to test your understanding." %}</p>
             </div>
-            <div id="quiz-questions">
+            <div id="quiz-question-container">
                 <!-- Questions will be loaded here by JavaScript -->
+            </div>
+            <div id="quiz-results" style="display: none;">
+                <!-- Results will be shown here -->
             </div>
             <div class="quiz-navigation">
                 <div class="quiz-progress">
                     <span id="current-question">1</span> / <span id="total-questions">5</span>
                 </div>
                 <div class="quiz-buttons">
-                    <button id="prev-question" type="button" disabled>
+                    <button id="quiz-prev-btn" type="button" disabled 
+                            hx-post="{% url 'verifast_app:quiz_prev' article.id %}"
+                            hx-target="#quiz-question-container"
+                            hx-swap="innerHTML"
+                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
                         {% trans "Previous" %}
                     </button>
-                    <button id="next-question" type="button">
+                    <button id="quiz-next-btn" type="button"
+                            hx-post="{% url 'verifast_app:quiz_next' article.id %}"
+                            hx-target="#quiz-question-container"
+                            hx-swap="innerHTML"
+                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
                         {% trans "Next" %}
                     </button>
-                    <button id="submit-quiz" type="button" style="display: none;">
+                    <button id="quiz-submit-btn" type="button" style="display: none;"
+                            hx-post="{% url 'verifast_app:quiz_submit' article.id %}"
+                            hx-target="#quiz-results"
+                            hx-swap="innerHTML"
+                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
                         {% trans "Submit Quiz" %}
                     </button>
-                </div>
+                </div>""
             </div>
         </div>
     </div>
 </main>
 
-<!-- Immersive Speed Reader Overlay -->
-<div id="immersive-overlay" class="immersive-overlay">
-    <div id="immersive-word-display" class="immersive-word-display">
-        {% trans "Click Start to begin reading" %}
-    </div>
-    <div class="immersive-controls">
-        <button id="exit-reading-btn" class="immersive-exit-btn">
-            {% trans "Exit Reading" %}
-        </button>
-    </div>
-</div>
+
 
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'verifast_app/js/speed-reader.js' %}"></script>
-<script src="{% static 'verifast_app/js/quiz-interface.js' %}"></script>
 <script>
-    // Initialize quiz data for the quiz interface
-    window.quizData = {{ article.quiz_data|default:"[]"|safe }};
-    window.articleId = {{ article.id }};
+    // --- MINIMAL HTMX-COMPLIANT JAVASCRIPT (< 50 lines) ---
 
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('Article Detail: Page loaded');
-        
-        // Connect speed reader completion to quiz unlock
-        function connectSpeedReaderToQuiz() {
-            if (window.speedReader) {
-                window.speedReader.onReadingComplete = function() {
-                    console.log('Speed reader completed, unlocking quiz');
-                    const startQuizBtn = document.getElementById('start-quiz-btn');
-                    if (startQuizBtn) {
-                        startQuizBtn.disabled = false;
-                        startQuizBtn.textContent = '{% trans "Start Quiz" %}';
-                        startQuizBtn.classList.add('primary');
-                    }
-                };
-                console.log('Speed reader and quiz interface connected');
-                return true;
+    // Global data for HTMX endpoints
+    window.articleId = {{ article.id }};
+    window.userWpm = {{ user.current_wpm|default:"250" }};
+
+    // Minimal Alpine.js components for UI state only
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('speedReader', () => ({
+            isReading: false,
+            currentWpm: {{ user.current_wpm|default:"250" }},
+            
+            adjustSpeed(delta) {
+                this.currentWpm = Math.max(50, Math.min(1000, this.currentWpm + delta));
+                document.getElementById('speed-display').textContent = `${this.currentWpm} WPM`;
+            },
+            
+            exitReading() {
+                this.isReading = false;
+                document.getElementById('immersive-overlay').style.display = 'none';
+                document.body.style.overflow = '';
             }
-            return false;
-        }
-        
-        // Try to connect immediately, then retry if needed
-        if (!connectSpeedReaderToQuiz()) {
-            // Retry every 100ms for up to 2 seconds
-            let attempts = 0;
-            const maxAttempts = 20;
-            const retryInterval = setInterval(function() {
-                attempts++;
-                if (connectSpeedReaderToQuiz() || attempts >= maxAttempts) {
-                    clearInterval(retryInterval);
-                }
-            }, 100);
-        }
+        }));
     });
-    
-    // Scroll to top button functionality
-    window.addEventListener('scroll', function() {
-        const scrollToTopBtn = document.getElementById('scrollToTop');
-        if (scrollToTopBtn) {
-            if (window.pageYOffset > 300) {
-                scrollToTopBtn.style.display = 'block';
-            } else {
-                scrollToTopBtn.style.display = 'none';
-            }
-        }
+
+    // Quiz functionality handled by HTMX endpoints
+
+    // Basic initialization for Alpine.js components
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('HTMX-compliant initialization complete');
     });
+
+    function exitSpeedReader() {
+        if (window.speedReader) {
+            window.speedReader.exitReading();
+        }
+    }
 </script>
 {% endblock %}

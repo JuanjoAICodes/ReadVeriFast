@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "name": "Duplicate Function Prevention Hook",
+  "description": "Prevents duplicate function definitions in Python files that can cause import errors",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "verifast_app/views.py",
+      "verifast_app/services.py",
+      "verifast_app/models.py",
+      "**/*.py"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "🚨 **DUPLICATE FUNCTION CHECK** 🚨\n\nA Python file has been modified. Please check for duplicate function definitions that can cause import errors:\n\n**CRITICAL CHECKS:**\n1. **Function Name Duplicates**: Search for duplicate `def function_name(` patterns\n2. **Class Method Duplicates**: Check for duplicate methods within classes\n3. **Import Conflicts**: Verify no conflicting imports or function names\n\n**COMMON DUPLICATE PATTERNS TO FIND:**\n```bash\n# Check for duplicate function definitions\ngrep -n \"def \" filename.py | sort | uniq -d\n\n# Check for duplicate class methods\ngrep -n \"def \" filename.py | grep -E \"    def \"\n```\n\n**KNOWN PROBLEMATIC FUNCTIONS:**\n- `speed_reader_complete` - Previously found duplicated\n- `speed_reader_init` - Check for duplicates\n- `quiz_start` - Verify single definition\n\n**IMMEDIATE ACTIONS:**\n1. Scan the modified file for duplicate function names\n2. If duplicates found, keep the most recent/complete version\n3. Remove or merge duplicate implementations\n4. Test imports: `python -c \"from verifast_app import views\"`\n\n**PREVENTION:**\n- Use unique, descriptive function names\n- Check existing functions before adding new ones\n- Use version control to track function additions\n\nReport any duplicate functions found and suggest which version to keep."
+  }
+}

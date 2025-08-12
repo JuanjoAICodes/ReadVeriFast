@@ -169,6 +169,95 @@
         margin: 1rem 0;
         font-size: 1.1rem;
     }
+
+    /* Immersive Speed Reader Styles - Single Mode */
+    .immersive-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .immersive-word-display {
+        width: 100vw;
+        /* FULL WIDTH - SIDE TO SIDE */
+        height: 200px;
+        background: #ffffff;
+        /* WHITE BACKGROUND */
+        color: #000000;
+        /* BLACK TEXT */
+        font-size: 4rem;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 3px solid #333333;
+        text-align: center;
+        word-wrap: break-word;
+        padding: 2rem;
+        box-sizing: border-box;
+    }
+
+    .immersive-controls {
+        margin-top: 2rem;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .immersive-control-btn,
+    .immersive-exit-btn {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .immersive-exit-btn {
+        background: #ff6b6b;
+        padding: 1rem 2rem;
+        font-size: 1.2rem;
+    }
+
+    .speed-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 0.5rem;
+        border-radius: var(--border-radius);
+    }
+
+    .speed-btn {
+        padding: 0.5rem 0.75rem;
+        background: #6c757d;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+
+    .speed-display {
+        color: white;
+        font-weight: bold;
+        min-width: 80px;
+        text-align: center;
+    }
 </style>
 {% endblock %}
 
@@ -185,30 +274,73 @@
                 {% endif %}
 
                 <div class="article-meta">
-                    <h1>{{ article.get_display_title|default:article.title }}</h1>
+                    <h1>{{ article.get_display_title }}</h1>
 
                     <div class="article-info">
-                        <p><strong>{% trans "Source" %}:</strong> {{ article.get_source_display|default:article.source
-                            }}</p>
-
+                        <div class="article-info-item">
+                            <div class="icon">📰</div>
+                            <div class="content">
+                                <p class="label">{% trans "Source" %}</p>
+                                <p class="value">{{ article.get_source_display }}</p>
+                            </div>
+                        </div>
+                        
                         {% if article.publication_date %}
-                        <p><strong>{% trans "Published" %}:</strong> {{ article.publication_date|date:"F j, Y" }}</p>
+                        <div class="article-info-item">
+                            <div class="icon">📅</div>
+                            <div class="content">
+                                <p class="label">{% trans "Published" %}</p>
+                                <p class="value">{{ article.publication_date|date:"F j, Y" }}</p>
+                            </div>
+                        </div>
                         {% endif %}
 
                         {% if article.reading_level %}
-                        <p><strong>{% trans "Reading Level" %}:</strong> {{ article.reading_level|floatformat:1 }}</p>
+                        <div class="article-info-item">
+                            <div class="icon">📊</div>
+                            <div class="content">
+                                <p class="label">{% trans "Reading Level" %}</p>
+                                <p class="value">{{ article.reading_level|floatformat:1 }}</p>
+                            </div>
+                        </div>
                         {% endif %}
 
                         {% if article.word_count %}
-                        <p><strong>{% trans "Word Count" %}:</strong> {{ article.word_count|floatformat:0 }}</p>
+                        <div class="article-info-item">
+                            <div class="icon">📝</div>
+                            <div class="content">
+                                <p class="label">{% trans "Word Count" %}</p>
+                                <p class="value">{{ article.word_count|floatformat:0 }}</p>
+                            </div>
+                        </div>
                         {% endif %}
 
-                        <p><strong>{% trans "Language" %}:</strong>
-                            {% language_badge article.language 'large' %}
-                        </p>
+                        <div class="article-info-item">
+                            <div class="icon">
+                                {% if article.language == 'en' %}🇺🇸
+                                {% elif article.language == 'es' %}🇪🇸
+                                {% else %}🌐
+                                {% endif %}
+                            </div>
+                            <div class="content">
+                                <p class="label">{% trans "Language" %}</p>
+                                <p class="value">
+                                    {% if article.language == 'en' %}English
+                                    {% elif article.language == 'es' %}Spanish
+                                    {% else %}{{ article.language|upper }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
 
                         {% if article.is_wikipedia_article %}
-                        <p><span class="wikipedia-badge">{% trans "Wikipedia Article" %}</span></p>
+                        <div class="article-info-item">
+                            <div class="icon">📖</div>
+                            <div class="content">
+                                <p class="label">{% trans "Type" %}</p>
+                                <p class="value">Wikipedia Article</p>
+                            </div>
+                        </div>
                         {% endif %}
                     </div>
                 </div>
@@ -229,20 +361,52 @@
             {% endif %}
         </section>
 
-        <!-- 3. Speed Reader Section - HTMX COMPLIANT -->
-        <section id="speed-reader-section" class="speed-reader-section">
-            <h3>{% trans "Speed Reader" %}</h3>
-            <p>{% trans "Experience immersive speed reading with full-screen focus." %}</p>
-
-            <div class="speed-reader-info">
-                <p>{% trans "Reading Speed" %}: {{ user.current_wpm|default:"250" }} WPM</p>
-                <p>{% trans "Words" %}: {{ article.word_count|default:"0" }}</p>
-            </div>
-
-            <div class="reader-controls">
-                <button hx-post="{% url 'verifast_app:speed_reader_init' article.id 'regular' %}"
-                    hx-target="#speed-reader-section" hx-swap="outerHTML"
-                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' class="primary-btn" type="button">
+        <!-- 3. Speed Reader Section - Professional Design -->
+        <section id="speed-reader-section" 
+                 class="speed-reader-section detail-card"
+                 data-article-id="{{ article.id }}"
+                 {% if user.is_authenticated %}
+                 data-user-wpm="{{ user.current_wpm|default:250 }}"
+                 {% else %}
+                 data-user-wpm="250"
+                 {% endif %}
+                 data-word-count="{{ article.word_count|default:0 }}">
+            <div class="speed-reader-content">
+                <div class="speed-reader-header">
+                    <h3>🚀 {% trans "Speed Reader" %}</h3>
+                    <p>{% trans "Experience immersive speed reading with our advanced system" %}</p>
+                </div>
+                
+                <div class="speed-reader-info">
+                    <div class="speed-info-card">
+                        <span class="icon">⚡</span>
+                        <p class="label">{% trans "Your Speed" %}</p>
+                        <p class="value">
+                            {% if user.is_authenticated %}{{ user.current_wpm|default:250 }}{% else %}250{% endif %} WPM
+                        </p>
+                    </div>
+                    
+                    <div class="speed-info-card">
+                        <span class="icon">⏱️</span>
+                        <p class="label">{% trans "Est. Time" %}</p>
+                        <p class="value">{{ estimated_reading_time|default:"--" }} min</p>
+                    </div>
+                    
+                    <div class="speed-info-card">
+                        <span class="icon">📖</span>
+                        <p class="label">{% trans "Words" %}</p>
+                        <p class="value">{{ article.word_count|default:"--" }}</p>
+                    </div>
+                </div>
+                
+                <button 
+                    class="start-reading-btn"
+                    hx-get="{% url 'verifast_app:speed_reader_init' article.id %}"
+                    hx-target="#speed-reader-section"
+                    hx-swap="outerHTML"
+                    data-article-id="{{ article.id }}"
+                    type="button"
+                >
                     {% trans "Start Reading" %}
                 </button>
             </div>
@@ -255,9 +419,8 @@
             <p>{% trans "Complete the speed reading above to unlock the quiz and earn XP!" %}</p>
 
             <div id="quiz-container">
-                <button hx-post="{% url 'verifast_app:quiz_start' article.id %}" hx-target="#quiz-container"
-                    hx-swap="outerHTML" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' type="button" class="primary"
-                    disabled>
+                <button hx-get="{% url 'verifast_app:quiz_start' article.id %}" hx-target="#quiz-container"
+                    hx-swap="outerHTML" type="button" class="primary" disabled>
                     {% trans "Start Quiz" %} ({% trans "Complete reading first" %})
                 </button>
             </div>
@@ -275,18 +438,7 @@
 
             <!-- Add Comment Form - Available for both authenticated and anonymous users -->
             <div class="add-comment-form">
-                <!-- DEBUG INFO (temporary) -->
-                <div style="background: #f0f0f0; padding: 10px; margin: 10px 0; border: 1px solid #ccc;">
-                    <strong>Debug Info:</strong><br>
-                    User authenticated: {{ user.is_authenticated }}<br>
-                    User can comment: {{ user_can_comment }}<br>
-                    User has completed quiz: {{ user_has_completed_quiz }}<br>
-                    {% if user.is_authenticated %}
-                    Username: {{ user.username }}<br>
-                    User XP: {{ user.total_xp }}<br>
-                    {% endif %}
-                </div>
-                
+
                 {% if user.is_authenticated and user_can_comment %}
                 <!-- Authenticated user who passed quiz -->
                 <form hx-post="{% url 'verifast_app:add_comment' article.id %}" hx-target="#comments-list"
@@ -347,38 +499,6 @@
 
     <div id="article-content-data" style="display: none;">{{ article.content }}</div>
 
-    <!-- Immersive Speed Reader Overlay -->
-    <div id="immersive-overlay"
-        style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; flex-direction: column;">
-        <!-- Word Display Area -->
-        <div id="word-display"
-            style="background: white; color: black; font-size: 4rem; font-weight: bold; padding: 2rem 4rem; width: 60%; min-height: 120px; display: flex; align-items: center; justify-content: center; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); margin-bottom: 2rem; text-align: center;">
-            Ready to read
-        </div>
-
-        <!-- Speed Controls -->
-        <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
-            <button x-data x-on:click="$dispatch('adjust-speed', -25)"
-                style="padding: 0.5rem 1rem; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                Slower (-25)
-            </button>
-            <div id="speed-display"
-                style="padding: 0.5rem 1rem; background: rgba(255,255,255,0.1); color: white; border-radius: 4px; min-width: 100px; text-align: center;">
-                250 WPM
-            </div>
-            <button x-data x-on:click="$dispatch('adjust-speed', 25)"
-                style="padding: 0.5rem 1rem; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                Faster (+25)
-            </button>
-        </div>
-
-        <!-- Exit Button -->
-        <button x-data x-on:click="$dispatch('exit-reading')"
-            style="padding: 1rem 2rem; font-size: 1.2rem; background: #ff6b6b; color: white; border: none; border-radius: 25px; cursor: pointer;">
-            Exit Reading
-        </button>
-    </div>
-
     <!-- Scroll to Top Button -->
     <div x-data="{ showButton: false }"
         x-init="window.addEventListener('scroll', () => { showButton = window.scrollY > 300 })" x-show="showButton"
@@ -407,23 +527,16 @@
                     <span id="current-question">1</span> / <span id="total-questions">5</span>
                 </div>
                 <div class="quiz-buttons">
-                    <button id="quiz-prev-btn" type="button" disabled 
+                    <button id="quiz-prev-btn" type="button" disabled>
+                        {% trans "Previous" %}
                     </button>
-                    <button id="quiz-next-btn" type="button"
-                            hx-post="{% url 'verifast_app:quiz_next' article.id %}"
-                            hx-target="#quiz-question-container"
-                            hx-swap="innerHTML"
-                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+                    <button id="quiz-next-btn" type="button">
                         {% trans "Next" %}
                     </button>
-                    <button id="quiz-submit-btn" type="button" style="display: none;"
-                            hx-post="{% url 'verifast_app:quiz_submit' article.id %}"
-                            hx-target="#quiz-results"
-                            hx-swap="innerHTML"
-                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+                    <button id="quiz-submit-btn" type="button" style="display: none;">
                         {% trans "Submit Quiz" %}
                     </button>
-                </div>""
+                </div>
             </div>
         </div>
     </div>
@@ -437,40 +550,32 @@
 <script>
     // --- MINIMAL HTMX-COMPLIANT JAVASCRIPT (< 50 lines) ---
 
-    // Global data for HTMX endpoints
-    window.articleId = {{ article.id }};
-    window.userWpm = {{ user.current_wpm|default:"250" }};
+    // Speed Reader component is now defined in the partial template
+    // This ensures it's available when HTMX loads the speed reader
+    console.log('HTMX-compliant initialization complete');
 
-    // Minimal Alpine.js components for UI state only
-    document.addEventListener('alpine:init', () => {
-        Alpine.data('speedReader', () => ({
-            isReading: false,
-            currentWpm: {{ user.current_wpm|default:"250" }},
-            
-            adjustSpeed(delta) {
-                this.currentWpm = Math.max(50, Math.min(1000, this.currentWpm + delta));
-                document.getElementById('speed-display').textContent = `${this.currentWpm} WPM`;
-            },
-            
-            exitReading() {
-                this.isReading = false;
-                document.getElementById('immersive-overlay').style.display = 'none';
-                document.body.style.overflow = '';
-            }
-        }));
-    });
-
-    // Quiz functionality handled by HTMX endpoints
-
-    // Basic initialization for Alpine.js components
-    document.addEventListener('DOMContentLoaded', () => {
-        console.log('HTMX-compliant initialization complete');
-    });
-
+    // Global function for emergency exit
     function exitSpeedReader() {
-        if (window.speedReader) {
-            window.speedReader.exitReading();
-        }
+        const speedReaderElements = document.querySelectorAll('[x-data*="speedReader"]');
+        speedReaderElements.forEach(el => {
+            if (el.__x && el.__x.$data && el.__x.$data.exitReading) {
+                el.__x.$data.exitReading();
+            }
+        });
     }
+
+    // Fallback mechanism - show fallback UI if Alpine.js fails to initialize
+    setTimeout(() => {
+        const speedReaderElement = document.querySelector('[x-data*="speedReader"]');
+        const fallbackElement = document.getElementById('speed-reader-fallback');
+        
+        if (speedReaderElement && !speedReaderElement.__x && fallbackElement) {
+            console.error('Alpine.js failed to initialize Speed Reader - showing fallback');
+            fallbackElement.style.display = 'block';
+            
+            // Hide the main speed reader container to prevent confusion
+            speedReaderElement.style.display = 'none';
+        }
+    }, 3000); // Wait 3 seconds for Alpine.js to initialize
 </script>
 {% endblock %}

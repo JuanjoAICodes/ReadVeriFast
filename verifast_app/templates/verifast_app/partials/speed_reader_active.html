@@ -1,42 +1,411 @@
-<div x-data="speedReader({{ word_chunks_json|safe }}, { wpm: {{ user_wpm|default:250 }} }, '{{ article_id }}', '{{ article_type }}')" 
-     class="speed-reader-active">
-    
-    <!-- Immersive Overlay - Single Mode Interface -->
-    <div x-show="isActive" 
-         x-transition
-         class="immersive-overlay"
-         x-init="startImmersiveReading()">
+{% load i18n %}
+
+<script type="application/json" id="speed-reader-data">
+{
+    "wordChunks": {{ word_chunks_json|safe }},
+    "wpm": {{ user_wpm|default:250 }},
+    "articleId": "{{ article_id }}",
+    "articleType": "{{ article_type }}"
+}
+</script>
+
+
+
+<!-- Fallback UI for when Alpine.js fails -->
+<div id="speed-reader-fallback" class="speed-reader-error" style="display: none;">
+    <div class="error-message">
+        <div class="error-icon">⚠️</div>
+        <h3>{% trans "Speed Reader Temporarily Unavailable" %}</h3>
+        <p>{% trans "There was a technical issue loading the speed reader. Please try refreshing the page." %}</p>
+        <div class="error-actions">
+            <button onclick="location.reload()" class="secondary">
+                {% trans "Refresh Page" %}
+            </button>
+            <a href="{% url 'verifast_app:article_list' %}" class="primary">
+                {% trans "Browse Other Articles" %}
+            </a>
+        </div>
+    </div>
+</div>
+
+<div x-data="{
+        // Inline component definition to avoid timing issues
+        isActive: false,
+        isRunning: false,
+        isComplete: false,
+        currentIndex: 0,
+        currentChunk: 'Loading...',
+        wordChunks: [],
+        wpm: 250,
+        timer: null,
+        error: null,
         
+        init() {
+            // Use $nextTick to ensure Alpine's reactive DOM updates are complete
+            this.$nextTick(() => {
+                console.log('Speed Reader: Starting initialization after DOM stabilization');
+                
+                // Load data from script tag
+                const scriptData = document.getElementById('speed-reader-data');
+                if (!scriptData) {
+                    console.error('Speed Reader: No data script found');
+                    this.error = 'No data script found';
+                    this.currentChunk = 'No data available';
+                    return;
+                }
+                
+                try {
+                    const data = JSON.parse(scriptData.textContent);
+                    console.log('Speed Reader: Data loaded successfully', data);
+                    
+                    this.wordChunks = data.wordChunks || [];
+                    this.wpm = data.wpm || 250;
+                    this.currentChunk = this.wordChunks.length > 0 ? this.wordChunks[0] : 'No content available';
+                    
+                    console.log('Speed Reader Init - Word chunks:', this.wordChunks.length);
+                    console.log('Speed Reader Init - WPM:', this.wpm);
+                    
+                    if (this.wordChunks.length > 0) {
+                        // Set isActive after DOM is stable
+                        this.isActive = true;
+                        document.body.style.overflow = 'hidden';
+                        console.log('Speed Reader: Activated with', this.wordChunks.length, 'chunks');
+                        console.log('Speed Reader: isActive set to', this.isActive);
+                        
+                        // Force a DOM update check
+                        this.$nextTick(() => {
+                            const overlay = document.querySelector('.immersive-overlay');
+                            if (overlay) {
+                                console.log('Speed Reader: Overlay element found, computed style:', window.getComputedStyle(overlay).display);
+                                console.log('Speed Reader: Overlay visibility:', window.getComputedStyle(overlay).visibility);
+                                console.log('Speed Reader: Overlay opacity:', window.getComputedStyle(overlay).opacity);
+                            } else {
+                                console.error('Speed Reader: Overlay element not found in DOM');
+                            }
+                        });
+                    } else {
+                        console.warn('Speed Reader: No word chunks provided');
+                        this.isActive = false;
+                    }
+                    
+                    // Hide fallback UI since we initialized successfully
+                    const fallbackElement = document.getElementById('speed-reader-fallback');
+                    if (fallbackElement) {
+                        fallbackElement.style.display = 'none';
+                    }
+                    
+                    // Add keyboard event listener
+                    document.addEventListener('keydown', (e) => {
+                        if (e.key === 'Escape' && this.isActive) this.exitReading();
+                    });
+                    
+                } catch (e) {
+                    console.error('Speed Reader: Failed to parse data script', e);
+                    this.error = e.message;
+                    this.currentChunk = 'Data parsing error';
+                    this.isActive = false;
+                }
+            });
+        },
+        
+        toggleReading() {
+            this.isRunning = !this.isRunning;
+            if (this.isRunning) {
+                this.timer = setInterval(() => this.nextWord(), 60000 / this.wpm);
+            } else {
+                clearInterval(this.timer);
+            }
+        },
+        
+        nextWord() {
+            this.currentIndex++;
+            if (this.currentIndex >= this.wordChunks.length) {
+                this.isComplete = true;
+                this.isRunning = false;
+                clearInterval(this.timer);
+                this.currentChunk = 'Reading Complete!';
+                
+                // Trigger HTMX event for reading completion
+                document.body.dispatchEvent(new CustomEvent('readingComplete'));
+            } else {
+                this.currentChunk = this.wordChunks[this.currentIndex];
+            }
+        },
+        
+        adjustSpeed(delta) {
+            this.wpm = Math.max(50, Math.min(1000, this.wpm + delta));
+            if (this.isRunning) { 
+                this.toggleReading(); 
+                this.toggleReading(); 
+            }
+        },
+        
+        exitReading() {
+            console.log('Speed Reader: Exit button clicked');
+            try {
+                // Clear any running timers
+                if (this.timer) {
+                    clearInterval(this.timer);
+                    this.timer = null;
+                }
+                
+                // Reset all state variables
+                this.isActive = false;
+                this.isRunning = false;
+                this.isComplete = false;
+                this.currentIndex = 0;
+                
+                // Restore page scrolling
+                document.body.style.overflow = '';
+                
+                console.log('Speed Reader: Exit completed successfully');
+                console.log('Speed Reader: isActive =', this.isActive);
+                console.log('Speed Reader: isComplete =', this.isComplete);
+                
+                // Force Alpine.js to update the DOM
+                this.$nextTick(() => {
+                    console.log('Speed Reader: DOM update completed after exit');
+                });
+                
+            } catch (error) {
+                console.error('Speed Reader: Error during exit:', error);
+                // Force exit even if there's an error
+                this.isActive = false;
+                this.isComplete = false;
+                document.body.style.overflow = '';
+            }
+        }
+     }" class="speed-reader-active">
+
+    <!-- Error Message for No Content -->
+    <div x-show="!isActive" class="speed-reader-error">
+        <div class="error-message">
+            <div class="error-icon">⚠️</div>
+            <h3>{% trans "No Readable Content" %}</h3>
+            <p>{% trans "This article doesn't contain readable text for the speed reader." %}</p>
+            <div class="error-actions">
+                <button onclick="location.reload()" class="secondary">
+                    {% trans "Refresh Page" %}
+                </button>
+                <a href="{% url 'verifast_app:article_list' %}" class="primary">
+                    {% trans "Browse Other Articles" %}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Immersive Overlay - Single Mode Interface -->
+    <div x-show="isActive" class="immersive-overlay">
+
         <!-- Full-width white strip -->
         <div class="immersive-word-display" x-text="currentChunk">
             Ready to read
         </div>
-        
+
         <!-- Controls -->
         <div class="immersive-controls">
-            <button @click="toggleReading()" 
-                    class="immersive-control-btn"
-                    x-text="isRunning ? 'Pause' : 'Play'">
+            <button @click="toggleReading()" class="immersive-control-btn" x-text="isRunning ? 'Pause' : 'Play'">
                 Play
             </button>
-            
+
             <div class="speed-controls">
                 <button @click="adjustSpeed(-25)" class="speed-btn">-</button>
                 <span class="speed-display" x-text="wpm + ' WPM'">250 WPM</span>
                 <button @click="adjustSpeed(25)" class="speed-btn">+</button>
             </div>
-            
+
             <button @click="exitReading()" class="immersive-exit-btn">
                 {% trans "Exit Reading" %}
             </button>
         </div>
     </div>
-    
+
     <!-- Reading Complete Handler -->
-    <div x-show="isComplete" 
-         hx-post="{% url 'verifast_app:speed_reader_complete' article_id %}"
-         hx-target="#quiz-section"
-         hx-trigger="load"
-         hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+    <div x-show="isComplete" hx-post="{% url 'verifast_app:speed_reader_complete' article_id %}"
+        hx-target="#quiz-section" hx-trigger="readingComplete from:body"
+        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
     </div>
 </div>
+
+<style>
+    .speed-reader-error {
+        padding: 2rem;
+        text-align: center;
+        background: var(--card-background-color);
+        border: 1px solid var(--muted-border-color);
+        border-radius: var(--border-radius);
+        margin: 1rem 0;
+    }
+
+    .error-message {
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .error-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+    .error-message h3 {
+        color: var(--color);
+        margin-bottom: 1rem;
+    }
+
+    .error-message p {
+        color: var(--muted-color);
+        margin-bottom: 2rem;
+    }
+
+    .error-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .error-actions button,
+    .error-actions a {
+        text-decoration: none;
+        padding: 0.5rem 1rem;
+        border-radius: var(--border-radius);
+        border: none;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+
+    .error-actions .primary {
+        background: var(--primary);
+        color: var(--primary-inverse);
+    }
+
+    .error-actions .secondary {
+        background: var(--secondary);
+        color: var(--secondary-inverse);
+    }
+
+    /* Immersive Speed Reader Overlay Styles - Full Alpine.js Control */
+    .speed-reader-active .immersive-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        visibility: visible;
+        opacity: 1;
+    }
+
+    .immersive-word-display {
+        font-size: 4rem;
+        color: #000000 !important;
+        background: #ffffff !important;
+        text-align: center;
+        margin-bottom: 2rem;
+        min-height: 5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        font-weight: bold;
+        border-radius: 8px;
+        border: 2px solid #333333;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .immersive-controls {
+        display: flex;
+        gap: 2rem;
+        align-items: center;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .immersive-control-btn,
+    .immersive-exit-btn {
+        padding: 1rem 2rem;
+        font-size: 1.2rem;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.2s;
+    }
+
+    .immersive-control-btn:hover,
+    .immersive-exit-btn:hover {
+        background: var(--primary-hover, #0056b3);
+    }
+
+    .immersive-exit-btn {
+        background: #dc3545;
+    }
+
+    .immersive-exit-btn:hover {
+        background: #c82333;
+    }
+
+    .speed-controls {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 0.5rem 1rem;
+        border-radius: var(--border-radius);
+    }
+
+    .speed-btn {
+        padding: 0.5rem 1rem;
+        background: var(--secondary);
+        color: white;
+        border: none;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 1.1rem;
+        min-width: 40px;
+    }
+
+    .speed-btn:hover {
+        background: var(--secondary-hover, #6c757d);
+    }
+
+    .speed-display {
+        color: white;
+        font-size: 1.1rem;
+        font-weight: bold;
+        min-width: 80px;
+        text-align: center;
+    }
+
+    /* Responsive design for mobile */
+    @media (max-width: 768px) {
+        .immersive-word-display {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .immersive-controls {
+            gap: 1rem;
+            padding: 0 1rem;
+        }
+
+        .immersive-control-btn,
+        .immersive-exit-btn {
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+        }
+
+        .speed-controls {
+            gap: 0.5rem;
+            padding: 0.4rem 0.8rem;
+        }
+    }
+</style>

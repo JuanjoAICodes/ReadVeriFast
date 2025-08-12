@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "URL Pattern Validation Hook",
+  "description": "Validates that all URL references in templates exist in urls.py to prevent NoReverseMatch errors",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "verifast_app/templates/**/*.html",
+      "verifast_app/urls.py"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "🔗 **URL PATTERN VALIDATION** 🔗\n\nTemplate or URL configuration has been modified. Please validate URL pattern consistency:\n\n**CRITICAL CHECKS:**\n1. **Template URL References**: Find all `{% url 'app:name' %}` patterns in templates\n2. **URL Pattern Existence**: Verify each referenced URL exists in urls.py\n3. **HTMX Endpoint Validation**: Check hx-get and hx-post URL references\n\n**CURRENT CRITICAL URLS TO VERIFY:**\n- `verifast_app:speed_reader_init` - Used in article_detail.html\n- `verifast_app:speed_reader_complete` - Used in speed_reader_active.html\n- `verifast_app:quiz_start` - Used in article_detail.html\n- `verifast_app:add_comment` - Used in comment forms\n\n**VALIDATION COMMANDS:**\n```bash\n# Check URL patterns\npython manage.py show_urls | grep -E \"(speed_reader|quiz|comment)\"\n\n# Test URL resolution\npython manage.py shell -c \"from django.urls import reverse; print(reverse('verifast_app:speed_reader_init', args=[1]))\"\n```\n\n**COMMON ISSUES:**\n- Missing URL patterns after code refactoring\n- Typos in URL names (speed_reader_init vs speed-reader-init)\n- Missing app_name in urls.py\n- Incorrect parameter patterns (<int:pk> vs <int:article_id>)\n\n**IMMEDIATE ACTIONS:**\n1. Extract all {% url %} references from modified templates\n2. Check each URL exists in verifast_app/urls.py\n3. Verify URL parameter patterns match view function signatures\n4. Test critical HTMX endpoints work correctly\n\n**AUTO-FIX SUGGESTIONS:**\nIf URLs are missing, add them to urls.py:\n```python\npath('speed-reader/init/<int:article_id>/', views.speed_reader_init, name='speed_reader_init'),\npath('speed-reader/complete/<int:article_id>/', views.speed_reader_complete, name='speed_reader_complete'),\n```\n\nReport any missing URL patterns and suggest the correct urlpatterns entries."
+  }
+}

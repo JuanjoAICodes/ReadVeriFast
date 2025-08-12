@@ -1,4 +1,7 @@
 
+/* Premium Font Imports */
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Roboto:wght@400;500;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&display=swap');
+
 .article-card {
     display: flex;
     align-items: center;
@@ -59,9 +62,6 @@ label:has(input:disabled) {
     margin-bottom: 1rem;
     border-left: 4px solid var(--primary);
 }
-
-/* Premium Font Imports */
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Roboto:wght@400;500;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&display=swap');
 
 /* Immersive Speed Reader Styles */
 .immersive-overlay {

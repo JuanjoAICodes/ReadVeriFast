@@ -706,48 +706,31 @@ class ReadingCompleteView(LoginRequiredMixin, View):
         return render(request, 'verifast_app/partials/quiz_unlock.html', context)
 
 
-def speed_reader_complete(request, article_id, article_type='regular'):
-    """Handle reading completion and unlock quiz"""
-    if request.user.is_authenticated:
-        # The following line is a placeholder. The actual implementation will require a function to calculate XP.
-        xp_awarded = 10
-        request.user.total_xp += xp_awarded
-        request.user.current_xp_points += xp_awarded
-        request.user.save()
-    
-    return render(request, 'verifast_app/partials/quiz_unlock.html', {
-        'article_id': article_id,
-        'article_type': article_type,
-        'xp_awarded': xp_awarded if request.user.is_authenticated else 0
-    })
-
-def speed_reader_init(request, article_id, article_type='regular'):
+def speed_reader_init(request, article_id):
     """Initialize speed reader with preprocessed content"""
-    if article_type == 'wikipedia':
-        article = get_object_or_404(WikipediaArticle, id=article_id)
-    else:
-        article = get_object_or_404(Article, id=article_id)
+    article = get_object_or_404(Article, id=article_id)
     
-    user = request.user if request.user.is_authenticated else None
-    # The following line is a placeholder. The actual implementation will require a SpeedReaderService.
-    content_data = {'word_chunks': article.content.split(), 'font_settings': {}, 'reading_settings': {}}
+    # Simple word chunking for now
+    content_data = {
+        'word_chunks': article.content.split() if article.content else [],
+        'font_settings': {},
+        'reading_settings': {}
+    }
     
     return render(request, 'verifast_app/partials/speed_reader_active.html', {
         'word_chunks_json': json.dumps(content_data['word_chunks']),
         'font_settings': content_data['font_settings'],
         'reading_settings': content_data['reading_settings'],
         'article_id': article_id,
-        'article_type': article_type,
-        'total_words': len(content_data['word_chunks'])
+        'article_type': 'regular',
+        'total_words': len(content_data['word_chunks']),
+        'user_wpm': request.user.current_wpm if request.user.is_authenticated else 250
     })
 
-def speed_reader_complete(request, article_id, article_type='regular'):
+def speed_reader_complete(request, article_id):
     """Handle reading completion and unlock quiz"""
     if request.method == 'POST':
-        if article_type == 'wikipedia':
-            article = get_object_or_404(WikipediaArticle, id=article_id)
-        else:
-            article = get_object_or_404(Article, id=article_id)
+        article = get_object_or_404(Article, id=article_id)
         
         user = request.user
         xp_awarded = 0

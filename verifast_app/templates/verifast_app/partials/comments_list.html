@@ -1,6 +1,7 @@
 <!-- Comments List Partial -->
 {% load i18n %}
 
+<div id="comments-list">
 {% for comment in comments %}
     <div class="comment">
         <div class="comment-header">
@@ -56,3 +57,4 @@
 {% empty %}
     <p class="no-comments">{% trans "No comments yet. Be the first to share your thoughts!" %}</p>
 {% endfor %}
+</div>

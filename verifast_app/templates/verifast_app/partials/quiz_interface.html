@@ -1,7 +1,58 @@
-{% if article.quiz_data %}
-<div id="quiz-overlay" class="quiz-overlay" role="dialog" aria-hidden="true">
-    <div class="quiz-overlay-content">
-        <!-- Quiz content structure -->
+{% load i18n %}
+
+<div id="quiz-container" class="quiz-interface">
+    <h3>{% trans "Comprehension Quiz" %}</h3>
+    <p>{% trans "Test your understanding of the article you just read." %}</p>
+    
+    {% if quiz_questions %}
+    <form hx-post="{% url 'verifast_app:quiz_submit_api' %}" 
+          hx-target="#quiz-container"
+          hx-swap="outerHTML"
+          hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+        {% csrf_token %}
+        
+        <input type="hidden" name="article_id" value="{{ article.id }}">
+        <input type="hidden" name="wpm_used" value="{{ user_wpm|default:250 }}">
+        <input type="hidden" name="quiz_time_seconds" value="0" id="quiz-time-input">
+        
+        <div class="quiz-questions">
+            {% for question in quiz_questions %}
+            <div class="quiz-question" data-question="{{ forloop.counter0 }}">
+                <h4>{% trans "Question" %} {{ forloop.counter }}</h4>
+                <p class="question-text">{{ question.question }}</p>
+                <div class="quiz-options">
+                    {% for option in question.options %}
+                    <label class="quiz-option">
+                        <input type="radio" name="question_{{ forloop.parentloop.counter0 }}" value="{{ forloop.counter0 }}" required>
+                        <span>{{ option }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="quiz-controls">
+            <button type="submit" class="primary-btn">
+                {% trans "Submit Quiz" %}
+            </button>
+        </div>
+    </form>
+    
+    <script>
+    // Minimal JavaScript for quiz timing (< 10 lines per HTMX Hybrid Architecture)
+    (function() {
+        const startTime = Date.now();
+        const timeInput = document.getElementById('quiz-time-input');
+        document.querySelector('#quiz-container form').addEventListener('submit', function() {
+            timeInput.value = Math.floor((Date.now() - startTime) / 1000);
+        });
+    })();
+    </script>
+    {% else %}
+    <div class="quiz-unavailable">
+        <h3>{% trans "Quiz Unavailable" %}</h3>
+        <p>{% trans "Quiz is being generated for this article. Please check back later." %}</p>
     </div>
+    {% endif %}
 </div>
-{% endif %}

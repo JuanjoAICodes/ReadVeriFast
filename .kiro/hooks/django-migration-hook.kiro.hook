@@ -11,6 +11,6 @@
   },
   "then": {
     "type": "askAgent",
-    "prompt": "A Django models.py file has been modified. Please:\n\n1. Check if any model changes require database migrations by running `python manage.py makemigrations --dry-run`\n2. If migrations are needed, suggest running `python manage.py makemigrations` \n3. Review the changes to ensure they follow Django best practices:\n   - Proper field types and constraints\n   - Appropriate help_text for fields\n   - Correct relationship configurations (CASCADE, SET_NULL, etc.)\n   - Database indexes for frequently queried fields\n4. Check if the changes integrate properly with the existing XP system and tag analytics\n5. Suggest any additional considerations for the migration (data migration, backward compatibility, etc.)\n\nFocus on preventing forgotten migrations and ensuring database schema stays in sync with model definitions."
+    "prompt": "Django models.py modified. Please check:\n\n1. **Migration Check**: Run `python manage.py makemigrations --dry-run` to check if migrations needed\n2. **Best Practices**: Verify proper field types, help_text, relationship configurations, database indexes\n3. **Integration**: Ensure changes work with existing XP system and tag analytics\n4. **Migration Considerations**: Check for data migration needs and backward compatibility\n\nSuggest running `python manage.py makemigrations` if needed to keep database schema in sync."
   }
 }

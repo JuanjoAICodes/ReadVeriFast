@@ -16,6 +16,8 @@ from .models_content_acquisition import (
 )
 from .models import Article
 from .services.newsdata_service import NewsDataService
+from .services.gnews_service import GNewsService
+from .services.newsapi_service import NewsAPIService
 from .services.rss_service import RSSProcessor
 from .services.content_deduplicator import ContentDeduplicator
 from .services.language_processor import LanguageProcessor
@@ -85,6 +87,86 @@ def acquire_content_from_source(
                 except Exception as e:
                     logger.error(
                         f"Error fetching from NewsData API for {lang}: {str(e)}"
+                    )
+                    continue
+
+        elif source.source_type == "gnews_api":
+            gnews_service = GNewsService()
+
+            # Fetch articles for both languages if source supports both
+            languages = ["en", "es"] if source.language == "both" else [source.language]
+
+            for lang in languages:
+                try:
+                    # Get category from config_data if available
+                    category = source.config_data.get('category', 'general')
+                    country = source.config_data.get('country')
+                    
+                    articles = gnews_service.fetch_top_headlines(
+                        source=source,
+                        language=lang,
+                        category=category,
+                        country=country,
+                        max_articles=max_articles // len(languages),
+                    )
+
+                    articles_found += len(articles)
+
+                    for dto in articles:
+                        processed = _process_article_dto(
+                            dto, deduplicator, language_processor
+                        )
+                        if processed == "processed":
+                            articles_processed += 1
+                        elif processed == "duplicate":
+                            articles_duplicated += 1
+                        else:
+                            articles_rejected += 1
+
+                except Exception as e:
+                    logger.error(
+                        f"Error fetching from GNews API for {lang}: {str(e)}"
+                    )
+                    continue
+
+        elif source.source_type == "newsapi":
+            newsapi_service = NewsAPIService()
+
+            # Fetch articles for both languages if source supports both
+            languages = ["en", "es"] if source.language == "both" else [source.language]
+
+            for lang in languages:
+                try:
+                    # Get configuration from config_data
+                    category = source.config_data.get('category', 'general')
+                    country = source.config_data.get('country')
+                    sources = source.config_data.get('sources')
+                    
+                    articles = newsapi_service.fetch_top_headlines(
+                        source=source,
+                        language=lang,
+                        category=category,
+                        country=country,
+                        sources=sources,
+                        max_articles=max_articles // len(languages),
+                    )
+
+                    articles_found += len(articles)
+
+                    for dto in articles:
+                        processed = _process_article_dto(
+                            dto, deduplicator, language_processor
+                        )
+                        if processed == "processed":
+                            articles_processed += 1
+                        elif processed == "duplicate":
+                            articles_duplicated += 1
+                        else:
+                            articles_rejected += 1
+
+                except Exception as e:
+                    logger.error(
+                        f"Error fetching from NewsAPI for {lang}: {str(e)}"
                     )
                     continue
 
@@ -409,7 +491,6 @@ def _process_article_dto(
                 content=dto.content,
                 language=dto.language,
                 publication_date=dto.publication_date,
-                author=dto.author,
                 processing_status="pending",
                 word_count=len(dto.content.split()),
                 acquisition_source=dto.source_id,
@@ -425,7 +506,7 @@ def _process_article_dto(
 
                 for tag_name in dto.tags[:5]:  # Limit to 5 tags
                     tag, created = Tag.objects.get_or_create(
-                        name=tag_name.strip(), defaults={"language": dto.language}
+                        name=tag_name.strip()
                     )
                     article.tags.add(tag)
 

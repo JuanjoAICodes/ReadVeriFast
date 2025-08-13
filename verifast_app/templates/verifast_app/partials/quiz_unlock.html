@@ -1,1 +1,96 @@
-<p>Quiz unlocked!</p>
+{% load i18n %}
+
+<section id="quiz-section" class="quiz-section">
+    <div class="quiz-unlock-success">
+        <div class="success-icon">🎉</div>
+        <h3>{% trans "Reading Complete!" %}</h3>
+        <p>{% trans "Great job! You've finished reading the article." %}</p>
+        
+        {% if xp_awarded > 0 %}
+        <div class="xp-reward">
+            <span class="xp-icon">⭐</span>
+            <span class="xp-text">{% blocktrans with xp=xp_awarded %}You earned {{ xp }} XP for reading!{% endblocktrans %}</span>
+        </div>
+        {% endif %}
+        
+        <div class="quiz-unlock-actions">
+            <h4>{% trans "Ready for the Quiz?" %}</h4>
+            <p>{% trans "Test your comprehension and earn more XP!" %}</p>
+            
+            <button hx-get="{% url 'verifast_app:quiz_start' article.id %}" 
+                    hx-target="#quiz-section"
+                    hx-swap="outerHTML" 
+                    type="button" 
+                    class="primary quiz-start-btn">
+                {% trans "Start Quiz" %} 🧠
+            </button>
+        </div>
+    </div>
+</section>
+
+<style>
+.quiz-unlock-success {
+    text-align: center;
+    padding: 2rem;
+    background: var(--card-background-color);
+    border: 1px solid var(--muted-border-color);
+    border-radius: var(--border-radius);
+    margin: 1rem 0;
+}
+
+.success-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.quiz-unlock-success h3 {
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.quiz-unlock-success p {
+    color: var(--muted-color);
+    margin-bottom: 1.5rem;
+}
+
+.xp-reward {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #ffc107;
+    color: #212529;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 2rem;
+    font-weight: bold;
+}
+
+.xp-icon {
+    font-size: 1.2rem;
+}
+
+.quiz-unlock-actions h4 {
+    color: var(--color);
+    margin-bottom: 0.5rem;
+}
+
+.quiz-unlock-actions p {
+    margin-bottom: 1.5rem;
+}
+
+.quiz-start-btn {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: bold;
+    background: var(--primary);
+    color: var(--primary-inverse);
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.quiz-start-btn:hover {
+    background: var(--primary-hover);
+}
+</style>

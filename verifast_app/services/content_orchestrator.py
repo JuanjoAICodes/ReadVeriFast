@@ -454,7 +454,6 @@ class ContentAcquisitionOrchestrator:
                     content=dto.content,
                     language=dto.language,
                     publication_date=dto.publication_date,
-                    author=dto.author,
                     processing_status='pending',
                     word_count=len(dto.content.split()),
                     acquisition_source=dto.source_id,
@@ -469,8 +468,7 @@ class ContentAcquisitionOrchestrator:
                     from ..models import Tag
                     for tag_name in dto.tags[:5]:  # Limit to 5 tags
                         tag, created = Tag.objects.get_or_create(
-                            name=tag_name.strip(),
-                            defaults={'language': dto.language}
+                            name=tag_name.strip()
                         )
                         article.tags.add(tag)
                 

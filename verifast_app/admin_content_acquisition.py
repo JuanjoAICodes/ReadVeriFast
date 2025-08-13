@@ -116,6 +116,14 @@ class ContentSourceAdmin(admin.ModelAdmin):
                 from .services.newsdata_service import NewsDataService
                 service = NewsDataService()
                 success, message = service.test_connection(source)
+            elif source.source_type == 'gnews_api':
+                from .services.gnews_service import GNewsService
+                service = GNewsService()
+                success, message = service.test_connection(source)
+            elif source.source_type == 'newsapi':
+                from .services.newsapi_service import NewsAPIService
+                service = NewsAPIService()
+                success, message = service.test_connection(source)
             elif source.source_type == 'rss':
                 from .services.rss_service import RSSProcessor
                 service = RSSProcessor()
@@ -360,7 +368,7 @@ class ContentAcquisitionJobAdmin(admin.ModelAdmin):
     def success_rate_display(self, obj):
         """Display success rate"""
         rate = obj.get_success_rate()
-        if rate > 0:
+        if isinstance(rate, (int, float)) and rate > 0:
             color = 'green' if rate >= 80 else 'orange' if rate >= 60 else 'red'
             return format_html(
                 '<span style="color: {};">{:.1f}%</span>',
@@ -415,11 +423,13 @@ class AcquisitionMetricsAdmin(admin.ModelAdmin):
     def success_rate_display(self, obj):
         """Display success rate"""
         rate = obj.get_success_rate()
-        color = 'green' if rate >= 80 else 'orange' if rate >= 60 else 'red'
-        return format_html(
-            '<span style="color: {};">{:.1f}%</span>',
-            color, rate
-        )
+        if isinstance(rate, (int, float)):
+            color = 'green' if rate >= 80 else 'orange' if rate >= 60 else 'red'
+            return format_html(
+                '<span style="color: {};">{:.1f}%</span>',
+                color, rate
+            )
+        return "-"
     success_rate_display.short_description = 'Success Rate'
 
 

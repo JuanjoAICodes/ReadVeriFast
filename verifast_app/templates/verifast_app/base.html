@@ -13,6 +13,9 @@
     <!-- HTMX for hybrid architecture -->
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     
+    <!-- Alpine.js for reactive components -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
     <!-- JavaScript Internationalization -->
     <script id="js-translations" type="application/json">{{ js_translations_json|safe }}</script>
 </head>
@@ -25,7 +28,7 @@
             <li><a href="{% url 'verifast_app:article_list' %}">{% trans "Articles" %}</a></li>
             {% if user.is_authenticated %}
                 <li><a href="{% url 'verifast_app:user_profile' %}">{% trans "Profile" %}</a></li>
-                <li><strong>{% trans "XP" %}:</strong> {{ total_xp|default:"0" }}</li>
+                <li><strong>{% trans "XP" %}:</strong> {{ total_xp|default:0 }}</li>
             {% endif %}
             <li><a href="{% url 'verifast_app:scrape_article' %}" role="button" class="secondary">{% trans "Submit Article" %}</a></li>
         </ul>

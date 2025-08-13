@@ -85,16 +85,31 @@
 {% endblock %}
 
 {% block content %}
-<div class="dashboard-content">
+<div class="dashboard-content" x-data="dashboard">
     <h1>{{ title }}</h1>
     
-    <!-- Action Buttons -->
+    <!-- Action Buttons - HTMX Compliant -->
     <div class="action-buttons">
-        <a href="{% url 'admin:orchestrate_acquisition' %}" class="button default">Manual Orchestration</a>
+        <button hx-get="{% url 'admin:verifast_app_contentsource_changelist' %}orchestrate/" 
+                hx-target="#dashboard-content" 
+                hx-swap="innerHTML" 
+                class="button default">
+            Manual Orchestration
+        </button>
         <a href="{% url 'admin:verifast_app_contentsource_add' %}" class="button">Add Source</a>
         <a href="{% url 'admin:verifast_app_contentsource_changelist' %}" class="button">Manage Sources</a>
-        <button onclick="triggerHealthCheck()" class="button">Health Check All</button>
+        <button hx-post="{% url 'admin:verifast_app_contentsource_changelist' %}" 
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' 
+                hx-vals='{"action": "test_connection"}' 
+                hx-target="#health-status" 
+                hx-swap="innerHTML" 
+                class="button">
+            Health Check All
+        </button>
     </div>
+    
+    <!-- Health Status Container -->
+    <div id="health-status"></div>
     
     <!-- Statistics Overview -->
     <div class="dashboard-stats">
@@ -224,28 +239,18 @@
 </div>
 
 <script>
-function triggerHealthCheck() {
-    if (confirm('This will test all content sources. Continue?')) {
-        fetch('{% url "admin:verifast_app_contentsource_changelist" %}', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: 'action=test_connection&_selected_action=' + 
-                  Array.from(document.querySelectorAll('input[name="_selected_action"]'))
-                       .map(cb => cb.value).join('&_selected_action=')
-        }).then(response => {
-            if (response.ok) {
-                location.reload();
-            } else {
-                alert('Health check failed. Please try again.');
-            }
-        });
-    }
-}
-
-// Auto-refresh every 30 seconds
-setTimeout(() => location.reload(), 30000);
+// Minimal Alpine.js component for auto-refresh (under 30 lines)
+document.addEventListener('alpine:init', () => {
+    Alpine.data('dashboard', () => ({
+        init() {
+            // Auto-refresh every 30 seconds
+            setInterval(() => {
+                if (document.visibilityState === 'visible') {
+                    location.reload();
+                }
+            }, 30000);
+        }
+    }));
+});
 </script>
 {% endblock %}

@@ -6,7 +6,7 @@
         <li><a href="{% url 'verifast_app:browse_articles' %}">{% trans "Browse Articles" %}</a></li>
         {% if user.is_authenticated %}
             <li><a href="{% url 'verifast_app:user_profile' %}">{% trans "Profile" %}</a></li>
-            <li><strong>{% trans "XP" %}:</strong> {{ total_xp|default:"0" }}</li>
+            <li><strong>{% trans "XP" %}:</strong> {{ total_xp|default:0 }}</li>
         {% endif %}
         <li><a href="{% url 'verifast_app:scrape_article' %}" role="button" class="secondary">{% trans "Submit Article" %}</a></li>
     </ul>

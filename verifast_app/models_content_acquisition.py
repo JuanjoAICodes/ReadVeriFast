@@ -16,6 +16,8 @@ class ContentSource(models.Model):
     SOURCE_TYPES = [
         ('rss', 'RSS Feed'),
         ('newsdata_api', 'NewsData.io API'),
+        ('gnews_api', 'GNews API'),
+        ('newsapi', 'NewsAPI.org'),
         ('scraper', 'Web Scraper'),
         ('manual', 'Manual Submission')
     ]

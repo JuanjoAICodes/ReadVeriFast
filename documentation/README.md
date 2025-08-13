@@ -107,13 +107,22 @@ documentation/
 
 ### Agent Hooks
 **Location**: `.kiro/hooks/`  
-**Purpose**: Automated development workflows
+**Purpose**: Automated development workflows (optimized for performance and clarity)
 
-- `python-code-quality.kiro.hook` - Code quality checks
+- `python-code-quality.kiro.hook` - Ruff linting and MyPy type checking
 - `django-migration-hook.kiro.hook` - Database migration automation
-- `i18n-localization-hook.kiro.hook` - Internationalization support
-- `template-validation-hook.kiro.hook` - Template validation
-- `xp-validation-hook.kiro.hook` - XP system validation
+- `i18n-localization-hook.kiro.hook` - Internationalization compliance
+- `template-validation-hook.kiro.hook` - Django template syntax validation
+- `xp-validation-hook.kiro.hook` - XP system logic validation
+- `api-docs-sync.kiro.hook` - API documentation synchronization
+- `comment-form-debugger.kiro.hook` - Comment system debugging
+- `duplicate-function-prevention.kiro.hook` - Prevents duplicate function definitions
+- `htmx-development-hook.kiro.hook` - HTMX hybrid architecture compliance
+- `htmx-implementation-guide.kiro.hook` - HTMX implementation guidance
+- `htmx-performance-monitor.kiro.hook` - HTMX performance monitoring
+- `htmx-template-validation.kiro.hook` - HTMX template pattern validation
+- `template-syntax-fixer.kiro.hook` - Emergency template syntax fixes
+- `url-pattern-validation.kiro.hook` - URL pattern consistency checks
 
 ## 📊 Project Status Summary
 

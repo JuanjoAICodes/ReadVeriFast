@@ -1,0 +1,75 @@
+{% load i18n %}
+
+<div class="speed-reader-error">
+    <div class="error-message">
+        <div class="error-icon">⚠️</div>
+        <h3>{% trans "Unable to Start Speed Reader" %}</h3>
+        <p>{{ error_message }}</p>
+        <div class="error-actions">
+            <button onclick="location.reload()" class="secondary">
+                {% trans "Refresh Page" %}
+            </button>
+            <a href="{% url 'verifast_app:article_list' %}" class="primary">
+                {% trans "Browse Other Articles" %}
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+.speed-reader-error {
+    padding: 2rem;
+    text-align: center;
+    background: var(--card-background-color);
+    border: 1px solid var(--muted-border-color);
+    border-radius: var(--border-radius);
+    margin: 1rem 0;
+}
+
+.error-message {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.error-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.error-message h3 {
+    color: var(--color);
+    margin-bottom: 1rem;
+}
+
+.error-message p {
+    color: var(--muted-color);
+    margin-bottom: 2rem;
+}
+
+.error-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.error-actions button,
+.error-actions a {
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius);
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.error-actions .primary {
+    background: var(--primary);
+    color: var(--primary-inverse);
+}
+
+.error-actions .secondary {
+    background: var(--secondary);
+    color: var(--secondary-inverse);
+}
+</style>

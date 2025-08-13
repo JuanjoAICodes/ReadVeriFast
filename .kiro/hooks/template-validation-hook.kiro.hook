@@ -12,6 +12,6 @@
   },
   "then": {
     "type": "askAgent",
-    "prompt": "A Django HTML template has been modified. Please validate the template for:\n\n1. Django template syntax errors (check for proper tag closing, variable syntax, template inheritance)\n2. PicoCSS compliance (ensure semantic HTML structure, proper use of PicoCSS classes and conventions)\n3. Integration with existing VeriFast patterns (check for proper context variable usage, XP system integration, tag analytics display)\n\nFocus on catching common issues like:\n- Unclosed template tags ({% if %} without {% endif %})\n- Invalid variable syntax ({{ variable }} vs {% variable %})\n- Missing CSRF tokens in forms\n- Improper PicoCSS semantic structure\n- Accessibility concerns with HTML structure\n\nProvide specific feedback on any issues found and suggest corrections."
+    "prompt": "Django template modified. Please validate:\n\n1. **Template Syntax**: Check for unclosed tags, proper variable syntax, template inheritance\n2. **PicoCSS Compliance**: Ensure semantic HTML structure and proper CSS class usage\n3. **VeriFast Integration**: Verify context variable usage, XP system integration\n4. **Forms**: Check for missing CSRF tokens and proper form structure\n5. **Accessibility**: Validate HTML structure for accessibility compliance\n\nReport specific issues found and suggest corrections."
   }
 }

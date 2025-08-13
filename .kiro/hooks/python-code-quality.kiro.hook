@@ -6,11 +6,12 @@
   "when": {
     "type": "fileEdited",
     "patterns": [
-      "**/*.py"
+      "verifast_app/*.py",
+      "config/*.py"
     ]
   },
   "then": {
     "type": "askAgent",
-    "prompt": "A Python file has been modified or created. Please run the following code quality checks to ensure compliance:\n\n1. Run Ruff linting: `ruff check .` to identify and fix code style issues\n2. Run MyPy type checking: `mypy .` to verify type annotations and catch type errors\n3. If the file contains Pydantic models, validate the model definitions for proper structure and validation rules\n\nPlease report any issues found and suggest fixes if needed. Focus on maintaining clean, well-typed, and properly validated Python code."
+    "prompt": "Python file modified. Please run code quality checks:\n\n1. **Ruff Linting**: Run `ruff check .` to identify code style issues\n2. **Type Checking**: Run `mypy .` to verify type annotations\n3. **Pydantic Models**: If present, validate model definitions and validation rules\n\nReport any issues found and suggest fixes to maintain clean, well-typed Python code."
   }
 }

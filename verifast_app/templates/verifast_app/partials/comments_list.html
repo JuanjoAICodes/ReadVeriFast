@@ -2,7 +2,7 @@
 {% load i18n %}
 
 <div id="comments-list">
-{% for comment in comments %}
+    {% for comment in comments %}
     <div class="comment">
         <div class="comment-header">
             <strong>{{ comment.user.username }}</strong>
@@ -12,49 +12,59 @@
             {{ comment.content }}
         </div>
         <div class="comment-actions">
+            <!-- Interaction counts display - Using pre-calculated counts from optimized query -->
+            <div class="interaction-counts">
+                {% if comment.bronze_count > 0 %}
+                <span class="interaction-count bronze">🥉 {{ comment.bronze_count }}</span>
+                {% endif %}
+                {% if comment.silver_count > 0 %}
+                <span class="interaction-count silver">🥈 {{ comment.silver_count }}</span>
+                {% endif %}
+                {% if comment.gold_count > 0 %}
+                <span class="interaction-count gold">🥇 {{ comment.gold_count }}</span>
+                {% endif %}
+            </div>
+
+            <!-- Interaction buttons for authenticated users -->
             {% if user.is_authenticated %}
-                <button class="interaction-btn bronze" 
-                        hx-post="{% url 'verifast_app:comment_interact' comment.id %}"
-                        hx-vals='{"type": "bronze"}'
-                        hx-target="#comments-list"
-                        hx-swap="innerHTML">
-                    {% trans "Bronze" %} (5 XP)
+            <div class="interaction-buttons">
+                <button class="interaction-btn bronze" hx-post="{% url 'verifast_app:comment_interact' comment.id %}"
+                    hx-vals='{"type": "BRONZE"}' hx-target="#comments-list" hx-swap="outerHTML"
+                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+                    🥉 {% trans "Bronze" %} (5 XP)
                 </button>
-                <button class="interaction-btn silver"
-                        hx-post="{% url 'verifast_app:comment_interact' comment.id %}"
-                        hx-vals='{"type": "silver"}'
-                        hx-target="#comments-list"
-                        hx-swap="innerHTML">
-                    {% trans "Silver" %} (15 XP)
+                <button class="interaction-btn silver" hx-post="{% url 'verifast_app:comment_interact' comment.id %}"
+                    hx-vals='{"type": "SILVER"}' hx-target="#comments-list" hx-swap="outerHTML"
+                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+                    🥈 {% trans "Silver" %} (15 XP)
                 </button>
-                <button class="interaction-btn gold"
-                        hx-post="{% url 'verifast_app:comment_interact' comment.id %}"
-                        hx-vals='{"type": "gold"}'
-                        hx-target="#comments-list"
-                        hx-swap="innerHTML">
-                    {% trans "Gold" %} (30 XP)
+                <button class="interaction-btn gold" hx-post="{% url 'verifast_app:comment_interact' comment.id %}"
+                    hx-vals='{"type": "GOLD"}' hx-target="#comments-list" hx-swap="outerHTML"
+                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+                    🥇 {% trans "Gold" %} (30 XP)
                 </button>
+            </div>
             {% endif %}
         </div>
-        
+
         <!-- Nested replies -->
         {% if comment.replies.exists %}
-            <div class="comment-replies">
-                {% for reply in comment.replies.all %}
-                    <div class="comment reply">
-                        <div class="comment-header">
-                            <strong>{{ reply.user.username }}</strong>
-                            <span class="comment-date">{{ reply.timestamp|date:"M j, Y g:i A" }}</span>
-                        </div>
-                        <div class="comment-content">
-                            {{ reply.content }}
-                        </div>
-                    </div>
-                {% endfor %}
+        <div class="comment-replies">
+            {% for reply in comment.replies.all %}
+            <div class="comment reply">
+                <div class="comment-header">
+                    <strong>{{ reply.user.username }}</strong>
+                    <span class="comment-date">{{ reply.timestamp|date:"M j, Y g:i A" }}</span>
+                </div>
+                <div class="comment-content">
+                    {{ reply.content }}
+                </div>
             </div>
+            {% endfor %}
+        </div>
         {% endif %}
     </div>
-{% empty %}
+    {% empty %}
     <p class="no-comments">{% trans "No comments yet. Be the first to share your thoughts!" %}</p>
-{% endfor %}
+    {% endfor %}
 </div>

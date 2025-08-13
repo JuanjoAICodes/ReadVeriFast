@@ -1,0 +1,12 @@
+{% load i18n %}
+
+<div id="quiz-container" class="quiz-unavailable">
+    <h3>{% trans "Quiz Unavailable" %}</h3>
+    <p>{% trans "Quiz is being generated for this article. Please check back later." %}</p>
+    
+    <div class="quiz-unavailable-actions">
+        <button onclick="location.reload()" class="secondary-btn">
+            {% trans "Refresh Page" %}
+        </button>
+    </div>
+</div>

@@ -45,8 +45,8 @@ class RSSProcessor:
     def _detect_language(self, text: str) -> str:
         """Detect language of text content"""
         try:
-            from langdetect import detect
-            detected = detect(text)
+            import langdetect
+            detected = langdetect.detect(text)
             
             # Map detected languages to our supported languages
             if detected in ['en']:
@@ -57,6 +57,9 @@ class RSSProcessor:
                 # Default to English for unsupported languages
                 return 'en'
                 
+        except ImportError:
+            logger.warning("Language detection failed: langdetect package not available")
+            return 'en'  # Default to English
         except Exception as e:
             logger.warning(f"Language detection failed: {str(e)}")
             return 'en'  # Default to English
@@ -102,7 +105,8 @@ class RSSProcessor:
         
         try:
             # Convert time tuple to datetime
-            return datetime(*date_tuple[:6], tzinfo=timezone.utc)
+            from datetime import timezone as dt_timezone
+            return datetime(*date_tuple[:6], tzinfo=dt_timezone.utc)
         except (ValueError, TypeError):
             return None
     

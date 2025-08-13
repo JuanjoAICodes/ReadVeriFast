@@ -5,6 +5,12 @@ from .models import (
     AdminCorrectionDataset, XPTransaction, FeaturePurchase
 )
 
+# Import content acquisition admin to register models
+try:
+    from . import admin_content_acquisition
+except ImportError:
+    pass  # Content acquisition admin not available
+
 
 @admin.register(Article)
 class ArticleAdmin(admin.ModelAdmin):
@@ -13,7 +19,7 @@ class ArticleAdmin(admin.ModelAdmin):
     list_filter = ('processing_status', 'source', 'language', 'article_type')
     search_fields = ('title', 'url')
     filter_horizontal = ('tags',)
-    actions = ['retry_processing', 'reprocess_quiz']
+    actions = ['retry_processing', 'reprocess_quiz', 'start_content_motor']
 
     @admin.display(description=_('Has Quiz'), boolean=True)
     def has_quiz(self, obj):
@@ -45,6 +51,75 @@ class ArticleAdmin(admin.ModelAdmin):
             else:
                 process_article.delay(article.id)
         self.message_user(request, _("Reprocessing %(count)d articles for quiz generation.") % {'count': queryset.count()})
+
+    @admin.display(description=_('🚀 Start Content Motor - Find New Articles'))
+    def start_content_motor(self, request, queryset):
+        """Start the content motor to acquire new articles from configured sources"""
+        try:
+            # Import content acquisition components
+            from .models_content_acquisition import ContentSource
+            from .tasks_content_acquisition import acquire_content_from_source
+            
+            # Get active content sources
+            active_sources = ContentSource.objects.filter(is_active=True)
+            
+            if not active_sources.exists():
+                self.message_user(
+                    request, 
+                    _("No active content sources found. Please configure content sources first."),
+                    level='WARNING'
+                )
+                return
+            
+            # Trigger acquisition for all active sources
+            triggered_count = 0
+            task_ids = []
+            
+            for source in active_sources:
+                can_request, reason = source.can_make_request()
+                
+                if can_request:
+                    task = acquire_content_from_source.delay(source.id, 'manual', 15)
+                    task_ids.append(task.id)
+                    triggered_count += 1
+                else:
+                    self.message_user(
+                        request,
+                        f"Skipped {source.name}: {reason}",
+                        level='WARNING'
+                    )
+            
+            if triggered_count > 0:
+                self.message_user(
+                    request,
+                    _(
+                        "🚀 Content Motor started! Triggered acquisition for %(count)d sources. "
+                        "Task IDs: %(tasks)s. Check the Content Acquisition Jobs in admin to monitor progress."
+                    ) % {
+                        'count': triggered_count,
+                        'tasks': ', '.join(task_ids[:3]) + ('...' if len(task_ids) > 3 else '')
+                    },
+                    level='SUCCESS'
+                )
+            else:
+                self.message_user(
+                    request,
+                    _("No content sources were available for acquisition. Check source health and rate limits."),
+                    level='WARNING'
+                )
+                
+        except ImportError:
+            self.message_user(
+                request,
+                _("Content acquisition system not available. Please ensure all content acquisition modules are installed."),
+                level='ERROR'
+            )
+        except Exception as e:
+            self.message_user(
+                request,
+                _("Error starting content motor: %(error)s") % {'error': str(e)},
+                level='ERROR'
+            )
 
     fieldsets = (
         (_('Basic Information'), {

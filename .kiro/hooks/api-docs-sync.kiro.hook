@@ -12,6 +12,6 @@
   },
   "then": {
     "type": "askAgent",
-    "prompt": "The API files have been modified. Please analyze the changes in api_views.py and serializers.py and update the API documentation accordingly. Focus on:\n\n1. New or modified API endpoints in api_views.py\n2. Changes to serializer fields and validation in serializers.py\n3. Updated request/response formats\n4. Authentication and permission changes\n5. Any new error responses or status codes\n\nUpdate the documentation in documentation/api/ to reflect these changes and ensure all endpoints are properly documented with examples."
+    "prompt": "API files modified. Please update documentation:\n\n1. **Endpoint Changes**: Check for new or modified API endpoints in api_views.py\n2. **Serializer Changes**: Review serializer field and validation changes\n3. **Request/Response Formats**: Update documentation for format changes\n4. **Authentication**: Check for permission and authentication changes\n5. **Documentation Update**: Update documentation/api/ with changes and examples\n\nEnsure all endpoints are properly documented with current request/response formats."
   }
 }

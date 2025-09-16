@@ -2,8 +2,6 @@
 # Exit on error
 set -o errexit
 
-
-
 # Install dependencies
 export BLIS_ARCH="generic"
 pip install -r requirements.txt

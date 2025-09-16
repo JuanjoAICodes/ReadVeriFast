@@ -1,2 +1,2 @@
 web: gunicorn config.wsgi:application
-worker: celery -A config.celery worker -Q acquisition --loglevel=info
+worker: celery -A config.celery worker -Q acquisition,database_ops --loglevel=info

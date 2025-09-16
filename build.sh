@@ -2,6 +2,9 @@
 # Exit on error
 set -o errexit
 
+# Ensure this script is executable (self-chmod)
+chmod +x build.sh
+
 # Install dependencies
 export BLIS_ARCH="generic"
 pip install -r requirements.txt

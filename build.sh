@@ -2,6 +2,31 @@
 # Exit on error
 set -o errexit
 
+# Recreate the requirements.txt file to ensure it's clean
+cat << EOF > requirements.txt
+Django==5.2.4
+gunicorn==23.0.0
+whitenoise==6.7.0
+psycopg2-binary==2.9.9
+dj-database-url==0.5.0
+celery==5.3.6
+redis==6.2.0
+google-api-python-client==2.173.0
+google-auth-httplib2==0.2.0
+beautifulsoup4==4.13.4
+newspaper3k==0.2.8
+lxml==5.4.0
+requests==2.32.4
+spacy==3.7.5
+textstat==0.7.3
+nltk==3.9.1
+wikipedia==1.4.0
+django-htmx==1.17.2
+django-countries==7.6.0
+Babel==2.17.0
+djangorestframework==3.15.1
+EOF
+
 # Install dependencies
 pip install -r requirements.txt
 

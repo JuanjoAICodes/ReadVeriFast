@@ -128,6 +128,7 @@ def generate_master_analysis(model_name: str, entity_list: list, article_text: s
 4. Ensure questions cover the breadth and depth of the article's content
 5. Generate exactly {question_count} questions based on the article's length and complexity
 6. Each question should test understanding of a distinct main point or concept
+Generate the quiz questions, options, and answers in English.
 
 **TAGS GENERATION INSTRUCTIONS:**
 Perform co-reference resolution on the provided entities and select the 5-7 most important canonical names.
@@ -162,6 +163,7 @@ Return only the raw JSON object and nothing else.""",
 4. Asegúrate de que las preguntas cubran la amplitud y profundidad del contenido del artículo
 5. Genera exactamente {question_count} preguntas basadas en la longitud y complejidad del artículo
 6. Cada pregunta debe evaluar la comprensión de un punto principal o concepto distinto
+Genera las preguntas del quiz, las opciones y las respuestas en español.
 
 **INSTRUCCIONES PARA GENERACIÓN DE ETIQUETAS:**
 Realiza resolución de correferencia en las entidades proporcionadas y selecciona los 5-7 nombres canónicos más importantes.

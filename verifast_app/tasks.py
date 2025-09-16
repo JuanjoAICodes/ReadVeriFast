@@ -284,7 +284,7 @@ def scrape_and_save_article(url):
             image_url=article.top_image,
             source="user_submission",
             processing_status='pending', # IMPORTANT
-            language=article.language # Add this line to save the detected language
+            language=article.language or 'en' # Add this line to save the detected language
         )
         # Now, trigger the processing task for the new article
         process_article.delay(new_article.id)

@@ -1,8 +1,9 @@
 # Environments
 .env
+
 .venv
 venv/
-verifast/
+
 __pycache__/
 *.pyc
 
@@ -48,4 +49,5 @@ fix_*.py
 list_*.py
 agent.py
 
-.env
+
+_old_flask_project/

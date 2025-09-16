@@ -122,9 +122,10 @@ class DatabaseLockManager:
         self.close_on_exit = close_on_exit
         
     def __enter__(self):
-        # Set a longer timeout for this operation
-        with connection.cursor() as cursor:
-            cursor.execute(f"PRAGMA busy_timeout={self.timeout * 1000}")
+        # Set a longer timeout for this operation if using SQLite
+        if connection.vendor == 'sqlite':
+            with connection.cursor() as cursor:
+                cursor.execute(f"PRAGMA busy_timeout={self.timeout * 1000}")
         return self
         
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -139,61 +140,6 @@ class DatabaseLockManager:
         return False  # Don't suppress exceptions
 
 
-def optimize_sqlite_connection():
-    """
-    Apply SQLite optimizations to the current connection.
-    """
-    try:
-        with connection.cursor() as cursor:
-            # Apply optimizations
-            cursor.execute("PRAGMA journal_mode=WAL")
-            cursor.execute("PRAGMA synchronous=NORMAL")
-            cursor.execute("PRAGMA cache_size=1000")
-            cursor.execute("PRAGMA temp_store=memory")
-            cursor.execute("PRAGMA busy_timeout=60000")
-            cursor.execute("PRAGMA wal_autocheckpoint=1000")
-            
-        logger.debug("SQLite connection optimized")
-    except Exception as e:
-        logger.warning(f"Failed to optimize SQLite connection: {e}")
 
 
-def get_database_status():
-    """
-    Get current database status and lock information.
-    
-    Returns:
-        Dict with database status information
-    """
-    try:
-        with connection.cursor() as cursor:
-            status = {}
-            
-            # Check journal mode
-            cursor.execute("PRAGMA journal_mode")
-            status['journal_mode'] = cursor.fetchone()[0]
-            
-            # Check if database is locked
-            try:
-                cursor.execute("BEGIN IMMEDIATE")
-                cursor.execute("ROLLBACK")
-                status['locked'] = False
-            except OperationalError:
-                status['locked'] = True
-            
-            # Get database size
-            cursor.execute("PRAGMA page_count")
-            page_count = cursor.fetchone()[0]
-            cursor.execute("PRAGMA page_size")
-            page_size = cursor.fetchone()[0]
-            status['size_mb'] = (page_count * page_size) / (1024 * 1024)
-            
-            # Get connection count (approximation)
-            cursor.execute("PRAGMA database_list")
-            status['databases'] = len(cursor.fetchall())
-            
-            return status
-            
-    except Exception as e:
-        logger.error(f"Failed to get database status: {e}")
-        return {'error': str(e)}
+

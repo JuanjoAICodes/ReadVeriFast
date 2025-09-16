@@ -2,5 +2,5 @@
 # Exit on error
 set -o errexit
 
-# Start Gunicorn
-gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+# Start all services with Honcho
+honcho -f Procfile.production start

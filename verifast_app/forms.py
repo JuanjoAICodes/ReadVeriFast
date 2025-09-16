@@ -23,7 +23,7 @@ class CustomUserCreationForm(UserCreationForm):
 
     class Meta:
         model = CustomUser
-        fields = ('username', 'email', 'password1', 'password2', 'preferred_language')
+        fields = ('username', 'email', 'password', 'preferred_language')
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -38,7 +38,7 @@ class CustomUserCreationForm(UserCreationForm):
             user.save()
         return user
 
-class UserProfileForm(forms.ModelForm):
+class FeatureControlForm(forms.ModelForm):
     font_choice = forms.ChoiceField(
         choices=[
             ('default', _('Default')),
@@ -67,23 +67,7 @@ class UserProfileForm(forms.ModelForm):
 
     class Meta:
         model = CustomUser
-        fields = [
-            'first_name', 'last_name', 'email', 
-            'preferred_language', 'theme', 'current_wpm',
-            'has_smart_connector_grouping', 'has_smart_symbol_handling',
-        ]
-        widgets = {
-            'current_wpm': forms.NumberInput(attrs={'min': 100, 'max': 1000, 'step': 10}),
-            'preferred_language': forms.Select(choices=[('en', _('English')), ('es', _('Spanish'))]),
-            'theme': forms.Select(choices=[('light', _('Light')), ('dark', _('Dark'))]),
-            'has_smart_connector_grouping': forms.CheckboxInput(),
-            'has_smart_symbol_handling': forms.CheckboxInput(),
-        }
-        help_texts = {
-            'current_wpm': _('Your preferred reading speed (100-1000 words per minute)'),
-            'preferred_language': _('Language for content and interface'),
-            'theme': _('Visual theme preference'),
-        }
+        fields = ['has_smart_connector_grouping', 'has_smart_symbol_handling']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -118,18 +102,38 @@ class UserProfileForm(forms.ModelForm):
         user = super().save(commit=False)
 
         # Handle font_choice
-        user.has_font_opensans = (self.cleaned_data['font_choice'] == 'has_font_opensans')
-        user.has_font_opendyslexic = (self.cleaned_data['font_choice'] == 'has_font_opendyslexic')
-        user.has_font_roboto = (self.cleaned_data['font_choice'] == 'has_font_roboto')
-        user.has_font_merriweather = (self.cleaned_data['font_choice'] == 'has_font_merriweather')
-        user.has_font_playfair = (self.cleaned_data['font_choice'] == 'has_font_playfair')
+        font_choice = self.cleaned_data.get('font_choice', 'default')
+        user.has_font_opensans = (font_choice == 'has_font_opensans')
+        user.has_font_opendyslexic = (font_choice == 'has_font_opendyslexic')
+        user.has_font_roboto = (font_choice == 'has_font_roboto')
+        user.has_font_merriweather = (font_choice == 'has_font_merriweather')
+        user.has_font_playfair = (font_choice == 'has_font_playfair')
 
         # Handle chunking_choice
-        user.has_2word_chunking = (self.cleaned_data['chunking_choice'] == 'has_2word_chunking')
-        user.has_3word_chunking = (self.cleaned_data['chunking_choice'] == 'has_3word_chunking')
-        user.has_4word_chunking = (self.cleaned_data['chunking_choice'] == 'has_4word_chunking')
-        user.has_5word_chunking = (self.cleaned_data['chunking_choice'] == 'has_5word_chunking')
+        chunking_choice = self.cleaned_data.get('chunking_choice', 'default')
+        user.has_2word_chunking = (chunking_choice == 'has_2word_chunking')
+        user.has_3word_chunking = (chunking_choice == 'has_3word_chunking')
+        user.has_4word_chunking = (chunking_choice == 'has_4word_chunking')
+        user.has_5word_chunking = (chunking_choice == 'has_5word_chunking')
 
         if commit:
             user.save()
         return user
+
+class UserProfileForm(forms.ModelForm):
+    class Meta:
+        model = CustomUser
+        fields = [
+            'first_name', 'last_name', 'email', 
+            'preferred_language', 'theme', 'current_wpm',
+        ]
+        widgets = {
+            'current_wpm': forms.NumberInput(attrs={'min': 100, 'max': 1000, 'step': 10}),
+            'preferred_language': forms.Select(choices=[('en', _('English')), ('es', _('Spanish'))]),
+            'theme': forms.Select(choices=[('light', _('Light')), ('dark', _('Dark'))]),
+        }
+        help_texts = {
+            'current_wpm': _('Your preferred reading speed (100-1000 words per minute)'),
+            'preferred_language': _('Language for content and interface'),
+            'theme': _('Visual theme preference'),
+        }

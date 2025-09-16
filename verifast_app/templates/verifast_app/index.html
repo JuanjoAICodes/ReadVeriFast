@@ -6,28 +6,14 @@
 {% block content %}
   <div style="text-align: center; padding: 2rem 0;">
     <hgroup>
-      <h1>{% trans "Welcome to VeriFast" %}</h1>
-      <h2>{% trans "Your journey to faster reading and better comprehension starts here." %}</h2>
+      <h1>{% trans "Welcome to Read Very Fast" %}</h1>
+      <h2>{% trans "Read with your brain very fast" %}</h2>
     </hgroup>
-    
-    <!-- Language Preference for Authenticated Users -->
-    {% if user.is_authenticated %}
-      <div style="margin: 2rem 0;">
-        {% language_preference_form %}
-      </div>
-    {% endif %}
     
     <a href="{% url 'verifast_app:article_list' %}" role="button" class="contrast">
       {% trans "Browse Available Articles" %}
     </a>
   </div>
-
-  <!-- Language Selector -->
-  {% if show_language_selector %}
-    <section style="margin: 2rem 0;">
-      {% language_selector %}
-    </section>
-  {% endif %}
 
   <!-- Recent Articles -->
   {% if articles %}

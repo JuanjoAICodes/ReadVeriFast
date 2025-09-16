@@ -1,2 +1,3 @@
-web: gunicorn config.wsgi --bind 0.0.0.0:8000 --reload
-worker: celery -A config.celery worker --loglevel=INFO
+web: cd /home/juanjo/Documents/ContextPython/ContextEngineering && /home/juanjo/Documents/ContextPython/ContextEngineering/.venv/bin/gunicorn config.wsgi --bind 0.0.0.0:8000 --reload --timeout 120
+worker: cd /home/juanjo/Documents/ContextPython/ContextEngineering && /home/juanjo/Documents/ContextPython/ContextEngineering/.venv/bin/celery -A config.celery worker --loglevel=INFO --concurrency=2 --queues=default,database_ops
+redis: redis-server

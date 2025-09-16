@@ -33,6 +33,36 @@
     </div>
     {% endif %}
     
+    {% if result_type == 'passed' and messages and messages.title %}
+    <div class="result-heading">
+        <h4>{{ messages.title }}</h4>
+    </div>
+    {% endif %}
+
+    {% if result_type == 'passed' and feedback and feedback|length > 0 %}
+    <div x-data="{open: false}">
+        <button class="secondary-btn" @click="open=!open" style="margin:0.5rem 0;">
+            <span x-show="!open">{% trans "Show answer feedback" %}</span>
+            <span x-show="open">{% trans "Hide answer feedback" %}</span>
+        </button>
+        <div class="feedback-panel" x-show="open" x-cloak>
+            <h5>{% trans "Review your incorrect answers" %}</h5>
+            <ul class="feedback-list">
+                {% for item in feedback %}
+                <li class="feedback-item">
+                    <div class="question"><strong>{% trans "Question:" %}</strong> {{ item.question }}</div>
+                    <div class="your-answer"><strong>{% trans "Your answer:" %}</strong> {{ item.user_answer|default:'—' }}</div>
+                    <div class="correct-answer"><strong>{% trans "Correct answer:" %}</strong> {{ item.correct_answer|default:'—' }}</div>
+                    {% if item.explanation %}
+                    <div class="explanation"><strong>{% trans "Explanation:" %}</strong> {{ item.explanation }}</div>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="quiz-actions">
         <button onclick="location.reload()" class="primary-btn">
             {% trans "Continue Reading" %}
@@ -108,6 +138,35 @@
     padding: 1rem;
     border-radius: 6px;
     margin: 1rem 0;
+}
+
+.feedback-panel {
+    text-align: left;
+    background: #f8f9fa;
+    border: 1px solid #e2e3e5;
+    border-radius: 6px;
+    padding: 1rem;
+    margin: 1rem auto;
+    max-width: 800px;
+}
+.feedback-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.feedback-item {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e9ecef;
+}
+.feedback-item:last-child {
+    border-bottom: none;
+}
+.feedback-item .question {
+    margin-bottom: 0.25rem;
+}
+.feedback-item .explanation {
+    margin-top: 0.25rem;
+    color: #495057;
 }
 
 .quiz-actions {

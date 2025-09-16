@@ -26,7 +26,7 @@ from .pydantic_models.dto import ContentAcquisitionDTO
 logger = get_task_logger(__name__)
 
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=300)
+@shared_task(bind=True, max_retries=3, default_retry_delay=300, queue='acquisition')
 def acquire_content_from_source(
     self, source_id: int, job_type: str = "scheduled", max_articles: int = 10
 ):
@@ -99,7 +99,10 @@ def acquire_content_from_source(
             for lang in languages:
                 try:
                     # Get category from config_data if available
+                    # Map 'general' to 'top' for NewsData.io compatibility
                     category = source.config_data.get('category', 'general')
+                    if category == 'general':
+                        category = 'top'  # NewsData.io uses 'top' instead of 'general'
                     country = source.config_data.get('country')
                     
                     articles = gnews_service.fetch_top_headlines(
@@ -261,7 +264,7 @@ def acquire_content_from_source(
         return {"success": False, "error": str(e)}
 
 
-@shared_task
+@shared_task(queue='acquisition')
 def scheduled_content_acquisition():
     """
     Main scheduled task that runs every 4 hours to acquire content from all active sources
@@ -324,7 +327,7 @@ def scheduled_content_acquisition():
     }
 
 
-@shared_task
+@shared_task(queue='maintenance')
 def cleanup_old_acquisition_data():
     """
     Clean up old acquisition data to prevent database bloat
@@ -377,7 +380,7 @@ def cleanup_old_acquisition_data():
     }
 
 
-@shared_task
+@shared_task(queue='monitoring')
 def health_check_sources():
     """
     Perform health checks on all content sources
@@ -395,6 +398,14 @@ def health_check_sources():
             elif source.source_type == "rss":
                 rss_processor = RSSProcessor()
                 is_healthy, message = rss_processor.test_feed_connection(source)
+            elif source.source_type == "gnews_api":
+                from .services.gnews_service import GNewsService
+                gnews_service = GNewsService()
+                is_healthy, message = gnews_service.test_connection(source)
+            elif source.source_type == "newsapi":
+                from .services.newsapi_service import NewsAPIService
+                newsapi_service = NewsAPIService()
+                is_healthy, message = newsapi_service.test_connection(source)
             else:
                 is_healthy, message = (
                     False,
@@ -491,6 +502,7 @@ def _process_article_dto(
                 content=dto.content,
                 language=dto.language,
                 publication_date=dto.publication_date,
+                image_url=getattr(dto, 'image_url', None),
                 processing_status="pending",
                 word_count=len(dto.content.split()),
                 acquisition_source=dto.source_id,

@@ -39,8 +39,34 @@ class ContentDeduplicator:
         return hashlib.sha256(text.encode('utf-8')).hexdigest()
     
     def _calculate_similarity(self, text1: str, text2: str) -> float:
-        """Calculate similarity between two texts using SequenceMatcher"""
+        """Calculate similarity between two texts using SequenceMatcher (fast lexical)."""
         return SequenceMatcher(None, text1.lower(), text2.lower()).ratio()
+
+    def _feature_hash_vector(self, text: str, dim: int = 256) -> list:
+        """Compute a lightweight hashed feature vector for text (bag-of-words hashing).
+        This approximates a semantic vector without external dependencies.
+        """
+        import re
+        vec = [0.0] * dim
+        # tokenize simple words (>=3 chars) and downcase
+        tokens = re.findall(r"[a-zA-Z]{3,}", text.lower())
+        if not tokens:
+            return vec
+        for tok in tokens:
+            # simple hashing trick
+            h = hash(tok) % dim
+            vec[h] += 1.0
+        # L2 normalize
+        norm = sum(v*v for v in vec) ** 0.5
+        if norm > 0:
+            vec = [v / norm for v in vec]
+        return vec
+
+    def _cosine(self, v1: list, v2: list) -> float:
+        """Cosine similarity between two equal-length lists."""
+        if not v1 or not v2 or len(v1) != len(v2):
+            return 0.0
+        return float(sum(a*b for a, b in zip(v1, v2)))
     
     def _normalize_text(self, text: str) -> str:
         """Normalize text for comparison"""
@@ -224,8 +250,10 @@ class ContentDeduplicator:
         if source_articles_today >= 2:
             return True, f"Source diversity limit: {source_articles_today} articles from {dto.source_id} for '{category}' today", details
         
-        # 7. Keyword similarity check (for near-duplicates)
-        dto_keywords = self._extract_keywords(f"{dto.title} {dto.content}")
+        # 7. Lightweight semantic similarity (for near-duplicates)
+        # Compare hashed feature vectors of title+lead content (first 600 chars)
+        title_lead_new = f"{dto.title} {(dto.content or '')[:600]}"
+        vec_new = self._feature_hash_vector(title_lead_new)
         
         recent_fingerprints = ContentFingerprint.objects.filter(
             language=dto.language,
@@ -233,22 +261,19 @@ class ContentDeduplicator:
             first_seen__gte=timezone.now() - timedelta(days=3)
         ).select_related('article')
         
+        best_cos = 0.0
         for fingerprint in recent_fingerprints:
             if fingerprint.article:
-                existing_keywords = self._extract_keywords(
-                    f"{fingerprint.article.title} {fingerprint.article.content}"
-                )
-                
-                # Calculate keyword overlap
-                common_keywords = dto_keywords.intersection(existing_keywords)
-                if len(dto_keywords) > 0:
-                    keyword_similarity = len(common_keywords) / len(dto_keywords)
-                    
-                    if keyword_similarity >= 0.6:  # 60% keyword overlap
-                        details['checks_performed'].append('keyword_similarity')
-                        details['keyword_similarity'] = keyword_similarity
-                        details['common_keywords'] = list(common_keywords)
-                        return True, f"High keyword similarity: {keyword_similarity:.2f}", details
+                title_lead_old = f"{fingerprint.article.title} {(fingerprint.article.content or '')[:600]}"
+                vec_old = self._feature_hash_vector(title_lead_old)
+                cos = self._cosine(vec_new, vec_old)
+                if cos > best_cos:
+                    best_cos = cos
+                if cos >= 0.90:  # near-duplicate threshold
+                    details['checks_performed'].append('semantic_hash_similarity')
+                    details['semantic_cosine'] = cos
+                    return True, f"High semantic similarity: {cos:.2f}", details
+        details['semantic_cosine_max'] = best_cos
         
         # Content passed all duplicate checks
         details['checks_performed'].append('all_checks_passed')

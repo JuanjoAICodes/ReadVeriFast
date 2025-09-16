@@ -9,7 +9,6 @@ import time
 import logging
 from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime
-from django.utils import timezone
 
 from ..models_content_acquisition import ContentSource, ContentFingerprint
 from ..pydantic_models.dto import ContentAcquisitionDTO
@@ -98,6 +97,64 @@ class RSSProcessor:
         
         return None
     
+    def _extract_image(self, entry: Any, content: str, url: str) -> Optional[str]:
+        """Extract representative image URL from RSS entry or content."""
+        try:
+            # 1) media_content
+            media_content = getattr(entry, 'media_content', []) or []
+            for m in media_content:
+                if isinstance(m, dict):
+                    mtype = str(m.get('type', '')).lower()
+                    if m.get('medium') == 'image' or mtype.startswith('image'):
+                        if m.get('url'):
+                            return m.get('url')
+                    # Some feeds embed URL directly
+                    if m.get('url') and (m.get('url').endswith(('.jpg', '.jpeg', '.png', '.webp'))):
+                        return m.get('url')
+            
+            # 2) media_thumbnail
+            media_thumb = getattr(entry, 'media_thumbnail', []) or []
+            for t in media_thumb:
+                if isinstance(t, dict) and t.get('url'):
+                    return t.get('url')
+            
+            # 3) enclosures
+            enclosures = getattr(entry, 'enclosures', []) or []
+            for e in enclosures:
+                if isinstance(e, dict):
+                    etype = str(e.get('type', '')).lower()
+                    href = e.get('href') or e.get('url')
+                    if etype.startswith('image') and href:
+                        return href
+                    if href and href.endswith(('.jpg', '.jpeg', '.png', '.webp')):
+                        return href
+            
+            # 4) HTML img in content/summary
+            import re
+            html = (content or '')
+            m = re.search(r'<img[^>]+src=[\"\\\']([^\"\
+\']+)[\"\\\']', html, flags=re.IGNORECASE)
+            if m:
+                return m.group(1)
+        except Exception:
+            return None
+        return None
+        """Extract full content from article URL using newspaper3k"""
+        try:
+            from newspaper import Article
+            
+            article = Article(url)
+            article.download()
+            article.parse()
+            
+            if article.text and len(article.text) > 200:
+                return article.text
+            
+        except Exception as e:
+            logger.debug(f"Could not extract full content from {url}: {str(e)}")
+        
+        return None
+    
     def _parse_date(self, date_tuple) -> Optional[datetime]:
         """Parse date from feedparser date tuple"""
         if not date_tuple:
@@ -110,6 +167,59 @@ class RSSProcessor:
         except (ValueError, TypeError):
             return None
     
+    def _is_video_entry(self, entry: Any, content: str, url: str) -> bool:
+        """Heuristics to detect video-only items to avoid processing as articles."""
+        try:
+            url_l = (url or "").lower()
+            title_l = (getattr(entry, 'title', '') or '').lower()
+            content_l = (content or '').lower()
+
+            # Known video platforms or URL markers
+            video_domains = [
+                'youtube.com', 'youtu.be', 'vimeo.com', 'dailymotion.com',
+                'facebook.com/watch', 'tiktok.com', 'instagram.com/reel',
+                'instagram.com/tv', 'player.vimeo'
+            ]
+            if any(d in url_l for d in video_domains):
+                return True
+
+            # Common video path segments
+            path_markers = ['/video/', '/videos/', '/watch/']
+            if any(m in url_l for m in path_markers):
+                return True
+
+            # RSS media fields (feedparser)
+            media_content = getattr(entry, 'media_content', []) or []
+            enclosures = getattr(entry, 'enclosures', []) or []
+            try:
+                # Some feeds store tuples, ensure dict access safely
+                if any((isinstance(m, dict) and (m.get('medium') == 'video' or str(m.get('type', '')).startswith('video'))) for m in media_content):
+                    return True
+            except Exception:
+                pass
+            try:
+                if any((isinstance(e, dict) and str(e.get('type', '')).startswith('video')) for e in enclosures):
+                    return True
+            except Exception:
+                pass
+
+            # Content markers
+            content_markers = [
+                '<iframe', 'video/mp4', 'application/x-mpegurl', '.m3u8', '.mp4',
+                'watch the video', 'ver video', 'ver el video', 'mire el video',
+                'see video', 'play video'
+            ]
+            if any(marker in content_l for marker in content_markers):
+                return True
+
+            # Title markers
+            title_markers = ['video:', '[video]', '(video)']
+            if any(marker in title_l for marker in title_markers):
+                return True
+        except Exception:
+            return False
+        return False
+
     def fetch_feed_articles(
         self,
         source: ContentSource,
@@ -175,8 +285,13 @@ class RSSProcessor:
                         if full_content:
                             content = full_content
                     
+                    # Reject known video-only entries
+                    if self._is_video_entry(entry, content, url):
+                        logger.debug(f"Skipping video-only entry: {title}")
+                        continue
+                    
                     # Skip if content is still too short
-                    if len(content) < 100:
+                    if len(content) < 150:
                         logger.debug(f"Skipping article with insufficient content: {title}")
                         continue
                     
@@ -231,6 +346,7 @@ class RSSProcessor:
                         publication_date=pub_date,
                         author=author,
                         tags=tags,
+                        image_url=self._extract_image(entry, content, url),
                         priority=source.priority
                     )
                     

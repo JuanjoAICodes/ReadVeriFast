@@ -4,8 +4,7 @@ Handles automatic language detection and language-specific processing
 """
 
 import logging
-from typing import Dict, Any, Optional, Tuple, List
-from django.conf import settings
+from typing import Dict, Any, Tuple, List
 
 from ..pydantic_models.dto import ContentAcquisitionDTO
 
@@ -73,7 +72,7 @@ class LanguageProcessor:
         
         try:
             # Try using langdetect library
-            from langdetect import detect, detect_langs
+            from langdetect import detect_langs
             
             # Get language probabilities
             lang_probs = detect_langs(combined_text)
@@ -150,7 +149,7 @@ class LanguageProcessor:
         
         # Check content length
         content_length = len(dto.content)
-        min_length = lang_config['min_content_length']
+        min_length = max(lang_config['min_content_length'], 1200)  # Global minimum to reduce short items
         max_length = lang_config['max_content_length']
         
         details['checks_performed'].append('content_length')
@@ -190,7 +189,7 @@ class LanguageProcessor:
         word_count = len(words)
         details['word_count'] = word_count
         
-        min_words = 50 if dto.language == 'en' else 60  # Spanish tends to be more verbose
+        min_words = 250 if dto.language == 'en' else 300  # Increase to avoid short/summary content
         if word_count < min_words:
             return False, f"Insufficient word count: {word_count} < {min_words}", details
         
@@ -199,7 +198,7 @@ class LanguageProcessor:
         sentence_count = len([s for s in sentences if len(s.strip()) > 10])
         details['sentence_count'] = sentence_count
         
-        if sentence_count < 3:
+        if sentence_count < 5:
             return False, f"Insufficient sentence structure: {sentence_count} sentences", details
         
         # All checks passed

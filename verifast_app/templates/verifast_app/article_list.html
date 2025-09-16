@@ -12,13 +12,6 @@
   <!-- Language Selector -->
   {% language_selector %}
   
-  <!-- User Language Preference Form -->
-  {% if user.is_authenticated %}
-    {% language_preference_form %}
-  {% endif %}
-
-
-
   <!-- Article List Content -->
   <div id="article-list-container" 
        hx-get="{% url 'verifast_app:language_filter_articles' %}" 
@@ -51,8 +44,10 @@
           // Update URL without page reload
           window.history.pushState({}, '', url);
           
-          // Trigger HTMX request
-          htmx.ajax('GET', url.pathname + url.search, {
+          // Trigger HTMX request to the partial endpoint (avoid full page swap)
+          const endpoint = "{% url 'verifast_app:language_filter_articles' %}";
+          const fetchUrl = language === 'all' ? endpoint : `${endpoint}?lang=${encodeURIComponent(language)}`;
+          htmx.ajax('GET', fetchUrl, {
             target: '#article-list-container',
             swap: 'innerHTML'
           });

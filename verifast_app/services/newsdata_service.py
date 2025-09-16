@@ -113,6 +113,9 @@ class NewsDataService:
         }
         
         if category:
+            # Map 'general' to 'top' for NewsData.io compatibility
+            if category == 'general':
+                category = 'top'
             params['category'] = category
         
         if country:
@@ -140,6 +143,7 @@ class NewsDataService:
                 title = article_data.get('title', '').strip()
                 content = article_data.get('content') or article_data.get('description', '')
                 url = article_data.get('link', '')
+                image = article_data.get('image_url') or article_data.get('image') or article_data.get('imageUrl')
                 
                 if not title or not content or not url:
                     logger.warning("Skipping article with missing required fields")
@@ -166,6 +170,7 @@ class NewsDataService:
                     title=title,
                     content=content,
                     language=language,
+                    image_url=image,
                     publication_date=self._parse_date(article_data.get('pubDate')),
                     author=article_data.get('creator', [None])[0] if article_data.get('creator') else None,
                     tags=article_data.get('keywords', []) or [],
@@ -222,6 +227,7 @@ class NewsDataService:
                 title = article_data.get('title', '').strip()
                 content = article_data.get('content') or article_data.get('description', '')
                 url = article_data.get('link', '')
+                image = article_data.get('image_url') or article_data.get('image') or article_data.get('imageUrl')
                 
                 if not title or not content or not url:
                     continue
@@ -244,6 +250,7 @@ class NewsDataService:
                     title=title,
                     content=content,
                     language=language,
+                    image_url=image,
                     publication_date=self._parse_date(article_data.get('pubDate')),
                     author=article_data.get('creator', [None])[0] if article_data.get('creator') else None,
                     tags=article_data.get('keywords', []) or [],

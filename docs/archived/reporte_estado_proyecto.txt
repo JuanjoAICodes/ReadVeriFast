@@ -1,0 +1,93 @@
+# Reporte de Estado del Proyecto: VeriFast
+
+## 1. Resumen del Proyecto
+
+VeriFast es una aplicación web desarrollada con Django diseñada para ofrecer una experiencia de lectura veloz. La plataforma integra funcionalidades de inteligencia artificial, gamificación y elementos sociales para crear un entorno de aprendizaje interactivo. El frontend está construido con HTMX, y el backend utiliza la API de Gemini para la generación de cuestionarios y la API de Wikipedia para el etiquetado de contenido.
+
+Los usuarios pueden leer artículos en un modo de lectura rápida, realizar cuestionarios para evaluar su comprensión y ganar puntos de experiencia (XP) por su rendimiento. Estos puntos pueden ser utilizados para desbloquear características premium, como fuentes personalizadas y configuraciones de lectura avanzadas. La plataforma también incluye un componente social que permite a los usuarios comentar en los artículos e interactuar con los comentarios de otros.
+
+## 2. Estructura del Proyecto
+
+El proyecto está organizado en las siguientes carpetas principales:
+
+- **config:** Contiene la configuración principal de Django, incluyendo los ajustes (`settings.py`), las URLs principales (`urls.py`) y la configuración de Celery para tareas asíncronas.
+- **core:** Un módulo de Django que podría contener la lógica de negocio principal, aunque actualmente sus modelos están vacíos.
+- **verifast_app:** La aplicación principal de Django que contiene la mayor parte de la lógica del proyecto, incluyendo modelos, vistas, plantillas y APIs.
+- **docs / documentation:** Contienen una gran cantidad of documentation del proyecto, incluyendo guías de configuración, reportes de conformidad, y descripciones de la arquitectura.
+- **static / templates:** Contienen los archivos estáticos (CSS, JS) y las plantillas HTML del proyecto.
+- **scripts:** Contiene scripts para ejecutar pruebas y otras tareas de mantenimiento.
+- **tests_backup:** Una carpeta que contiene todos los archivos de prueba del proyecto, que han sido movidos allí para sacarlos del camino.
+
+## 3. Dependencias
+
+### Backend (Python)
+
+Las principales dependencias de Python, extraídas de `requirements.txt`, son:
+
+- **Framework:** Django, Django REST Framework
+- **Base de datos:** psycopg2-binary (para PostgreSQL)
+- **Tareas Asíncronas:** Celery, Redis
+- **Servidor Web:** Gunicorn, Whitenoise
+- **IA y NLP:** google-generativeai, spacy, numpy
+- **Web Scraping:** requests, newspaper3k, beautifulsoup4
+- **APIs Externas:** wikipedia-api
+- **Procesamiento de Texto:** textstat, nltk, langdetect
+- **Integración con HTMX:** django-htmx
+- **Internacionalización:** django-countries, babel
+
+### Frontend (JavaScript)
+
+Las dependencias de frontend, extraídas de `package.json`, se centran en las pruebas:
+
+- **Pruebas E2E:** Puppeteer
+
+## 4. Configuración
+
+El archivo `config/settings.py` revela la siguiente configuración:
+
+- **Base de Datos:** Utiliza SQLite para el desarrollo y está configurado para PostgreSQL en producción.
+- **Tareas Asíncronas:** Celery está configurado para usar Redis como broker y backend de resultados. Las tareas están enrutadas a diferentes colas para gestionar la carga de trabajo.
+- **Aplicaciones Instaladas:** Incluye `django.contrib.admin`, `rest_framework`, y la aplicación principal `verifast_app`.
+- **Internacionalización (i18n):** El proyecto está configurado para soportar inglés y español.
+- **API de Gemini:** La clave de la API de Gemini está configurada a través de variables de entorno.
+
+## 5. Esquema de la Base de Datos
+
+Los modelos principales se encuentran en `verifast_app/models.py` y definen la estructura de la base de datos:
+
+- **CustomUser:** Un modelo de usuario personalizado que extiende el `AbstractUser` de Django. Incluye campos para el seguimiento de la velocidad de lectura (WPM), puntos de experiencia (XP), y características premium desbloqueadas.
+- **Tag:** Para etiquetar artículos. Incluye integración con Wikipedia.
+- **Article:** Representa un artículo. Contiene el contenido, metadatos, y el estado del procesamiento. También tiene campos para el recuento de palabras, nivel de lectura, y datos del cuestionario.
+- **Comment:** Para los comentarios de los usuarios en los artículos.
+- **QuizAttempt:** Registra los intentos de los usuarios en los cuestionarios, incluyendo la puntuación, WPM utilizados y XP ganados.
+- **CommentInteraction:** Modela las interacciones de los usuarios con los comentarios (e.g., dar "Bronce", "Plata", "Oro").
+- **XPTransaction:** Registra todas las transacciones de XP (ganadas y gastadas).
+- **FeaturePurchase:** Registra las compras de características premium.
+- **ContentAcquisitionLog:** Registra los ciclos de adquisición de contenido automatizado.
+
+## 6. Funcionalidades Principales
+
+- **Lectura Rápida:** Interfaz de lectura inmersiva con velocidad ajustable.
+- **Gamificación:** Sistema de puntos de experiencia (XP) que se ganan al completar cuestionarios y realizar otras acciones.
+- **Tienda Premium:** Los usuarios pueden gastar XP para desbloquear características como fuentes personalizadas y modos de lectura avanzados.
+- **Cuestionarios de Comprensión:** Generados con IA para evaluar la comprensión de los artículos.
+- **Interacción Social:** Sistema de comentarios con interacciones que cuestan XP.
+- **Adquisición de Contenido:** Los artículos pueden ser enviados por los usuarios o adquiridos automáticamente desde fuentes RSS y APIs de noticias.
+- **Internacionalización:** La interfaz y el contenido están disponibles en inglés y español.
+
+## 7. Calidad de Código y Pruebas
+
+- **Linting:** El proyecto utiliza `ruff` para el formateo y el linting del código Python, lo que ayuda a mantener un estilo de código consistente.
+- **Pruebas:** El proyecto utiliza `pytest` para las pruebas. Sin embargo, todos los archivos de prueba han sido movidos a la carpeta `tests_backup`, por lo que actualmente no hay pruebas activas en el proyecto.
+
+## 8. Documentación
+
+El proyecto cuenta con una extensa documentación en las carpetas `docs` y `documentation`. Esta incluye:
+
+- Guías de configuración de API y despliegue.
+- Reportes de conformidad de internacionalización.
+- Documentos de arquitectura y diseño técnico.
+- Roadmaps de tareas y resúmenes de proyecto.
+- Guías de uso para varias características.
+
+En general, el proyecto VeriFast parece estar en un estado de desarrollo avanzado, con una base de código bien estructurada, una amplia gama of funcionalidades y una documentación completa. La principal observación es la ausencia de pruebas activas, que han sido archivadas.

@@ -83,11 +83,32 @@ def generate_master_analysis(model_name: str, entity_list: list, article_text: s
     question_count = calculate_optimal_question_count(article_text)
     logger.info(f"Generating {question_count} questions for article with {len(article_text.split())} words")
 
+    # Dynamic generation config
+    word_count = len(article_text.split())
+    
+    # Estimate tokens more accurately (1 word ~= 1.33 tokens)
+    estimated_input_tokens = int(word_count * 1.33)
+    
+    # More sophisticated max_output_tokens calculation
+    # Base tokens + per-question allocation
+    # 5 questions, 100 tokens per question (question, 4 options, answer)
+    estimated_quiz_tokens = question_count * 150 
+    estimated_tag_tokens = 50 # For 5-7 tags
+    
+    # Add a buffer
+    required_output_tokens = estimated_quiz_tokens + estimated_tag_tokens + 200 
+    
+    # Ensure it doesn't exceed model limits (e.g., 8192 for Gemini 1.0 Pro)
+    # We will cap it at a safe value like 4096 to be safe
+    max_output_tokens = min(required_output_tokens, 4096)
+
+    logger.info(f"Estimated input tokens: {estimated_input_tokens}, Required output tokens: {required_output_tokens}, Final max_output_tokens: {max_output_tokens}")
+
     generation_config = {
-        "temperature": 1,
+        "temperature": 0.9, # Slightly reduced for more focused output
         "top_p": 0.95,
         "top_k": 64,
-        "max_output_tokens": 8192,
+        "max_output_tokens": max_output_tokens,
         "response_mime_type": "text/plain",
     }
 
@@ -188,6 +209,7 @@ Devuelve solo el objeto JSON sin formato y nada más."""
         validated_data = MasterAnalysisResponse.model_validate(data)
         logger.info(f"Successfully validated LLM response. Quiz found: {len(validated_data.quiz)}, Tags found: {len(validated_data.tags)}")
         
+        logger.debug(f"Validated LLM response tags: {validated_data.tags}, type: {type(validated_data.tags)}")
         return validated_data.model_dump()
 
     except json.JSONDecodeError as e:
@@ -267,7 +289,9 @@ def get_valid_wikipedia_tags(entities: list, language: str = 'en') -> list:
     canonical_name_map = {}
 
     # Step 1: Resolve All Canonical Names
+    logger.debug(f"Entities received by get_valid_wikipedia_tags: {entities}")
     for entity_name in set(entities):
+        logger.debug(f"Processing entity_name: {entity_name}, type: {type(entity_name)}")
         if not isinstance(entity_name, str) or not entity_name.strip():
             logger.warning(f"Invalid entity name skipped: {entity_name}")
             continue

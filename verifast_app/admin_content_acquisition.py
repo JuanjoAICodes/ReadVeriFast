@@ -8,16 +8,14 @@ from django.utils.html import format_html
 from django.urls import reverse, path
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.http import JsonResponse
 from django.utils import timezone
-from django.db.models import Count, Avg, Sum
+from django.db.models import Count, Sum
 from datetime import timedelta
-import json
 
 from .models_content_acquisition import (
     ContentSource, ContentAcquisitionJob, ContentFingerprint, AcquisitionMetrics
 )
-from .tasks_content_acquisition import acquire_content_from_source, health_check_sources
+from .tasks_content_acquisition import acquire_content_from_source
 from .services.content_orchestrator import ContentAcquisitionOrchestrator
 
 
@@ -101,10 +99,12 @@ class ContentSourceAdmin(admin.ModelAdmin):
         return format_html(
             '<a class="button" href="{}">Test</a> '
             '<a class="button" href="{}">Acquire</a> '
-            '<a class="button" href="{}">Stats</a>',
+            '<a class="button" href="{}">Stats</a> '
+            '<a class="button" href="{}">Orchestrate</a>',
             reverse('admin:test_source', args=[obj.pk]),
             reverse('admin:trigger_source_acquisition', args=[obj.pk]),
-            reverse('admin:source_statistics', args=[obj.pk])
+            reverse('admin:source_statistics', args=[obj.pk]),
+            reverse('admin:orchestrate_acquisition')
         )
     action_buttons.short_description = 'Actions'
     
@@ -370,9 +370,10 @@ class ContentAcquisitionJobAdmin(admin.ModelAdmin):
         rate = obj.get_success_rate()
         if isinstance(rate, (int, float)) and rate > 0:
             color = 'green' if rate >= 80 else 'orange' if rate >= 60 else 'red'
+            formatted_rate = f"{rate:.1f}%"
             return format_html(
-                '<span style="color: {};">{:.1f}%</span>',
-                color, rate
+                '<span style="color: {};">{}</span>',
+                color, formatted_rate
             )
         return "-"
     success_rate_display.short_description = 'Success Rate'
@@ -425,9 +426,10 @@ class AcquisitionMetricsAdmin(admin.ModelAdmin):
         rate = obj.get_success_rate()
         if isinstance(rate, (int, float)):
             color = 'green' if rate >= 80 else 'orange' if rate >= 60 else 'red'
+            formatted_rate = f"{rate:.1f}%"
             return format_html(
-                '<span style="color: {};">{:.1f}%</span>',
-                color, rate
+                '<span style="color: {};">{}</span>',
+                color, formatted_rate
             )
         return "-"
     success_rate_display.short_description = 'Success Rate'

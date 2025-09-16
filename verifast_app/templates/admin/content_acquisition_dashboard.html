@@ -85,17 +85,12 @@
 {% endblock %}
 
 {% block content %}
-<div class="dashboard-content" x-data="dashboard">
+<div id="dashboard-content" class="dashboard-content" x-data="dashboard">
     <h1>{{ title }}</h1>
     
     <!-- Action Buttons - HTMX Compliant -->
     <div class="action-buttons">
-        <button hx-get="{% url 'admin:verifast_app_contentsource_changelist' %}orchestrate/" 
-                hx-target="#dashboard-content" 
-                hx-swap="innerHTML" 
-                class="button default">
-            Manual Orchestration
-        </button>
+        <a href="{% url 'admin:orchestrate_acquisition' %}" class="button default">🚀 Start Content Motor</a>
         <a href="{% url 'admin:verifast_app_contentsource_add' %}" class="button">Add Source</a>
         <a href="{% url 'admin:verifast_app_contentsource_changelist' %}" class="button">Manage Sources</a>
         <button hx-post="{% url 'admin:verifast_app_contentsource_changelist' %}" 

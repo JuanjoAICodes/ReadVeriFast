@@ -77,7 +77,7 @@
 
 .article-header-content {
     display: grid;
-    grid-template-columns: auto 1fr;
+    grid-template-columns: 360px 1fr;
     gap: 3rem;
     align-items: center;
 }
@@ -90,7 +90,7 @@
 
 .article-image img {
     width: 100%;
-    height: auto;
+    height: 360px;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow-lg);
     transition: var(--transition);

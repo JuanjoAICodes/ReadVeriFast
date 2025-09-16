@@ -7,7 +7,7 @@ import requests
 import time
 import logging
 from typing import List, Dict, Any, Optional, Tuple
-from datetime import datetime, timedelta
+from datetime import datetime
 from django.conf import settings
 
 from ..models_content_acquisition import ContentSource, ContentFingerprint
@@ -169,6 +169,7 @@ class GNewsService:
                     publication_date=self._parse_date(article_data.get('publishedAt')),
                     author=article_data.get('source', {}).get('name'),
                     tags=[],  # GNews doesn't provide tags
+                    image_url=article_data.get('image'),
                     priority=source.priority
                 )
                 
@@ -254,6 +255,7 @@ class GNewsService:
                     publication_date=self._parse_date(article_data.get('publishedAt')),
                     author=article_data.get('source', {}).get('name'),
                     tags=[],
+                    image_url=article_data.get('image'),
                     priority=source.priority
                 )
                 

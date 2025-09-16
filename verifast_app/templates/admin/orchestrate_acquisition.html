@@ -1,0 +1,35 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Manual Content Orchestration" %} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1 style="margin-bottom: 12px;">{% trans "Manual Content Orchestration" %}</h1>
+  <p class="help">{% trans "Use this form to manually start the Content Motor across your configured sources." %}</p>
+
+  <form method="post" action="">
+    {% csrf_token %}
+
+    <fieldset class="module aligned">
+      <div class="form-row">
+        <label>{% trans "Languages" %}</label>
+        <div class="related-widget-wrapper">
+          <label style="margin-right: 16px;"><input type="checkbox" name="languages" value="en" checked> EN</label>
+          <label><input type="checkbox" name="languages" value="es"> ES</label>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label for="id_max_articles">{% trans "Max articles (total)" %}</label>
+        <input id="id_max_articles" type="number" min="1" max="200" name="max_articles" value="20" />
+      </div>
+    </fieldset>
+
+    <div class="submit-row">
+      <input type="submit" class="default" value="🚀 {% trans "Start Orchestration" %}" />
+      <a class="button" href="{% url 'admin:verifast_app_contentsource_changelist' %}">{% trans "Back to Sources" %}</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

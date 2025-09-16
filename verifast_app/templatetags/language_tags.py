@@ -2,9 +2,7 @@
 Template tags for language functionality
 """
 
-from typing import Dict, Any, List, Optional
 from django import template
-from django.http import HttpRequest
 from django.utils.translation import gettext as _
 
 register = template.Library()

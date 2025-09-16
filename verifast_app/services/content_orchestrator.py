@@ -4,8 +4,8 @@ Coordinates multi-source content fetching with prioritization and fallback logic
 """
 
 import logging
-from typing import List, Dict, Any, Optional, Tuple
-from datetime import datetime, timedelta
+from typing import List, Dict, Any, Optional
+from datetime import timedelta
 from django.utils import timezone
 from django.db import transaction
 from django.db.models import Q, Count
@@ -298,7 +298,7 @@ class ContentAcquisitionOrchestrator:
             
             # Create acquisition job
             job = ContentAcquisitionJob.objects.create(
-                job_type='orchestrated',
+                job_type='manual',
                 source=source,
                 config_data={
                     'languages': languages,
@@ -446,16 +446,25 @@ class ContentAcquisitionOrchestrator:
             if not is_valid:
                 return 'rejected'
             
-            # Create article in database
+            # Always fetch full content from the URL using newspaper3k
+            from .scraper import fetch_full_article
+            success, full_text = fetch_full_article(dto.url, language=dto.language)
+            # Minimum content length enforcement
+            MIN_WORDS = 300
+            if not success or not full_text or len(full_text.split()) < MIN_WORDS:
+                return 'rejected'
+
+            # Create article in database with scraped content
             with transaction.atomic():
                 article = Article.objects.create(
                     title=dto.title,
                     url=dto.url,
-                    content=dto.content,
+                    content=full_text,
                     language=dto.language,
                     publication_date=dto.publication_date,
+                    image_url=getattr(dto, 'image_url', None),
                     processing_status='pending',
-                    word_count=len(dto.content.split()),
+                    word_count=len(full_text.split()),
                     acquisition_source=dto.source_id,
                     acquisition_timestamp=timezone.now()
                 )

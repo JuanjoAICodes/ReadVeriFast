@@ -81,7 +81,7 @@ echo "======================================"
 # Check if we're in a virtual environment
 if [[ "$VIRTUAL_ENV" == "" ]]; then
     echo "⚠️  Virtual environment not detected."
-    echo "   Consider running: source venv/bin/activate"
+    echo "   Consider running: source .venv/bin/activate"
     echo ""
 fi
 
@@ -168,7 +168,7 @@ case $choice in
             honcho start
         else
             echo "❌ Honcho not found. Install with:"
-            echo "   pip install honcho"
+            echo "   uv pip install honcho"
             echo ""
             echo "Or run manually:"
             echo "   python manage.py runserver &"

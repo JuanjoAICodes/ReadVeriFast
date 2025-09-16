@@ -7,13 +7,15 @@
         {% for article in page_obj.object_list %}
         <article class="article-card" data-language="{{ article.language }}">
             <a href="{% url 'verifast_app:article_detail' article.pk %}" class="article-link">
-                {% if article.image_url %}
-                <div class="article-image">
-                    <img src="{{ article.image_url }}" alt="{{ article.title }}" loading="lazy">
-                </div>
-                {% endif %}
+                <div class="article-card-body">
+                    {% if article.image_url %}
+                    <div class="article-image">
+                        <img src="{{ article.image_url }}" alt="{{ article.title }}" loading="lazy">
+                    </div>
+                    {% endif %}
 
-                <div class="article-header">
+                    <div class="article-card-main">
+                        <div class="article-header">
                     <h3 class="article-title">
                         {{ article.title }}
                     </h3>
@@ -62,7 +64,8 @@
                         {% endif %}
                     </div>
                     {% endif %}
-                </div>
+                    </div> <!-- /.article-card-main -->
+                </div> <!-- /.article-card-body -->
             </a>
         </article>
         {% endfor %}

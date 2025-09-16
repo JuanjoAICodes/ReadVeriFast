@@ -5,7 +5,8 @@
     "wordChunks": {{ word_chunks_json|safe }},
     "wpm": {{ user_wpm|default:250 }},
     "articleId": "{{ article_id }}",
-    "articleType": "{{ article_type }}"
+    "articleType": "{{ article_type }}",
+    "fontFamily": "{{ font_family|default:'default' }}"
 }
 </script>
 
@@ -28,7 +29,7 @@
     </div>
 </div>
 
-<div x-data="{
+<div id="speed-reader-section" x-data="{
         // Inline component definition to avoid timing issues
         isActive: false,
         isRunning: false,
@@ -41,6 +42,19 @@
         error: null,
         
         init() {
+            // Apply font based on user feature selection
+            try {
+                const scriptData = document.getElementById('speed-reader-data');
+                const data = scriptData ? JSON.parse(scriptData.textContent) : {};
+                const ff = (data && data.fontFamily) ? String(data.fontFamily).toLowerCase() : 'default';
+                const root = document.documentElement;
+                if (ff === 'playfair') root.classList.add('has_font_playfair');
+                else if (ff === 'merriweather') root.classList.add('has_font_merriweather');
+                else if (ff === 'roboto') root.classList.add('has_font_roboto');
+                else if (ff === 'opendyslexic') root.classList.add('has_font_opendyslexic');
+                else if (ff === 'opensans') root.classList.add('has_font_opensans');
+            } catch(e) { /* ignore */ }
+
             // Use $nextTick to ensure Alpine's reactive DOM updates are complete
             this.$nextTick(() => {
                 console.log('Speed Reader: Starting initialization after DOM stabilization');
@@ -125,10 +139,28 @@
                 clearInterval(this.timer);
                 this.currentChunk = 'Reading Complete!';
                 
+                // Persist WPM on completion
+                this.persistWpm();
+                
                 // Trigger HTMX event for reading completion
                 document.body.dispatchEvent(new CustomEvent('readingComplete'));
             } else {
                 this.currentChunk = this.wordChunks[this.currentIndex];
+            }
+        },
+        
+        persistWpm() {
+            try {
+                fetch('{% url "verifast_app:update_wpm" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: 'wpm=' + encodeURIComponent(this.wpm)
+                }).catch(() => {});
+            } catch (e) {
+                // ignore client-side errors
             }
         },
         
@@ -141,6 +173,8 @@
         },
         
         exitReading() {
+            // Persist latest WPM before exit
+            this.persistWpm();
             console.log('Speed Reader: Exit button clicked');
             try {
                 // Clear any running timers
@@ -149,10 +183,13 @@
                     this.timer = null;
                 }
                 
-                // Reset all state variables
+                // Capture completion state before closing
+                const wasComplete = this.isComplete === true;
+                
+                // Close overlay
                 this.isActive = false;
                 this.isRunning = false;
-                this.isComplete = false;
+                // Do not reset isComplete so we can distinguish completion-driven close
                 this.currentIndex = 0;
                 
                 // Restore page scrolling
@@ -167,29 +204,38 @@
                     console.log('Speed Reader: DOM update completed after exit');
                 });
                 
+                // Only restore CTA if this was an early exit (not after completion)
+                if (!wasComplete) {
+                    document.body.dispatchEvent(new CustomEvent('readingExit'));
+                }
+                
             } catch (error) {
                 console.error('Speed Reader: Error during exit:', error);
                 // Force exit even if there's an error
                 this.isActive = false;
-                this.isComplete = false;
+                // Keep isComplete unchanged
                 document.body.style.overflow = '';
             }
         }
      }" class="speed-reader-active">
 
-    <!-- Error Message for No Content -->
-    <div x-show="!isActive" class="speed-reader-error">
+    <!-- Friendly Fallback When No Content or Error -->
+    <div x-show="(wordChunks.length === 0) || error" class="speed-reader-error">
         <div class="error-message">
-            <div class="error-icon">⚠️</div>
-            <h3>{% trans "No Readable Content" %}</h3>
-            <p>{% trans "This article doesn't contain readable text for the speed reader." %}</p>
+            <div class="error-icon">🎉</div>
+            <h3>{% trans "Reading Complete!" %}</h3>
+            <p>{% trans "Great job! This article is ready for the quiz." %}</p>
             <div class="error-actions">
+                <button 
+                    hx-get="{% url 'verifast_app:quiz_start' article_id %}" 
+                    hx-target="#quiz-section" 
+                    hx-swap="outerHTML" 
+                    class="primary">
+                    {% trans "Start Quiz" %} 🧠
+                </button>
                 <button onclick="location.reload()" class="secondary">
                     {% trans "Refresh Page" %}
                 </button>
-                <a href="{% url 'verifast_app:article_list' %}" class="primary">
-                    {% trans "Browse Other Articles" %}
-                </a>
             </div>
         </div>
     </div>
@@ -223,8 +269,15 @@
     <!-- Reading Complete Handler -->
     <div x-show="isComplete" hx-post="{% url 'verifast_app:speed_reader_complete' article_id %}"
         hx-target="#quiz-section" hx-trigger="readingComplete from:body"
-        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
-    </div>
+        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'></div>
+
+    <!-- Restore original CTA only after early exit to avoid interfering with quiz unlock -->
+    <div x-show="!isActive && !isComplete"
+         hx-get="{% url 'verifast_app:article_detail' article_id %}"
+         hx-trigger="readingExit from:body"
+         hx-select="#speed-reader-section"
+         hx-target="#speed-reader-section"
+         hx-swap="outerHTML"></div>
 </div>
 
 <style>

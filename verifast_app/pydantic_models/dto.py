@@ -154,6 +154,7 @@ class ContentAcquisitionDTO(BaseModel):
     publication_date: Optional[datetime] = Field(None, description="Original publication date")
     author: Optional[str] = Field(None, max_length=100, description="Content author")
     tags: List[str] = Field(default=[], description="Extracted or assigned tags")
+    image_url: Optional[str] = Field(None, description="URL of the article's main image")
     priority: str = Field(default="normal", pattern=r"^(low|normal|high)$", description="Processing priority")
     
     @field_validator('tags')

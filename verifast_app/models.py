@@ -497,7 +497,7 @@ class CommentInteraction(models.Model):
     )
 
     class Meta:
-        unique_together = ("user", "comment")
+        unique_together = ("user", "comment", "interaction_type")
 
     def __str__(self):
         return f"{self.user.username} - {self.interaction_type} on {self.comment.id}"

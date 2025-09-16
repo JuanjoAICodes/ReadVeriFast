@@ -1,0 +1,48 @@
+{% load i18n %}
+<section class="comments-section" id="comments-section-container">
+    <h3>{% trans "Comments" %} ({{ comments.count }})</h3>
+
+    <div class="add-comment-form">
+        {% if user.is_authenticated and user_can_comment %}
+        <form hx-post="{% url 'verifast_app:add_comment' article.id %}" hx-target="#comments-list"
+              hx-swap="outerHTML" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+            {% csrf_token %}
+            <textarea name="content" placeholder="{% trans 'Share your thoughts...' %}" required></textarea>
+            <div class="comment-form-footer">
+                <span class="xp-cost">{% trans "Cost" %}: 10 XP</span>
+                <button type="submit" class="primary">
+                    {% trans "Add Comment" %}
+                </button>
+            </div>
+        </form>
+        {% elif user.is_authenticated and not user_can_comment %}
+        <p class="comment-locked">
+            {% trans "Complete the quiz with a passing score to unlock commenting!" %}
+        </p>
+        {% else %}
+        {% if user_can_comment %}
+        <!-- Guest comment form for anonymous users who passed the quiz -->
+        <form hx-post="{% url 'verifast_app:add_comment' article.id %}"
+              hx-target="#comments-list" hx-swap="outerHTML"
+              hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+            {% csrf_token %}
+            <input type="text" name="guest_name" placeholder="{% trans 'Your name' %}" value="{{ guest_name|default:'' }}" required>
+            <textarea name="content" placeholder="{% trans 'Share your thoughts...' %}" required></textarea>
+            <div class="comment-form-footer">
+                <button type="submit" class="primary">
+                    {% trans "Add Comment" %}
+                </button>
+            </div>
+        </form>
+        {% else %}
+        <div id="anonymous-comment-section">
+            <p class="comment-locked">
+                {% trans "Complete the quiz with a passing score to unlock commenting!" %}
+            </p>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+
+    {% include 'verifast_app/partials/comments_list.html' %}
+</section>

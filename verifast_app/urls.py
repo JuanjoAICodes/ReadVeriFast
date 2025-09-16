@@ -11,10 +11,11 @@ urlpatterns = [
     path('scrape/', views.scrape_article_view, name='scrape_article'),
     path('profile/', views.UserProfileView.as_view(), name='user_profile'),
     path('profile/edit/', views.UserProfileUpdateView.as_view(), name='profile_edit'),
-    path('profile/save-features/', views.UserProfileView.as_view(), name='save_feature_preferences'),
+    
     path('register/', views.UserRegistrationView.as_view(), name='register'),
     path('articles/<int:article_id>/comments/add/', views.AddCommentView.as_view(), name='add_comment'),
     path('comments/<int:comment_id>/interact/', views.CommentInteractView.as_view(), name='comment_interact'),
+    path('comments/section/<int:article_id>/', views.CommentsSectionView.as_view(), name='comments_section'),
     path('purchase-feature/', views.PurchaseFeatureView.as_view(), name='purchase_feature'),
     path('premium-store/', views.PremiumStoreView.as_view(), name='premium_store'),
     path('api/quiz/submit/', views.QuizSubmissionAPIView.as_view(), name='quiz_submit_api'),
@@ -34,5 +35,6 @@ urlpatterns = [
     # HTMX endpoints for Speed Reader and Quiz
     path('speed-reader/init/<int:article_id>/', views.speed_reader_init, name='speed_reader_init'),
     path('speed-reader/complete/<int:article_id>/', views.speed_reader_complete, name='speed_reader_complete'),
+    path('reading/wpm/', views.update_reading_wpm, name='update_wpm'),
     path('quiz/start/<int:article_id>/', views.QuizStartView.as_view(), name='quiz_start'),
 ]

@@ -7,169 +7,6 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/article_detail.css' %}">
 <style>
-    /* Quiz Modal Styles - Critical for functionality */
-    .quiz-modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: rgba(0, 0, 0, 0.8);
-        z-index: 10000;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .quiz-content {
-        background: white;
-        border-radius: 8px;
-        padding: 2rem;
-        max-width: 600px;
-        width: 90%;
-        max-height: 80vh;
-        overflow-y: auto;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    }
-
-    .quiz-question {
-        margin-bottom: 2rem;
-    }
-
-    .quiz-question h4 {
-        color: #333;
-        margin-bottom: 1rem;
-    }
-
-    .question-text {
-        font-size: 1.1rem;
-        margin-bottom: 1.5rem;
-        line-height: 1.6;
-    }
-
-    .quiz-options {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    .quiz-option {
-        display: flex;
-        align-items: center;
-        padding: 0.75rem;
-        border: 2px solid #e0e0e0;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .quiz-option:hover {
-        border-color: #007bff;
-        background-color: #f8f9fa;
-    }
-
-    .quiz-option input[type="radio"] {
-        margin-right: 0.75rem;
-        transform: scale(1.2);
-    }
-
-    .quiz-option span {
-        flex: 1;
-        font-size: 1rem;
-    }
-
-    .quiz-navigation {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: 2rem;
-        padding-top: 1rem;
-        border-top: 1px solid #e0e0e0;
-    }
-
-    .quiz-progress {
-        font-weight: bold;
-        color: #666;
-    }
-
-    .quiz-buttons {
-        display: flex;
-        gap: 0.5rem;
-    }
-
-    .quiz-buttons button {
-        padding: 0.5rem 1rem;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 0.9rem;
-        transition: background-color 0.2s ease;
-    }
-
-    .quiz-buttons button:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-
-    #quiz-prev-btn,
-    #quiz-next-btn {
-        background: #6c757d;
-        color: white;
-    }
-
-    #quiz-prev-btn:hover:not(:disabled),
-    #quiz-next-btn:hover:not(:disabled) {
-        background: #5a6268;
-    }
-
-    #quiz-submit-btn {
-        background: #28a745;
-        color: white;
-    }
-
-    #quiz-submit-btn:hover {
-        background: #218838;
-    }
-
-    .quiz-results {
-        text-align: center;
-    }
-
-    .score-display {
-        margin: 2rem 0;
-    }
-
-    .score-circle {
-        display: inline-block;
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        background: #28a745;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto;
-    }
-
-    .score-number {
-        font-size: 2rem;
-        font-weight: bold;
-        color: white;
-    }
-
-    .result-message {
-        font-size: 1.1rem;
-        margin: 1rem 0;
-    }
-
-    .xp-earned {
-        background: #ffc107;
-        color: #212529;
-        padding: 1rem;
-        border-radius: 6px;
-        margin: 1rem 0;
-        font-size: 1.1rem;
-    }
-
     /* Immersive Speed Reader Styles - Single Mode */
     .immersive-overlay {
         position: fixed;
@@ -344,8 +181,18 @@
                         {% endif %}
                     </div>
                 </div>
-            </div>
-        </header>
+           </div>
+           
+           <!-- Original Article Link -->
+           {% if article.source_url or article.url %}
+           <div class="article-header-actions" style="margin-top: 1rem; display:flex; gap: 0.75rem; flex-wrap: wrap;">
+               <a href="{{ article.source_url|default:article.url }}" target="_blank" rel="noopener noreferrer nofollow" class="primary" style="text-decoration:none; padding:0.5rem 1rem; border-radius: var(--border-radius);">
+                   🔗 {% trans "Open Original Article" %}
+               </a>
+               <small style="align-self:center; color: var(--muted-color);">{% trans "Opens in a new tab" %}</small>
+           </div>
+           {% endif %}
+       </header>
 
         <!-- 2. Tags Section -->
         <section class="article-tags">
@@ -419,7 +266,7 @@
             <p>{% trans "Complete the speed reading above to unlock the quiz and earn XP!" %}</p>
 
             <div id="quiz-container">
-                <button hx-get="{% url 'verifast_app:quiz_start' article.id %}" hx-target="#quiz-container"
+                <button id="start-quiz-btn" hx-get="{% url 'verifast_app:quiz_start' article.id %}" hx-target="#quiz-container"
                     hx-swap="outerHTML" type="button" class="primary" disabled>
                     {% trans "Start Quiz" %} ({% trans "Complete reading first" %})
                 </button>
@@ -432,44 +279,14 @@
         </section>
         {% endif %}
 
-        <!-- 5. Comments Section -->
-        <section class="comments-section">
-            <h3>{% trans "Comments" %} ({{ comments.count }})</h3>
-
-            <!-- Add Comment Form - Available for both authenticated and anonymous users -->
-            <div class="add-comment-form">
-
-                {% if user.is_authenticated and user_can_comment %}
-                <!-- Authenticated user who passed quiz -->
-                <form hx-post="{% url 'verifast_app:add_comment' article.id %}" hx-target="#comments-list"
-                    hx-swap="outerHTML" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
-                    {% csrf_token %}
-                    <textarea name="content" placeholder="{% trans 'Share your thoughts...' %}" required></textarea>
-                    <div class="comment-form-footer">
-                        <span class="xp-cost">{% trans "Cost" %}: 10 XP</span>
-                        <button type="submit" class="primary">
-                            {% trans "Add Comment" %}
-                        </button>
-                    </div>
-                </form>
-                {% elif user.is_authenticated and not user_can_comment %}
-                <!-- Authenticated user who hasn't passed quiz -->
-                <p class="comment-locked">
-                    {% trans "Complete the quiz with a passing score to unlock commenting!" %}
-                </p>
-                {% elif not user.is_authenticated %}
-                <!-- Anonymous user - show form after quiz completion via JavaScript -->
-                <div id="anonymous-comment-section">
-                    <p class="comment-locked">
-                        {% trans "Complete the quiz with a passing score to unlock commenting!" %}
-                    </p>
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- Comments List -->
-            {% include 'verifast_app/partials/comments_list.html' %}
-        </section>
+        <!-- 5. Comments Section (HTMX-refreshable) -->
+        <div id="comments-section" 
+             hx-get="{% url 'verifast_app:comments_section' article.id %}"
+             hx-trigger="quiz-passed from:body"
+             hx-target="#comments-section"
+             hx-swap="outerHTML">
+            {% include 'verifast_app/partials/comments_section.html' %}
+        </div>
 
         <!-- 6. Related Articles Section -->
         <section class="related-articles">
@@ -509,37 +326,7 @@
         </button>
     </div>
 
-    <!-- Quiz Modal -->
-    <div id="quiz-modal" class="quiz-modal" style="display: none;">
-        <div class="quiz-content">
-            <div id="quiz-header">
-                <h2>{% trans "Comprehension Quiz" %}</h2>
-                <p>{% trans "Answer the questions below to test your understanding." %}</p>
-            </div>
-            <div id="quiz-question-container">
-                <!-- Questions will be loaded here by JavaScript -->
-            </div>
-            <div id="quiz-results" style="display: none;">
-                <!-- Results will be shown here -->
-            </div>
-            <div class="quiz-navigation">
-                <div class="quiz-progress">
-                    <span id="current-question">1</span> / <span id="total-questions">5</span>
-                </div>
-                <div class="quiz-buttons">
-                    <button id="quiz-prev-btn" type="button" disabled>
-                        {% trans "Previous" %}
-                    </button>
-                    <button id="quiz-next-btn" type="button">
-                        {% trans "Next" %}
-                    </button>
-                    <button id="quiz-submit-btn" type="button" style="display: none;">
-                        {% trans "Submit Quiz" %}
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Legacy quiz modal removed: standardized on HTMX quiz flow (quiz_start -> quiz_interface.html) -->
 </main>
 
 

@@ -5,8 +5,10 @@ Creates basic content sources for the content motor if they don't exist
 
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
+import os
 
 from ...models_content_acquisition import ContentSource
+from ...content_acquisition_config import RSS_SOURCES
 
 User = get_user_model()
 
@@ -30,7 +32,12 @@ class Command(BaseCommand):
         parser.add_argument(
             '--create-sample-rss',
             action='store_true',
-            help='Create sample RSS feed sources',
+            help='Create sample RSS feed sources (BBC, Reuters, El País)',
+        )
+        parser.add_argument(
+            '--create-all-rss',
+            action='store_true',
+            help='Create all RSS feed sources defined in content_acquisition_config.RSS_SOURCES',
         )
         parser.add_argument(
             '--create-all-apis',
@@ -49,7 +56,7 @@ class Command(BaseCommand):
         # Get or create admin user for source ownership
         admin_user = User.objects.filter(is_superuser=True).first()
         
-        # Sample RSS sources
+        # Sample RSS sources (kept for quick demo)
         rss_sources = [
             {
                 'name': 'BBC News RSS',
@@ -109,6 +116,40 @@ class Command(BaseCommand):
                 else:
                     self.stdout.write(f"  ℹ️  RSS source already exists: {source.name}")
         
+        # Create ALL RSS sources from config if requested
+        if options.get('create_all_rss'):
+            for lang_key in ('english', 'spanish'):
+                for item in RSS_SOURCES.get(lang_key, []):
+                    source_name = f"{item['name']} RSS"
+                    source, created = ContentSource.objects.get_or_create(
+                        name=source_name,
+                        defaults={
+                            'description': f"{item['name']} {lang_key.title()} RSS feed",
+                            'source_type': 'rss',
+                            'url': item['url'],
+                            'language': item.get('language') or ('en' if lang_key == 'english' else 'es'),
+                            'priority': 'normal',
+                            'config_data': {
+                                'extract_full_content': True,
+                                'category': item.get('category', 'general')
+                            },
+                            'created_by': admin_user,
+                            'is_active': True,
+                            'requests_per_hour': 12,
+                            'requests_per_day': 100,
+                        }
+                    )
+                    if created:
+                        created_count += 1
+                        self.stdout.write(f"  ✅ Created RSS source: {source.name}")
+                    else:
+                        self.stdout.write(f"  ℹ️  RSS source already exists: {source.name}")
+        
+        # If API keys weren't provided via flags, try environment variables
+        options['newsdata_api_key'] = options['newsdata_api_key'] or os.environ.get('NEWSDATA_API_KEY')
+        options['gnews_api_key'] = options['gnews_api_key'] or os.environ.get('GNEWS_API_KEY')
+        options['newsapi_key'] = options['newsapi_key'] or os.environ.get('NEWSAPI_KEY')
+
         # NewsData.io API source
         if options['newsdata_api_key']:
             newsdata_sources = [
@@ -269,33 +310,36 @@ class Command(BaseCommand):
                     self.stdout.write(f"  🔄 Updated API key for: {source.name}")
         
         # Summary
+        total_active = ContentSource.objects.filter(is_active=True).count()
+        total_sources = ContentSource.objects.count()
         self.stdout.write(
             self.style.SUCCESS(
                 f"\n✅ Content sources setup completed:\n"
                 f"  Created: {created_count} sources\n"
                 f"  Updated: {updated_count} sources\n"
-                f"  Total active sources: {ContentSource.objects.filter(is_active=True).count()}"
+                f"  Total active sources: {total_active} / {total_sources} total"
             )
         )
         
         # Show next steps
         self.stdout.write(
             self.style.SUCCESS(
-                f"\n🚀 Next steps:\n"
-                f"  1. Test sources: python manage.py start_content_motor --dry-run\n"
-                f"  2. Start content motor: python manage.py start_content_motor --orchestrate\n"
-                f"  3. Monitor in admin: /admin/verifast_app/contentacquisitionjob/\n"
-                f"  4. Or use the admin action: Go to Articles → Select any → Actions → 🚀 Start Content Motor"
+                "\n🚀 Next steps:\n"
+                "  1. Test sources: python manage.py start_content_motor --dry-run\n"
+                "  2. Start content motor: python manage.py start_content_motor --orchestrate\n"
+                "  3. Monitor in admin: /admin/verifast_app/contentacquisitionjob/\n"
+                "  4. Or use the admin action: Go to Articles → Select any → Actions → 🚀 Start Content Motor"
             )
         )
         
-        if not options['newsdata_api_key'] and not options['create_sample_rss']:
+        if not options['newsdata_api_key'] and not options['create_sample_rss'] and not options.get('create_all_rss'):
             self.stdout.write(
                 self.style.WARNING(
-                    f"\n⚠️  No sources were created. Use:\n"
-                    f"  --create-sample-rss    Create sample RSS sources\n"
-                    f"  --newsdata-api-key     Add NewsData.io API sources\n"
-                    f"\nExample:\n"
-                    f"  python manage.py setup_content_sources --create-sample-rss --newsdata-api-key YOUR_API_KEY"
+                    "\n⚠️  No sources were created. Use:\n"
+                    "  --create-sample-rss    Create sample RSS sources\n"
+                    "  --create-all-rss       Create all RSS sources from config\n"
+                    "  --newsdata-api-key     Add NewsData.io API sources\n"
+                    "\nExample:\n"
+                    "  python manage.py setup_content_sources --create-all-rss --newsdata-api-key YOUR_API_KEY"
                 )
             )

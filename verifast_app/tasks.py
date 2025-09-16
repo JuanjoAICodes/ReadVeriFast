@@ -1,8 +1,11 @@
 from celery import shared_task
 from celery.utils.log import get_task_logger  # type: ignore
-from typing import Dict, Any, Optional
 import json
+import time
+import random
 from django.utils import timezone
+from django.db import transaction, OperationalError
+from django.db import connection
 
 import newspaper # type: ignore
 from .models import Article, Tag
@@ -20,27 +23,72 @@ logger = get_task_logger(__name__)
 validation_pipeline = ValidationPipeline(logger_name=__name__)
 
 
-@shared_task(bind=True)
+from .database_utils import with_database_retry, DatabaseLockManager, ensure_connection_closed
+
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=60)
+@with_database_retry(max_retries=3, base_delay=2, max_delay=30)
 def process_article(self, article_id):
     """
     Orchestrates the full analysis pipeline with Pydantic validation and serialization.
     This task now also acts as a dispatcher for different article types.
     """
     logger.info(f"Starting processing for article ID: {article_id}")
+    
     try:
-        article = Article.objects.get(id=article_id, processing_status="pending")
-    except Article.DoesNotExist:
-        logger.warning(f"Article {article_id} not found or not pending. Task aborted.")
-        return {"success": False, "error": "Article not found"}
+        with DatabaseLockManager(timeout=60):
+            # Check if article exists and is in correct state
+            try:
+                article = Article.objects.get(id=article_id)
+            except Article.DoesNotExist:
+                logger.error(f"Article {article_id} not found in database. Task aborted.")
+                return {"success": False, "error": "Article not found"}
+            
+            # Check if article is in correct state for processing
+            if article.processing_status not in ["pending", "failed", "failed_quota"]:
+                logger.info(f"Article {article_id} status is '{article.processing_status}', skipping processing.")
+                return {"success": False, "error": f"Article status is {article.processing_status}"}
+            
+            # Lock article for processing with retry logic
+            try:
+                with transaction.atomic():
+                    article = Article.objects.select_for_update(nowait=False).get(
+                        id=article_id, 
+                        processing_status__in=["pending", "failed", "failed_quota"]
+                    )
+                    article.processing_status = "processing"
+                    article.save()
+            except Article.DoesNotExist:
+                logger.warning(f"Article {article_id} was modified by another process. Task aborted.")
+                return {"success": False, "error": "Article state changed"}
+            except OperationalError as e:
+                if 'database is locked' in str(e).lower():
+                    logger.warning(f"Database locked while trying to lock article {article_id}, will retry")
+                    # Let the decorator handle the retry
+                    raise
+                else:
+                    logger.error(f"Database error while locking article {article_id}: {e}")
+                    raise
 
-    # --- Dispatch based on article type ---
-    if article.article_type == "wikipedia":
-        logger.info(
-            f"Article {article_id} is a Wikipedia article. Delegating to process_wikipedia_article."
-        )
-        result = process_wikipedia_article.delay(article.id)
-        return {"success": True, "delegated_to": "process_wikipedia_article", "task_id": result.id}
+            # --- Dispatch based on article type ---
+            if article.article_type == "wikipedia":
+                logger.info(
+                    f"Article {article_id} is a Wikipedia article. Delegating to process_wikipedia_article."
+                )
+                result = process_wikipedia_article.delay(article.id)
+                return {"success": True, "delegated_to": "process_wikipedia_article", "task_id": result.id}
 
+            # --- Continue with regular article processing ---
+            return _process_regular_article(article, article_id)
+            
+    except Exception as e:
+        logger.error(f"Critical error in process_article for ID {article_id}: {e}")
+        ensure_connection_closed()
+        raise
+
+
+def _process_regular_article(article, article_id):
+    """Helper function to process regular (non-Wikipedia) articles."""
     try:
         # --- 1. Create ArticleAnalysisDTO for structured processing ---
         analysis_dto = ArticleAnalysisDTO(
@@ -83,13 +131,13 @@ def process_article(self, article_id):
 
         # --- 4. Dynamic Model Selection ---
         selected_model = ""
+        # Prefer flash by default; only use pro for very complex texts
         if article.source == "gutenberg":
-            selected_model = "models/gemma-3-27b-it"
+            selected_model = "models/gemini-2.5-flash"
         else:
-            # A lower score means higher complexity, so we use a better model.
-            if article.reading_level < 30:  # Very difficult text
+            if article.reading_level < 20:  # Very difficult text
                 selected_model = "models/gemini-2.5-pro"
-            elif 30 <= article.reading_level < 60:  # Standard text
+            elif 20 <= article.reading_level < 60:  # Standard text
                 selected_model = "models/gemini-2.5-flash"
             else:  # Easy text (reading_level >= 60)
                 selected_model = "models/gemini-2.5-flash-lite-preview-06-17"
@@ -102,10 +150,13 @@ def process_article(self, article_id):
 
         # --- 5. The Single Master Call with Pydantic validation ---
         try:
+            time.sleep(2)  # Add a delay to avoid hitting rate limits
             llm_response = services.generate_master_analysis(
                 model_name=selected_model,
                 entity_list=validated_analysis.entities,
                 article_text=article.content,
+                language=article.language,
+                source=article.source
             )
             
             # Validate LLM response using Pydantic
@@ -114,7 +165,7 @@ def process_article(self, article_id):
                     MasterAnalysisResponse,
                     json.dumps(llm_response) if isinstance(llm_response, dict) else llm_response,
                     model_name=selected_model,
-                    raise_on_error=False
+                    raise_on_error=True
                 )
                 
                 if validated_llm_response:
@@ -127,7 +178,12 @@ def process_article(self, article_id):
                 llm_data = None
                 
         except Exception as e:
+            # Treat LLM/API errors as retryable: backoff and retry until max_retries
             logger.error(f"API error for Article ID: {article_id}. Error: {e}")
+            if self.request.retries < self.max_retries:
+                countdown = min(60 * (self.request.retries + 1), 300)  # 60s,120s,180s,240s,300s
+                logger.info(f"Retrying article {article_id} after {countdown}s (attempt {self.request.retries + 1})")
+                raise self.retry(countdown=countdown)
             article.processing_status = "failed_quota"
             article.save()
             return {"success": False, "error": f"API error: {str(e)}", "article_id": article_id}

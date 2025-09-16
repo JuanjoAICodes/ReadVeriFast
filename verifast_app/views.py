@@ -16,8 +16,9 @@ from django.utils.encoding import force_str
 import json
 import hashlib
 import re
+from django.utils import timezone
 from .models import Article, Comment, CustomUser, QuizAttempt, Tag
-from .forms import ArticleURLForm, CustomUserCreationForm, UserProfileForm
+from .forms import ArticleURLForm, CustomUserCreationForm, UserProfileForm, FeatureControlForm
 from .tasks import scrape_and_save_article
 from .xp_system import (
     PremiumFeatureStore,
@@ -41,14 +42,6 @@ def index(request):
     # Apply language filter
     if language_filter and language_filter != "all":
         articles = articles.filter(language=language_filter)
-
-    # Apply user's preferred language if authenticated and no explicit filter
-    elif request.user.is_authenticated and language_filter == "all":
-        user_lang = getattr(request.user, "preferred_language", None)
-        if user_lang and request.GET.get("show_all") != "1":
-            # Show user's preferred language by default, but allow override
-            articles = articles.filter(language=user_lang)
-            language_filter = user_lang
 
     # Order by timestamp and limit for homepage
     articles = articles.order_by("-timestamp")[:10]
@@ -98,12 +91,6 @@ class ArticleListView(ListView):
 
         if language_filter and language_filter != "all":
             queryset = queryset.filter(language=language_filter)
-        elif self.request.user.is_authenticated and language_filter == "all":
-            # Apply user's preferred language if no explicit filter
-            user_lang = getattr(self.request.user, "preferred_language", None)
-            if user_lang and self.request.GET.get("show_all") != "1":
-                queryset = queryset.filter(language=user_lang)
-
         if self.request.user.is_authenticated:
             # Annotate each article with a boolean indicating if the current user
             # has a QuizAttempt for it.
@@ -186,7 +173,7 @@ class ArticleDetailView(DetailView):
         return QuizAttempt.objects.filter(
             user=user,
             article=article,
-            score__gte=70,  # Passing score for commenting
+            score__gte=60,  # Passing score for commenting (aligned to 60%)
         ).exists()
 
     def get_context_data(self, **kwargs):
@@ -252,12 +239,13 @@ class ArticleDetailView(DetailView):
 
             session_quiz_attempts = self.request.session.get("quiz_attempts", {})
             article_key = str(article.id)
-            context["user_has_completed_quiz"] = (
+            user_has_completed_quiz = (
                 article_key in session_quiz_attempts
                 and session_quiz_attempts[article_key].get("score", 0) >= 60
             )
+            context["user_has_completed_quiz"] = user_has_completed_quiz
             context["user_xp"] = self.request.session.get("total_xp", 0)
-            context["user_can_comment"] = False
+            context["user_can_comment"] = user_has_completed_quiz
 
         # Article-specific context
         context["related_articles"] = self.get_related_articles(article)
@@ -469,14 +457,15 @@ class UserProfileView(LoginRequiredMixin, DetailView):
             user
         )
 
-        # Add UserProfileForm for feature controls
-        context["form"] = UserProfileForm(instance=user)
+        # Add FeatureControlForm for feature controls
+        if 'form' not in kwargs:
+             context["form"] = FeatureControlForm(instance=user)
 
         return context
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        form = UserProfileForm(request.POST, instance=self.object)
+        form = FeatureControlForm(request.POST, instance=self.object)
         if form.is_valid():
             form.save()
             messages.success(
@@ -493,6 +482,7 @@ class UserProfileView(LoginRequiredMixin, DetailView):
             return self.render_to_response(context)
 
 
+@login_required
 def scrape_article_view(request):
     if request.method == "POST":
         form = ArticleURLForm(request.POST)
@@ -507,7 +497,7 @@ def scrape_article_view(request):
                 )
                 return redirect("verifast_app:article_list")
 
-            scrape_and_save_article.delay(url)
+            scrape_and_save_article.apply_async(args=[url], queue='acquisition')
             messages.success(
                 request,
                 _(
@@ -521,51 +511,102 @@ def scrape_article_view(request):
     return render(request, "verifast_app/scrape_article.html", {"form": form})
 
 
-class AddCommentView(LoginRequiredMixin, View):
+class AddCommentView(View):
     """Handle adding new comments via HTMX"""
 
     def post(self, request, article_id):
         article = get_object_or_404(Article, id=article_id)
-        user = request.user
+
         content = request.POST.get("content", "").strip()
 
         if not content:
             messages.error(request, _("Comment content cannot be empty."))
-            return self.render_comments_list(article, user)
+            return self.render_comments_list(article, request.user)
 
-        # Check if user can comment (passed quiz with score >= 70)
-        if not QuizAttempt.objects.filter(
-            user=user, article=article, score__gte=70
-        ).exists():
-            messages.error(
-                request,
-                _("You must pass the quiz with a score of 70% or higher to comment."),
+        if request.user.is_authenticated:
+            # Determine if commenter has passed the quiz
+            passed = QuizAttempt.objects.filter(user=request.user, article=article, score__gte=60).exists()
+            if not passed:
+                messages.error(request, _("You must pass the quiz with a score of 60% or higher to comment."))
+                return self.render_comments_list(article, request.user)
+
+            # Check for perfect score privilege (free commenting)
+            perfect_score_privilege = QuizAttempt.objects.filter(user=request.user, article=article, score__gte=100).exists()
+
+            try:
+                SocialInteractionManager.post_comment(
+                    user=request.user,
+                    article=article,
+                    content=content,
+                    parent_comment=None,
+                    is_perfect_score_free=perfect_score_privilege,
+                )
+                messages.success(request, _("Your comment has been posted successfully."))
+            except InsufficientXPError as e:
+                messages.error(request, str(e))
+            except Exception as e:
+                messages.error(
+                    request,
+                    _("An unexpected error occurred: %(error)s") % {"error": str(e)},
+                )
+        else:
+            # Anonymous user logic
+            attempts = request.session.get("quiz_attempts", {})
+            art_key = str(article.id)
+            passed = art_key in attempts and attempts[art_key].get("score", 0) >= 60
+
+            if not passed:
+                messages.error(request, _("You must pass the quiz with a score of 60% or higher to comment."))
+                return self.render_comments_list(article, request.user)
+
+            # Anonymous comment: store under a dedicated 'guest' user (create if missing)
+            from django.contrib.auth import get_user_model
+            from django.utils.crypto import get_random_string
+            from django.core.signing import Signer
+            User = get_user_model()
+            guest_user, created = User.objects.get_or_create(
+                username="guest",
+                defaults={
+                    "email": "guest@example.com",
+                    "is_staff": False,
+                    "is_superuser": False,
+                    "password": get_random_string(32),
+                },
             )
-            return self.render_comments_list(article, user)
+            display_name = request.POST.get('guest_name','Anonymous').strip() or 'Anonymous'
+            try:
+                SocialInteractionManager.post_comment(
+                    user=guest_user,
+                    article=article,
+                    content=f"[Guest: {display_name}] {content}",
+                    parent_comment=None,
+                    is_perfect_score_free=True,  # Guests do not spend XP
+                )
+                # Set signed cookie for guest_name (30 days)
+                signer = Signer()
+                signed_name = signer.sign(display_name)
+                self.response = self.render_comments_list(article, request.user)
+                self.response.set_cookie('vf_guest_name', signed_name, max_age=60*60*24*30, samesite='Lax')
+                messages.success(request, _("Your comment has been posted successfully."))
+                return self.response
+            except Exception as e:
+                messages.error(
+                    request,
+                    _("An unexpected error occurred: %(error)s") % {"error": str(e)},
+                )
 
-        # Check for perfect score privilege (free commenting)
-        perfect_score_privilege = QuizAttempt.objects.filter(
-            user=user, article=article, score__gte=100
-        ).exists()
+        # Simple throttling for anonymous posts (max 5 per 10 minutes per session)
+        if not request.user.is_authenticated:
+            key = f"guest_comment_count_{article_id}"
+            count = request.session.get(key, 0)
+            if count >= 5:
+                messages.error(request, _("You are commenting too frequently. Please try again later."))
+                return self.render_comments_list(article, request.user)
+            request.session[key] = count + 1
+            # Set expiry sliding window (~10 minutes)
+            request.session.set_expiry(600)
 
-        try:
-            SocialInteractionManager.post_comment(
-                user=user,
-                article=article,
-                content=content,
-                parent_comment=None,  # Top-level comment
-                is_perfect_score_free=perfect_score_privilege,
-            )
-            messages.success(request, _("Your comment has been posted successfully."))
-        except InsufficientXPError as e:
-            messages.error(request, str(e))
-        except Exception as e:
-            messages.error(
-                request,
-                _("An unexpected error occurred: %(error)s") % {"error": str(e)},
-            )
-
-        return self.render_comments_list(article, user)
+        return self.render_comments_list(article, request.user)
 
     def render_comments_list(self, article, user):
         """Render updated comments list for HTMX response"""
@@ -581,6 +622,43 @@ class AddCommentView(LoginRequiredMixin, View):
             "verifast_app/partials/comments_list.html",
             {"comments": comments, "user": user, "article": article},
         )
+
+
+class CommentsSectionView(View):
+    """Return the refreshed comments section (form + list) for HTMX reload after quiz pass."""
+    def get(self, request, article_id):
+        article = get_object_or_404(Article, id=article_id)
+        user = request.user
+        # Determine if user can comment now
+        user_can_comment = False
+        if user.is_authenticated:
+            user_can_comment = QuizAttempt.objects.filter(
+                user=user, article=article, score__gte=60
+            ).exists()
+        # Prepare comments queryset
+        comments = (
+            Comment.objects.filter(article=article, parent_comment__isnull=True)
+            .select_related("user")
+            .prefetch_related("replies__user")
+            .order_by("-timestamp")
+        )
+        # Pre-fill guest name from signed cookie if present
+        from django.core.signing import Signer, BadSignature
+        signer = Signer()
+        guest_name = None
+        cookie_val = request.COOKIES.get('vf_guest_name')
+        if cookie_val:
+            try:
+                guest_name = signer.unsign(cookie_val)
+            except BadSignature:
+                guest_name = None
+
+        response = render(
+            request,
+            "verifast_app/partials/comments_section.html",
+            {"article": article, "comments": comments, "user": user, "user_can_comment": user_can_comment, "guest_name": guest_name},
+        )
+        return response
 
 
 class CommentInteractView(LoginRequiredMixin, View):
@@ -717,7 +795,7 @@ class UserProfileUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class QuizSubmissionAPIView(LoginRequiredMixin, View):
+class QuizSubmissionAPIView(View):
     """
     API endpoint for submitting quiz answers, grading, and awarding XP.
     """
@@ -775,7 +853,7 @@ class QuizSubmissionAPIView(LoginRequiredMixin, View):
 
                 # For HTMX requests, return HTML template
                 if "HX-Request" in request.headers:
-                    return render(
+                    response = render(
                         request,
                         "verifast_app/partials/quiz_results.html",
                         {
@@ -784,9 +862,14 @@ class QuizSubmissionAPIView(LoginRequiredMixin, View):
                             "xp_earned": result_data["xp_breakdown"]["total_xp"],
                             "messages": result_data["messages"],
                             "result_type": result_data["result_type"],
-                            "user_can_comment": result_data["score"] >= 70,
+                            "user_can_comment": result_data["score"] >= 60,
+                            "feedback": result_data.get("feedback", []),
                         },
                     )
+                    # Trigger a client-side event so the comments section can refresh via HTMX
+                    if result_data["score"] >= 60:
+                        response["HX-Trigger"] = json.dumps({"quiz-passed": True})
+                    return response
                 else:
                     # JSON response for API calls
                     return JsonResponse(
@@ -801,25 +884,13 @@ class QuizSubmissionAPIView(LoginRequiredMixin, View):
                     )
             else:
                 # Handle anonymous users with session-based scoring
-                quiz_data = (
-                    json.loads(article.quiz_data)
-                    if isinstance(article.quiz_data, str)
-                    else article.quiz_data
-                )
-                correct_answers = 0
-                total_questions = len(quiz_data)
+                from collections import namedtuple
+                QuizAttemptMock = namedtuple('QuizAttemptMock', ['result'])
+                mock_attempt = QuizAttemptMock(result={'user_answers': user_answers, 'quiz_data': article.quiz_data})
 
-                for i, question in enumerate(quiz_data):
-                    if i < len(user_answers) and user_answers[i] == question.get(
-                        "correct_answer", 0
-                    ):
-                        correct_answers += 1
-
-                score = (
-                    int((correct_answers / total_questions) * 100)
-                    if total_questions > 0
-                    else 0
-                )
+                # Use the robust grader from QuizResultProcessor
+                score = QuizResultProcessor.grade_quiz(mock_attempt, article)
+                
                 xp_earned = max(10, int(score * 0.5))  # Basic XP for anonymous users
 
                 # Store in session
@@ -831,7 +902,16 @@ class QuizSubmissionAPIView(LoginRequiredMixin, View):
                     "xp_earned": xp_earned,
                     "timestamp": timezone.now().isoformat(),
                 }
+                if wpm_used:
+                    try:
+                        request.session["current_wpm"] = int(wpm_used)
+                    except (ValueError, TypeError):
+                        pass # Ignore if wpm_used is not a valid integer
                 request.session.modified = True
+
+                feedback = []
+                if score >= 60:
+                    feedback = QuizResultProcessor.build_incorrect_feedback(mock_attempt, article)
 
                 if "HX-Request" in request.headers:
                     return render(
@@ -844,8 +924,9 @@ class QuizSubmissionAPIView(LoginRequiredMixin, View):
                             "messages": {
                                 "main_message": f"Quiz completed with {score}% score!"
                             },
-                            "result_type": "passed" if score >= 70 else "failed",
+                            "result_type": "passed" if score >= 60 else "failed",
                             "user_can_comment": False,  # Anonymous users can't comment
+                            "feedback": feedback,
                         },
                     )
                 else:
@@ -857,7 +938,8 @@ class QuizSubmissionAPIView(LoginRequiredMixin, View):
                             "messages": {
                                 "main_message": f"Quiz completed with {score}% score!"
                             },
-                            "result_type": "passed" if score >= 70 else "failed",
+                            "result_type": "passed" if score >= 60 else "failed",
+                            "feedback": feedback,
                         }
                     )
 
@@ -1031,7 +1113,7 @@ def speed_reader_init(request, article_id):
 
     # Server-side content processing with user power-ups
     word_chunks = process_content_with_powerups(article.content, user)
-    settings = get_user_reading_settings(user)
+    settings = get_user_reading_settings(user, request=request)
 
     # Add validation for empty content
     if not word_chunks:
@@ -1050,6 +1132,7 @@ def speed_reader_init(request, article_id):
         {
             "word_chunks_json": json.dumps(word_chunks),
             "user_wpm": settings.get("wpm", 250),
+            "font_family": settings.get("font_family", "default"),
             "article_id": article.id,
             "article_type": "wikipedia" if article.is_wikipedia_article else "regular",
         },
@@ -1063,36 +1146,62 @@ def process_content_with_powerups(content, user):
 
     # Import strip_tags for HTML content cleaning
     from django.utils.html import strip_tags
+    import logging
+
+    logger = logging.getLogger(__name__)
 
     # Clean HTML tags and normalize whitespace
-    clean_content = strip_tags(content).strip()
+    # Check if content seems to contain HTML tags before stripping
+    if '<' in content and '>' in content:
+        logger.info("Content appears to be HTML, stripping tags.")
+        clean_content = strip_tags(content).strip()
+    else:
+        logger.info("Content appears to be plain text, no need to strip tags.")
+        clean_content = content.strip()
+
     if not clean_content:
+        logger.warning("Content is empty after cleaning.")
         return []
 
-    # Start with basic word splitting
-    words = re.findall(r"\b\w+\b|[^\w\s]", clean_content)
+    # Improved word splitting to handle various punctuation and contractions
+    words = re.findall(r"[\w']+|[.,!?;:()\"\“\”\[\]{}]", clean_content)
+    logger.info(f"Split content into {len(words)} words/tokens.")
 
     if not user or not user.is_authenticated:
         return words
 
-    # Apply chunking based on user's purchased features
-    if user.has_5word_chunking:
-        chunks = create_word_chunks(words, 5)
-    elif user.has_4word_chunking:
-        chunks = create_word_chunks(words, 4)
-    elif user.has_3word_chunking:
-        chunks = create_word_chunks(words, 3)
-    elif user.has_2word_chunking:
-        chunks = create_word_chunks(words, 2)
+
+    # Respect explicit user profile selections rather than auto-owning features (especially for staff)
+    # Use the user's boolean fields set via profile for chunking and smart features.
+    has_5 = getattr(user, 'has_5word_chunking', False)
+    has_4 = getattr(user, 'has_4word_chunking', False)
+    has_3 = getattr(user, 'has_3word_chunking', False)
+    has_2 = getattr(user, 'has_2word_chunking', False)
+    use_conn = getattr(user, 'has_smart_connector_grouping', False)
+    use_sym = getattr(user, 'has_smart_symbol_handling', False)
+
+    # Apply chunking based on user's selected features (highest wins)
+    fixed_chunk_size = None
+    if has_5:
+        fixed_chunk_size = 5
+    elif has_4:
+        fixed_chunk_size = 4
+    elif has_3:
+        fixed_chunk_size = 3
+    elif has_2:
+        fixed_chunk_size = 2
+
+    if fixed_chunk_size:
+        # Respect fixed chunking and skip connector grouping to avoid conflicts
+        chunks = create_word_chunks(words, fixed_chunk_size)
     else:
-        chunks = words  # Default 1-word chunks
+        # Default to single words, then allow smart grouping if enabled
+        chunks = words
+        if use_conn:
+            chunks = apply_smart_connector_grouping(chunks)
 
-    # Apply smart connector grouping if purchased
-    if user.has_smart_connector_grouping:
-        chunks = apply_smart_connector_grouping(chunks)
-
-    # Apply smart symbol handling if purchased
-    if user.has_smart_symbol_handling:
+    # Apply smart symbol handling if enabled
+    if use_sym:
         chunks = apply_smart_symbol_handling(chunks)
 
     return chunks
@@ -1144,30 +1253,28 @@ def apply_smart_connector_grouping(chunks):
 
 
 def apply_smart_symbol_handling(chunks):
-    """Apply elegant punctuation and symbol display"""
+    """Apply elegant punctuation and symbol display with a robust regex approach."""
+    import re
     processed_chunks = []
 
+    # Regex: remove space before punctuation, fix quotes spacing
+    space_before_punct = re.compile(r"\s+([,.!?;:])")
+
     for chunk in chunks:
-        # Handle common punctuation elegantly
-        chunk = chunk.replace(" ,", ",")
-        chunk = chunk.replace(" .", ".")
-        chunk = chunk.replace(" !", "!")
-        chunk = chunk.replace(" ?", "?")
-        chunk = chunk.replace(" ;", ";")
-        chunk = chunk.replace(" :", ":")
-
-        # Handle quotes
-        chunk = chunk.replace(' "', '"')
-        chunk = chunk.replace('" ', '"')
-
+        # Remove spaces before punctuation
+        chunk = space_before_punct.sub(r"\1", chunk)
+        # Normalize quotes spacing
+        chunk = chunk.replace(' "', '"').replace('" ', '"')
         processed_chunks.append(chunk)
 
     return processed_chunks
 
 
-def get_user_reading_settings(user):
+def get_user_reading_settings(user, request=None):
     """Get user's reading settings and preferences"""
     if not user or not user.is_authenticated:
+        if request:
+            return {"wpm": request.session.get("current_wpm", 250), "font_family": "default", "theme": "light"}
         return {"wpm": 250, "font_family": "default", "theme": "light"}
 
     return {
@@ -1178,13 +1285,24 @@ def get_user_reading_settings(user):
 
 
 def get_user_font_preference(user):
-    """Determine user's font preference based on purchased features"""
-    if user.has_font_playfair:
-        return "playfair"
-    elif user.has_font_merriweather:
-        return "merriweather"
-    else:
-        return "default"
+    """Determine user's font preference based on purchased features.
+    Returns one of: 'opendyslexic', 'opensans', 'roboto', 'merriweather', 'playfair', 'default'.
+    Only one should be active at a time via the profile form, but we check all to be safe.
+    """
+    if getattr(user, 'has_font_opendyslexic', False):
+        return 'opendyslexic'
+    if getattr(user, 'has_font_opensans', False):
+        return 'opensans'
+    if getattr(user, 'has_font_roboto', False):
+        return 'roboto'
+    if getattr(user, 'has_font_merriweather', False):
+        return 'merriweather'
+    if getattr(user, 'has_font_playfair', False):
+        return 'playfair'
+    return 'default'
+
+
+from django.views.decorators.http import require_POST
 
 
 def speed_reader_complete(request, article_id):
@@ -1193,6 +1311,21 @@ def speed_reader_complete(request, article_id):
         article = get_object_or_404(Article, id=article_id)
         user = request.user
         xp_awarded = 0
+        
+        wpm = request.POST.get("wpm")
+        if wpm:
+            if user.is_authenticated:
+                try:
+                    user.current_wpm = int(wpm)
+                    user.save(update_fields=['current_wpm'])
+                except (ValueError, TypeError):
+                    pass
+            else:
+                try:
+                    request.session["current_wpm"] = int(wpm)
+                    request.session.modified = True
+                except (ValueError, TypeError):
+                    pass
 
         if user.is_authenticated:
             # Award reading XP using the XP system
@@ -1254,6 +1387,38 @@ class QuizSubmitView(View):
         return render(request, "verifast_app/partials/quiz_interface.html", context)
 
 
+@require_POST
+def update_reading_wpm(request):
+    """Persist user's reading speed (WPM) to profile or session."""
+    wpm = request.POST.get("wpm") or request.body.decode() if request.body else None
+    try:
+        # If JSON body like {"wpm": 300}
+        if request.content_type == "application/json" and request.body:
+            import json as _json
+            data = _json.loads(request.body)
+            wpm = data.get("wpm", wpm)
+        wpm_val = int(str(wpm).strip()) if wpm is not None else None
+    except Exception:
+        return JsonResponse({"success": False, "error": "invalid_wpm"}, status=400)
+
+    if wpm_val is None or wpm_val < 50 or wpm_val > 2000:
+        return JsonResponse({"success": False, "error": "out_of_range"}, status=400)
+
+    if request.user.is_authenticated:
+        try:
+            request.user.current_wpm = wpm_val
+            request.user.save(update_fields=["current_wpm"]) 
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)}, status=500)
+    else:
+        request.session["current_wpm"] = wpm_val
+        # Persist for 60 days so anonymous users keep their speed between articles
+        request.session.set_expiry(60 * 24 * 60 * 60)
+        request.session.modified = True
+
+    return JsonResponse({"success": True, "wpm": wpm_val})
+
+
 class QuizNextQuestionView(View):
     def post(self, request, article_id):
         # This view is a placeholder. The actual implementation will require more logic.
@@ -1283,11 +1448,44 @@ class QuizStartView(View):
 
         # Parse quiz data and prepare for server-side rendering
         try:
-            quiz_questions = (
+            raw = (
                 json.loads(article.quiz_data)
                 if isinstance(article.quiz_data, str)
                 else article.quiz_data
             )
+            # Normalize quiz structure to a list of question dicts
+            if isinstance(raw, dict):
+                if isinstance(raw.get('quiz'), list):
+                    quiz_questions_raw = raw.get('quiz')
+                elif isinstance(raw.get('questions'), list):
+                    quiz_questions_raw = raw.get('questions')
+                else:
+                    quiz_questions_raw = []
+            elif isinstance(raw, list):
+                quiz_questions_raw = raw
+            else:
+                quiz_questions_raw = []
+
+            # Normalize options: accept both strings and {"text": "..."}
+            quiz_questions = []
+            for q in quiz_questions_raw:
+                if not isinstance(q, dict):
+                    continue
+                opts = q.get('options', [])
+                norm_opts = [o.get('text') if isinstance(o, dict) else o for o in opts]
+                # Support 'correct_answer' index or text, or 'answer'
+                correct_val = q.get('correct_answer', q.get('answer', 0))
+                if isinstance(correct_val, int):
+                    correct_idx = correct_val
+                elif isinstance(correct_val, str) and correct_val in norm_opts:
+                    correct_idx = norm_opts.index(correct_val)
+                else:
+                    correct_idx = 0
+                quiz_questions.append({
+                    'question': q.get('question', ''),
+                    'options': norm_opts,
+                    'correct_answer': correct_idx
+                })
         except (json.JSONDecodeError, TypeError):
             return render(
                 request,
@@ -1300,7 +1498,7 @@ class QuizStartView(View):
             "quiz_questions": quiz_questions,
             "user_wpm": request.user.current_wpm
             if request.user.is_authenticated
-            else 250,
+            else request.session.get("current_wpm", 250),
             "total_questions": len(quiz_questions) if quiz_questions else 0,
         }
         return render(request, "verifast_app/partials/quiz_interface.html", context)
@@ -1554,13 +1752,6 @@ def language_filter_articles(request):
     # Apply language filter
     if language_filter and language_filter != "all":
         articles = articles.filter(language=language_filter)
-
-    # Apply user's preferred language if authenticated and no explicit filter
-    elif request.user.is_authenticated and language_filter == "all":
-        user_lang = getattr(request.user, "preferred_language", None)
-        if user_lang and request.GET.get("show_all") != "1":
-            articles = articles.filter(language=user_lang)
-            language_filter = user_lang
 
     # Handle sorting and pagination
     if request.user.is_authenticated:

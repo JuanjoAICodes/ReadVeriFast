@@ -1,5 +1,6 @@
 {% extends 'verifast_app/base.html' %}
 {% load static %}
+{% load language_tags %}
 
 {% block title %}{{ tag.name }} - Tag Detail - VeriFast{% endblock %}
 
@@ -91,32 +92,11 @@
         flex-wrap: wrap;
     }
     
-    .article-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 1rem;
-        margin: 1rem 0;
-    }
-    
-    .article-card {
-        background: var(--pico-card-background-color);
-        border-radius: 0.5rem;
-        padding: 1rem;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    
-    .article-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    
-    .article-title {
-        font-weight: bold;
-        margin-bottom: 0.5rem;
-        font-size: 1.1rem;
-    }
-    
-    .article-meta {
+    /* Using shared article card styles from static/css/custom.css */
+   .article-grid { /* keep as hook but do not override shared */ }
+   .article-card { /* keep as hook but do not override shared */ }
+   .article-title { /* keep as hook but do not override shared */ }
+   .article-meta {
         font-size: 0.875rem;
         color: var(--pico-muted-color);
         margin-bottom: 0.5rem;
@@ -435,33 +415,30 @@
         <div class="article-grid">
             {% for article in articles_page %}
                 <div class="article-card">
-                    <div class="article-title">
-                        <a href="{{ article.get_absolute_url }}">{{ article.title }}</a>
-                    </div>
-                    
-                    <div class="article-meta">
-                        by {{ article.get_source_display }} • 
-                        {{ article.get_reading_time_estimate }} min read • 
-                        {{ article.timestamp|timesince }} ago
-                        {% if article.reading_level %}
-                        • Level {{ article.reading_level|floatformat:1 }}
-                        {% endif %}
-                    </div>
-                    
-                    {% if article.summary %}
-                    <div class="article-summary">
-                        {{ article.summary|truncatewords:20 }}
+                    {% if article.image_url %}
+                    <div class="article-image">
+                        <img src="{{ article.image_url }}" alt="{{ article.title }}" loading="lazy" />
                     </div>
                     {% endif %}
-                    
+                    <div class="article-header">
+                        <h3 class="article-title">
+                            <a href="{{ article.get_absolute_url }}">{{ article.title }}</a>
+                        </h3>
+                        <div class="article-meta">
+                            {% language_badge article.language %}
+                            {{ article.get_source_display }} • {{ article.get_reading_time_estimate }} min read • {{ article.timestamp|date:"M d, Y" }}
+                            {% if article.reading_level %} • Level {{ article.reading_level|floatformat:1 }}{% endif %}
+                        </div>
+                    </div>
+                    {% if article.summary %}
+                    <div class="article-summary">
+                        {{ article.summary|truncatewords:24 }}
+                    </div>
+                    {% endif %}
                     <div class="article-actions">
-                        <a href="{{ article.get_absolute_url }}" role="button" class="outline">
-                            📚 Read
-                        </a>
+                        <a href="{{ article.get_absolute_url }}" role="button" class="outline">📚 Read</a>
                         {% if article.can_generate_quiz %}
-                        <a href="{{ article.get_absolute_url }}#quiz" role="button" class="outline">
-                            🧠 Quiz
-                        </a>
+                        <a href="{{ article.get_absolute_url }}#quiz" role="button" class="outline">🧠 Quiz</a>
                         {% endif %}
                     </div>
                 </div>

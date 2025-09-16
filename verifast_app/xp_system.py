@@ -1638,7 +1638,8 @@ class XPCalculationEngine:
 
 class QuizResultProcessor:
     """
-    Handles quiz result processing, XP awarding, and user feedback.
+    Handles quiz result processing, XP awarding, user feedback, and feedback construction
+    for incorrect answers when passed.
     Implements the complete quiz completion workflow with bonuses and messaging.
     """
     
@@ -1646,6 +1647,9 @@ class QuizResultProcessor:
     def grade_quiz(quiz_attempt, article):
         """
         Calculate the quiz score based on user answers and correct answers.
+        Robust to multiple quiz schemas:
+        - List[question] or Dict with 'quiz'/'questions'
+        - Correct answer provided as index or text under 'correct_answer' or 'answer'
         
         Args:
             quiz_attempt: QuizAttempt instance with user_answers in result field
@@ -1655,42 +1659,74 @@ class QuizResultProcessor:
             Float score percentage (0-100)
         """
         try:
-            # Get user answers from quiz attempt
+            import json as _json
+            # Get user answers from quiz attempt (ensure ints)
             user_answers = quiz_attempt.result.get('user_answers', [])
+            if isinstance(user_answers, str):
+                try:
+                    user_answers = _json.loads(user_answers)
+                except Exception:
+                    user_answers = []
+            try:
+                user_answers = [int(a) if a is not None and a != '' else -1 for a in user_answers]
+            except Exception:
+                # Fallback: keep as-is
+                pass
             
-            # Get quiz data from article
-            quiz_data = article.quiz_data
-            if isinstance(quiz_data, str):
-                import json
-                quiz_data = json.loads(quiz_data)
+            # Load quiz data (prefer snapshot stored with attempt, else article)
+            qd = quiz_attempt.result.get('quiz_data') if quiz_attempt.result.get('quiz_data') is not None else article.quiz_data
+            if isinstance(qd, str):
+                try:
+                    qd = _json.loads(qd)
+                except Exception:
+                    qd = []
             
-            if not quiz_data or not user_answers:
+            # Normalize to list of question dicts
+            if isinstance(qd, dict):
+                if isinstance(qd.get('quiz'), list):
+                    quiz_list = qd.get('quiz')
+                elif isinstance(qd.get('questions'), list):
+                    quiz_list = qd.get('questions')
+                else:
+                    quiz_list = []
+            elif isinstance(qd, list):
+                quiz_list = qd
+            else:
+                quiz_list = []
+            
+            if not quiz_list or not user_answers:
                 return 0.0
             
             # Calculate score
             correct_count = 0
-            total_questions = min(len(quiz_data), len(user_answers))
+            total_questions = min(len(quiz_list), len(user_answers))
             
             for i in range(total_questions):
-                question = quiz_data[i]
-                user_answer_index = user_answers[i]
-                
-                # Get correct answer
-                correct_answer = question.get('correct_answer', '')
-                options = question.get('options', [])
-                
-                # Find correct answer index
-                if correct_answer in options:
-                    correct_index = options.index(correct_answer)
-                    if user_answer_index == correct_index:
-                        correct_count += 1
+                q = quiz_list[i] if isinstance(quiz_list[i], dict) else {}
+                user_ans = user_answers[i]
+                # Normalize options to text list
+                opts = q.get('options', [])
+                norm_opts = [o.get('text') if isinstance(o, dict) else o for o in opts]
+                # Determine correct index from 'correct_answer' or 'answer'
+                correct_val = q.get('correct_answer', q.get('answer', None))
+                correct_idx = None
+                if isinstance(correct_val, int):
+                    correct_idx = correct_val
+                elif isinstance(correct_val, str) and norm_opts and correct_val in norm_opts:
+                    correct_idx = norm_opts.index(correct_val)
+                # Compare; ensure user_ans is int
+                try:
+                    user_idx = int(user_ans)
+                except (TypeError, ValueError):
+                    user_idx = -1
+                if correct_idx is not None and user_idx == int(correct_idx):
+                    correct_count += 1
             
             # Calculate percentage
             if total_questions > 0:
                 score = (correct_count / total_questions) * 100
                 return round(score, 1)
-            else:
-                return 0.0
+            return 0.0
                 
         except Exception as e:
             print(f"Error grading quiz: {e}")
@@ -1701,6 +1737,7 @@ class QuizResultProcessor:
     def process_quiz_completion(quiz_attempt, article, user):
         """
         Process a completed quiz attempt with XP calculation and user updates.
+        Also builds detailed feedback for incorrect answers when the user passes (>=60%).
         
         Args:
             quiz_attempt: QuizAttempt instance
@@ -1708,7 +1745,7 @@ class QuizResultProcessor:
             user: CustomUser instance
         
         Returns:
-            Dictionary with complete quiz result information
+            Dictionary with complete quiz result information, including optional feedback list
         """
         # First, grade the quiz to calculate the actual score
         actual_score = QuizResultProcessor.grade_quiz(quiz_attempt, article)
@@ -1759,12 +1796,94 @@ class QuizResultProcessor:
             quiz_attempt.xp_awarded = xp_breakdown['total_xp']
             quiz_attempt.save()
         
+        # Build feedback for incorrect answers only if passed (>=60%)
+        feedback = []
+        if quiz_attempt.score >= 60:
+            feedback = QuizResultProcessor.build_incorrect_feedback(quiz_attempt, article)
+        
         # Generate result messaging and navigation
         result_data = QuizResultProcessor.generate_quiz_result_data(
             quiz_attempt, article, user, xp_breakdown
         )
         
+        # Attach feedback (only provided on pass)
+        result_data['feedback'] = feedback
+        
         return result_data
+    
+    @staticmethod
+    def build_incorrect_feedback(quiz_attempt, article):
+        """
+        Build a list of feedback items for incorrect answers only, but only used for passing scores.
+        Handles multiple quiz_data schemas:
+        - List[question]
+        - Dict with key 'quiz' or 'questions'
+        And supports 'correct_answer' (index or text) or 'answer' (index or text).
+        """
+        try:
+            import json as _json
+            # Parse stored result data
+            result = quiz_attempt.result or {}
+            user_answers = result.get('user_answers')
+            if isinstance(user_answers, str):
+                user_answers = _json.loads(user_answers)
+            if user_answers is None:
+                user_answers = []
+            
+            # Load quiz_data, prefer the snapshot stored with the attempt
+            qd = result.get('quiz_data') if result.get('quiz_data') is not None else article.quiz_data
+            if isinstance(qd, str):
+                qd = _json.loads(qd)
+            # Normalize to list of questions
+            if isinstance(qd, dict):
+                if 'quiz' in qd and isinstance(qd['quiz'], list):
+                    quiz_list = qd['quiz']
+                elif 'questions' in qd and isinstance(qd['questions'], list):
+                    quiz_list = qd['questions']
+                else:
+                    quiz_list = []
+            elif isinstance(qd, list):
+                quiz_list = qd
+            else:
+                quiz_list = []
+            
+            feedback = []
+            for i, q in enumerate(quiz_list):
+                # Normalize options to text
+                options = q.get('options', [])
+                norm_opts = [o.get('text') if isinstance(o, dict) else o for o in options]
+                # Determine correct answer index
+                correct_val = q.get('correct_answer', q.get('answer', None))
+                correct_idx = None
+                if isinstance(correct_val, int):
+                    correct_idx = correct_val
+                elif isinstance(correct_val, str):
+                    if norm_opts and correct_val in norm_opts:
+                        correct_idx = norm_opts.index(correct_val)
+                
+                user_ans = user_answers[i] if i < len(user_answers) else None
+                if correct_idx is None or user_ans is None:
+                    continue
+                
+                # Compare; ensure user_ans is int
+                try:
+                    user_idx = int(user_ans)
+                except (TypeError, ValueError):
+                    continue
+                
+                if user_idx != int(correct_idx):
+                    feedback.append({
+                        'question': q.get('question', ''),
+                        'user_answer_index': user_idx,
+                        'user_answer': norm_opts[user_idx] if 0 <= user_idx < len(norm_opts) else None,
+                        'correct_answer_index': int(correct_idx) if isinstance(correct_idx, int) else correct_idx,
+                        'correct_answer': norm_opts[int(correct_idx)] if isinstance(correct_idx, int) and 0 <= int(correct_idx) < len(norm_opts) else (correct_val if isinstance(correct_val, str) else None),
+                        'explanation': q.get('explanation')
+                    })
+            return feedback
+        except Exception:
+            # Fail quietly to avoid breaking quiz flow
+            return []
     
     @staticmethod
     def generate_quiz_result_data(quiz_attempt, article, user, xp_breakdown):

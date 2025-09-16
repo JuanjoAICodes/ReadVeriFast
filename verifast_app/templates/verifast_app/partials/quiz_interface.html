@@ -5,7 +5,14 @@
     <p>{% trans "Test your understanding of the article you just read." %}</p>
     
     {% if quiz_questions %}
-    <form hx-post="{% url 'verifast_app:quiz_submit_api' %}" 
+    <form x-data="{ idx: 0, total: {{ total_questions|default:0 }}, answers: {}, inReview: false,
+                percent(){ return this.total>0 ? Math.round((Object.keys(this.answers).length/this.total)*100) : 0; },
+                answered(){ return Object.keys(this.answers).length; },
+                next(){ if(this.answers[this.idx] === undefined) return; if(this.idx < this.total-1){ this.idx++; } else { this.inReview = true; } },
+                prev(){ if(this.inReview){ this.inReview = false; } else if(this.idx > 0){ this.idx--; } },
+                setAnswer(qIdx, val){ this.answers[qIdx] = parseInt(val); if(this.idx < this.total-1){ this.idx++; } else { this.inReview = true; } }
+            }"
+          hx-post="{% url 'verifast_app:quiz_submit_api' %}"
           hx-target="#quiz-container"
           hx-swap="outerHTML"
           hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
@@ -16,37 +23,64 @@
         <input type="hidden" name="quiz_time_seconds" value="0" id="quiz-time-input">
         
         <div class="quiz-questions">
+            <div class="question-nav" x-show="total > 0" style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:1rem;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <button type="button" class="secondary-btn" @click="prev()" :disabled="idx===0 && !inReview">{% trans "Previous" %}</button>
+                    <div>{% trans "Question" %} <span x-text="inReview ? total : (idx+1)"></span> / {{ total_questions }}</div>
+                    <button type="button" class="secondary-btn" @click="next()" :disabled="inReview || answers[idx]===undefined">{% trans "Next" %}</button>
+                </div>
+                <div class="progress" aria-hidden="true" style="height:8px;background:#e9ecef;border-radius:6px;overflow:hidden;">
+                    <div class="progress-bar" :style="`width: ${percent()}%; height:100%; background:#0d6efd;`"></div>
+                </div>
+            </div>
             {% for question in quiz_questions %}
-            <div class="quiz-question" data-question="{{ forloop.counter0 }}">
+            <div class="quiz-question" data-question="{{ forloop.counter0 }}" x-show="idx==={{ forloop.counter0 }}">
                 <h4>{% trans "Question" %} {{ forloop.counter }}</h4>
                 <p class="question-text">{{ question.question }}</p>
                 <div class="quiz-options">
                     {% for option in question.options %}
                     <label class="quiz-option">
-                        <input type="radio" name="question_{{ forloop.parentloop.counter0 }}" value="{{ forloop.counter0 }}" required>
+                        <input type="radio" name="question_{{ forloop.parentloop.counter0 }}" value="{{ forloop.counter0 }}" @change="setAnswer({{ forloop.parentloop.counter0 }}, $event.target.value)" required>
                         <span>{{ option }}</span>
                     </label>
                     {% endfor %}
                 </div>
             </div>
             {% endfor %}
-        </div>
-        
-        <div class="quiz-controls">
-            <button type="submit" class="primary-btn">
+
+        <template x-if="inReview">
+            <div class="review-panel" style="border:1px solid #e2e3e5;border-radius:6px;padding:1rem;margin-top:1rem;">
+                <h4 style="margin-top:0;">{% trans "Review Answers" %}</h4>
+                <p>{% trans "You have answered" %} <strong x-text="answered()"></strong> / {{ total_questions }}.</p>
+                <p>{% trans "You can go back to change any answer, or submit the quiz." %}</p>
+            </div>
+        </template>
+
+        <div class="quiz-controls" x-show="total > 0" style="display:flex;gap:1rem;justify-content:center;margin-top:1rem;">
+            <button type="button" class="secondary-btn" @click="prev()" x-show="!inReview" :disabled="idx===0">{% trans "Previous" %}</button>
+            <button type="button" class="secondary-btn" @click="next()" x-show="!inReview" :disabled="answers[idx]===undefined">{% trans "Next" %}</button>
+            <button type="submit" class="primary-btn" x-show="inReview" :disabled="answered() < total">
                 {% trans "Submit Quiz" %}
             </button>
         </div>
     </form>
     
     <script>
-    // Minimal JavaScript for quiz timing (< 10 lines per HTMX Hybrid Architecture)
+    // Minimal JavaScript for quiz timing and Alpine init on HTMX swap
     (function() {
         const startTime = Date.now();
         const timeInput = document.getElementById('quiz-time-input');
-        document.querySelector('#quiz-container form').addEventListener('submit', function() {
-            timeInput.value = Math.floor((Date.now() - startTime) / 1000);
-        });
+        const formEl = document.querySelector('#quiz-container form');
+        if (formEl) {
+            formEl.addEventListener('submit', function() {
+                timeInput.value = Math.floor((Date.now() - startTime) / 1000);
+            });
+        }
+        // Ensure Alpine initializes for HTMX-swapped content
+        if (window.Alpine) {
+            const root = document.getElementById('quiz-container');
+            if (root) window.Alpine.initTree(root);
+        }
     })();
     </script>
     {% else %}

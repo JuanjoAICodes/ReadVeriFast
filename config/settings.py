@@ -1,8 +1,21 @@
 from pathlib import Path
 import os
+import environ
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Initialize environment variables
+env = environ.Env(
+    DEBUG=(bool, False)
+)
+
+# Read .env file
+environ.Env.read_env(BASE_DIR / '.env')
+
+# Determine run mode: 'FULL' for local admin, 'LIGHT' for production server
+DJANGO_RUN_MODE = env('DJANGO_RUN_MODE', default='FULL')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -11,9 +24,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'a-default-secret-key-that-is-long-enough')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+if 'RENDER' in os.environ:
+    ALLOWED_HOSTS.append(os.environ.get('RENDER_EXTERNAL_HOSTNAME'))
 
 
 # Application definition
@@ -28,6 +43,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'verifast_app',
+    'whitenoise.runserver_nostatic',
 ]
 
 MIDDLEWARE = [
@@ -122,6 +138,7 @@ LOCALE_PATHS = [
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
@@ -135,6 +152,7 @@ AUTH_USER_MODEL = 'verifast_app.CustomUser'
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+LOGIN_URL = '/admin/login/'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -161,7 +179,39 @@ REST_FRAMEWORK = {
 
 CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0')
 CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
-CELERY_IMPORTS = ('verifast_app.tasks',)
+
+# Celery Configuration for better database handling
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TIMEZONE = 'UTC'
+CELERY_ENABLE_UTC = True
+
+# Reduce database connections from Celery workers
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1
+CELERY_TASK_ACKS_LATE = True
+CELERY_WORKER_MAX_TASKS_PER_CHILD = 20  # Reduced to prevent connection accumulation
+
+# Additional settings to prevent database locks
+CELERY_TASK_REJECT_ON_WORKER_LOST = True
+CELERY_TASK_IGNORE_RESULT = False
+CELERY_WORKER_DISABLE_RATE_LIMITS = True
+
+# Task routing to serialize database-heavy operations
+CELERY_TASK_ROUTES = {
+    'verifast_app.tasks.process_article': {'queue': 'database_ops'},
+    'verifast_app.tasks.process_wikipedia_article': {'queue': 'database_ops'},
+    'verifast_app.tasks_content_acquisition.*': {'queue': 'content_acquisition'},
+}
+
+# Limit concurrent database operations
+CELERY_WORKER_CONCURRENCY = 2  # Reduced concurrency for database operations
+
+# Ensure Celery imports all task modules that define @shared_task
+CELERY_IMPORTS = (
+    'verifast_app.tasks',
+    'verifast_app.tasks_content_acquisition',
+)
 
 
 # Custom settings

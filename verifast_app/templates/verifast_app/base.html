@@ -5,6 +5,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+      (function(){
+        try{
+          var saved = localStorage.getItem('vf_theme');
+          if (saved) document.documentElement.setAttribute('data-theme', saved);
+        }catch(e){}
+      })();
+    </script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@latest/css/pico.min.css" />
     <link rel="stylesheet" href="{% static 'css/custom.css' %}">
     {% block extra_css %}{% endblock %}
@@ -22,7 +30,7 @@
 <body>
     <nav class="container-fluid">
         <ul>
-            <li><strong><a href="{% url 'verifast_app:index' %}">VeriFast</a></strong></li>
+            <li><strong><a href="{% url 'verifast_app:index' %}">Read Very Fast</a></strong></li>
         </ul>
         <ul>
             <li><a href="{% url 'verifast_app:article_list' %}">{% trans "Articles" %}</a></li>
@@ -33,6 +41,12 @@
             <li><a href="{% url 'verifast_app:scrape_article' %}" role="button" class="secondary">{% trans "Submit Article" %}</a></li>
         </ul>
         <ul>
+            <!-- Dark/Light Toggle -->
+            <li>
+              <button id="theme-toggle" title="Toggle theme" style="background:none;border:none;cursor:pointer;font-size:1.1rem;">
+                <span id="theme-icon" aria-hidden="true">🌙</span>
+              </button>
+            </li>
             <!-- Language Switcher -->
             <li>
                 <form method="post" action="{% url 'set_language' %}" style="display: inline;">
@@ -76,7 +90,49 @@
         {% block content %}{% endblock %}
     </main>
 
-    <script src="{% static 'verifast_app/js/i18n-helper.js' %}"></script>
+    <footer class="container">
+        <small>Did you found a bug or got a suggestion , please send it to <a href="mailto:verifast01@gmail.com">verifast01@gmail.com</a></small>
+    </footer>
+
+    
     {% block extra_js %}{% endblock %}
+  <script>
+    // Ensure Alpine components initialize correctly on HTMX swaps
+    (function(){
+      function initAlpine(el){
+        if (window.Alpine && el){
+          try { window.Alpine.initTree(el); } catch(e) { console.error('Alpine init error:', e); }
+        }
+      }
+      if (window.htmx){
+        // Run for initial load and every subsequent swap
+        htmx.onLoad(function(el){ initAlpine(el); });
+        document.body.addEventListener('htmx:afterSwap', function(evt){ initAlpine(evt.detail && evt.detail.target ? evt.detail.target : document.body); });
+      }
+    })();
+  </script>
+ <script>
+   (function(){
+     function applyIcon(mode){
+       var icon = document.getElementById('theme-icon');
+       if (!icon) return;
+       icon.textContent = (mode === 'dark') ? '☀️' : '🌙';
+     }
+     function currentMode(){
+       return document.documentElement.getAttribute('data-theme') || 'auto';
+     }
+     function toggleTheme(){
+       var mode = currentMode();
+       var next = (mode === 'dark') ? 'light' : 'dark';
+       document.documentElement.setAttribute('data-theme', next);
+       try{ localStorage.setItem('vf_theme', next); }catch(e){}
+       applyIcon(next);
+     }
+     // init icon
+     applyIcon((function(){ try{ return localStorage.getItem('vf_theme') || 'auto'; }catch(e){ return 'auto'; } })());
+     var btn = document.getElementById('theme-toggle');
+     if (btn) btn.addEventListener('click', toggleTheme);
+   })();
+ </script>
 </body>
 </html>

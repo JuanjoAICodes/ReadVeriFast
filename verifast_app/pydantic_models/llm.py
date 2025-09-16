@@ -36,8 +36,8 @@ class QuizQuestion(BaseModel):
         max_length=4,
         description="Exactly 4 answer options for the question",
     )
-    correct_answer: str = Field(
-        alias="answer", description="The text of the correct answer"
+    answer: str = Field(
+        description="The text of the correct answer"
     )
     explanation: Optional[str] = Field(
         None, max_length=1000, description="Optional explanation for the correct answer"
@@ -72,9 +72,9 @@ class QuizQuestion(BaseModel):
     @model_validator(mode="after")
     def validate_correct_answer_in_options(self):
         """Ensure correct answer matches one of the options."""
-        if self.correct_answer not in self.options:
+        if self.answer not in self.options:
             raise ValueError(
-                f'Correct answer "{self.correct_answer}" must be one of the provided options'
+                f'Correct answer "{self.answer}" must be one of the provided options'
             )
         return self
 

@@ -1,15 +1,19 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
+from django.conf import settings
 from .models import (
     CustomUser, Article, Tag, QuizAttempt, Comment, CommentInteraction, 
     AdminCorrectionDataset, XPTransaction, FeaturePurchase
 )
+from .models_content_acquisition import ContentFingerprint
 
-# Import content acquisition admin to register models
-try:
-    from . import admin_content_acquisition
-except ImportError:
-    pass  # Content acquisition admin not available
+
+# Conditionally import and register content acquisition admin panels
+if settings.DJANGO_RUN_MODE == 'FULL':
+    try:
+        from . import admin_content_acquisition  # Registers ContentSource admin and dashboard/orchestrate URLs
+    except ImportError:
+        pass  # Content acquisition admin not available
 
 
 @admin.register(Article)
@@ -20,6 +24,13 @@ class ArticleAdmin(admin.ModelAdmin):
     search_fields = ('title', 'url')
     filter_horizontal = ('tags',)
     actions = ['retry_processing', 'reprocess_quiz', 'start_content_motor']
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        if settings.DJANGO_RUN_MODE != 'FULL':
+            if 'start_content_motor' in actions:
+                del actions['start_content_motor']
+        return actions
 
     @admin.display(description=_('Has Quiz'), boolean=True)
     def has_quiz(self, obj):
@@ -120,6 +131,26 @@ class ArticleAdmin(admin.ModelAdmin):
                 _("Error starting content motor: %(error)s") % {'error': str(e)},
                 level='ERROR'
             )
+
+    def delete_queryset(self, request, queryset):
+        """
+        Custom delete_queryset to ensure related objects are deleted first
+        to prevent FOREIGN KEY constraint failures.
+        """
+        # Explicitly delete related objects that have a ForeignKey to Article
+        # Even if on_delete=CASCADE is set, this can help with complex scenarios
+        # or database-level inconsistencies.
+
+        # Delete related Comments
+        Comment.objects.filter(article__in=queryset).delete()
+        # Delete related QuizAttempts
+        QuizAttempt.objects.filter(article__in=queryset).delete()
+        # Delete related ContentFingerprints
+        ContentFingerprint.objects.filter(article__in=queryset).delete()
+        
+
+        # Now call the superclass's delete_queryset to delete the Articles themselves
+        super().delete_queryset(request, queryset)
 
     fieldsets = (
         (_('Basic Information'), {

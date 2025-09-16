@@ -4,9 +4,6 @@ Simple command to start the content acquisition system
 """
 
 from django.core.management.base import BaseCommand, CommandError
-from django.utils import timezone
-from django.db.models import Q
-from datetime import timedelta
 
 from ...models_content_acquisition import ContentSource, ContentAcquisitionJob
 from ...tasks_content_acquisition import acquire_content_from_source
@@ -83,7 +80,7 @@ class Command(BaseCommand):
             if unhealthy_sources:
                 self.stdout.write(
                     self.style.WARNING(
-                        f"⚠️  Unhealthy sources detected:\n"
+                        "⚠️  Unhealthy sources detected:\n"
                         + "\n".join(f"  - {s}" for s in unhealthy_sources)
                     )
                 )
@@ -148,7 +145,7 @@ class Command(BaseCommand):
             if result.get("errors"):
                 self.stdout.write(
                     self.style.WARNING(
-                        f"\n⚠️  Errors encountered:\n"
+                        "\n⚠️  Errors encountered:\n"
                         + "\n".join(f"  - {error}" for error in result["errors"])
                     )
                 )
@@ -202,17 +199,17 @@ class Command(BaseCommand):
         if failed_sources:
             self.stdout.write(
                 self.style.WARNING(
-                    f"\n⚠️  Failed sources:\n"
+                    "\n⚠️  Failed sources:\n"
                     + "\n".join(f"  - {error}" for error in failed_sources)
                 )
             )
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"\n📊 Monitor progress:\n"
-                f"  - Django Admin: /admin/verifast_app/contentacquisitionjob/\n"
-                f"  - Celery Flower: http://localhost:5555 (if running)\n"
-                f"  - Logs: tail -f celery.log"
+                "\n📊 Monitor progress:\n"
+                "  - Django Admin: /admin/verifast_app/contentacquisitionjob/\n"
+                "  - Celery Flower: http://localhost:5555 (if running)\n"
+                "  - Logs: tail -f celery.log"
             )
         )
 

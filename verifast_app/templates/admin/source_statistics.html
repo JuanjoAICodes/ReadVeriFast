@@ -1,0 +1,74 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+
+<div class="module">
+  <h2>{% trans "Source Details" %}</h2>
+  <ul>
+    <li><strong>{% trans "Name" %}:</strong> {{ source.name }}</li>
+    <li><strong>{% trans "Type" %}:</strong> {{ source.get_source_type_display }}</li>
+    <li><strong>{% trans "Status" %}:</strong> {{ source.get_status_display }}</li>
+    <li><strong>{% trans "Language" %}:</strong> {{ source.get_language_display }}</li>
+    <li><strong>{% trans "Last Success" %}:</strong> {{ source.last_successful_fetch|date:'Y-m-d H:i'|default:'-' }}</li>
+  </ul>
+</div>
+
+<div class="module">
+  <h2>{% trans "Recent Jobs" %}</h2>
+  {% if recent_jobs %}
+    <table class="table">
+      <thead><tr>
+        <th>{% trans "Started" %}</th>
+        <th>{% trans "Status" %}</th>
+        <th>{% trans "Processed" %}</th>
+      </tr></thead>
+      <tbody>
+        {% for job in recent_jobs %}
+          <tr>
+            <td>{{ job.started_at|date:'Y-m-d H:i' }}</td>
+            <td>{{ job.get_status_display }}</td>
+            <td>{{ job.articles_processed }}/{{ job.articles_found }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>{% trans "No recent jobs." %}</p>
+  {% endif %}
+</div>
+
+<div class="module">
+  <h2>{% trans "Recent Metrics" %}</h2>
+  {% if metrics %}
+    <table class="table">
+      <thead><tr>
+        <th>{% trans "Date" %}</th>
+        <th>{% trans "Processed" %}</th>
+        <th>{% trans "Duplicated" %}</th>
+        <th>{% trans "Rejected" %}</th>
+      </tr></thead>
+      <tbody>
+        {% for m in metrics %}
+          <tr>
+            <td>{{ m.date }}{% if m.hour %} {{ m.hour }}:00{% endif %}</td>
+            <td>{{ m.articles_processed }}</td>
+            <td>{{ m.articles_duplicated }}</td>
+            <td>{{ m.articles_rejected }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>{% trans "No metrics available." %}</p>
+  {% endif %}
+</div>
+
+<div class="submit-row">
+  <a class="button" href="{% url 'admin:content_acquisition_dashboard' %}">{% trans "Back to Dashboard" %}</a>
+  <a class="button" href="{% url 'admin:verifast_app_contentsource_changelist' %}">{% trans "Manage Sources" %}</a>
+</div>
+{% endblock %}

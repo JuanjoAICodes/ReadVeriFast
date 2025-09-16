@@ -28,6 +28,7 @@ djangorestframework==3.15.1
 EOF
 
 # Install dependencies
+export BLIS_ARCH="generic"
 pip install -r requirements.txt
 
 # Collect static files

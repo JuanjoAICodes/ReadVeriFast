@@ -90,6 +90,18 @@ def process_article(self, article_id):
 def _process_regular_article(article, article_id):
     """Helper function to process regular (non-Wikipedia) articles."""
     try:
+        # --- 0. Ensure correct language before analysis ---
+        try:
+            from .services.language_processor import LanguageProcessor
+            lp = LanguageProcessor()
+            detected_lang, confidence = lp.detect_language(article.content or "", article.title or "")
+            if detected_lang in ['en', 'es'] and detected_lang != article.language and confidence >= 0.7:
+                article.language = detected_lang
+                article.save(update_fields=['language'])
+                logger.info(f"Language corrected to {detected_lang} (confidence={confidence:.2f}) for Article ID {article.id}")
+        except Exception as e:
+            logger.warning(f"Language re-detection failed for Article ID {article_id}: {e}")
+
         # --- 1. Create ArticleAnalysisDTO for structured processing ---
         analysis_dto = ArticleAnalysisDTO(
             article_id=article.id,
@@ -274,6 +286,15 @@ def scrape_and_save_article(url):
         article = newspaper.Article(url)
         article.download()
         article.parse()
+
+        # Detect language via LanguageProcessor (robust fallback inside)
+        try:
+            from .services.language_processor import LanguageProcessor
+            lp = LanguageProcessor()
+            detected_lang, confidence = lp.detect_language(article.text or "", article.title or "")
+            lang = detected_lang if detected_lang in ['en', 'es'] else 'en'
+        except Exception:
+            lang = 'en'
         
         # Create but don't process yet. Save with 'pending' status.
         new_article = Article.objects.create(
@@ -284,7 +305,7 @@ def scrape_and_save_article(url):
             image_url=article.top_image,
             source="user_submission",
             processing_status='pending', # IMPORTANT
-            language=getattr(article, 'language', 'en') # Use getattr for robust language retrieval
+            language=lang
         )
         # Now, trigger the processing task for the new article
         process_article.delay(new_article.id)
